@@ -11,8 +11,11 @@ const ENV_NAME = "LEAN_EVENT_TENANTS_JSON";
 const DEFAULT_ENVIRONMENTS = ["production", "preview"];
 
 function runVercel(args, stdin) {
+  const vercelBin = process.platform === "win32" ? "npx.cmd" : "npx";
+  const vercelArgs = ["vercel", ...args];
+
   return new Promise((resolve, reject) => {
-    const child = spawn("vercel", args, {
+    const child = spawn(vercelBin, vercelArgs, {
       cwd: root,
       shell: true,
       stdio: ["pipe", "pipe", "pipe"],

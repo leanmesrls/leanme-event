@@ -135,4 +135,5 @@ export const config = {
     "/leanyou/:path*",
     "/api/leanyou/:path*",
   ],
+  runtime: "nodejs",
 };
