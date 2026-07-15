@@ -22,6 +22,20 @@ const nextConfig: NextConfig = {
   experimental: {
     middlewareClientMaxBodySize: "35mb",
   },
+  async redirects() {
+    return [
+      {
+        source: "/leanyou/:path*",
+        destination: "/lean-event/:path*",
+        permanent: true,
+      },
+      {
+        source: "/api/leanyou/:path*",
+        destination: "/api/lean-event/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

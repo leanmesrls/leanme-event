@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { DEFAULT_PUBLIC_TENANT_SLUG } from "./lib/lean-event/constants";
+import { DEFAULT_PUBLIC_TENANT_SLUG } from "@/lib/lean-event/constants";
 import {
   isLegacyLeanEventLeonardoPath,
   isTenantLoginPath,
@@ -8,21 +8,8 @@ import {
   leanEventLoginPath,
   mapLegacyLeanEventLeonardoPath,
   parseTenantSlugFromPath,
-} from "./lib/lean-event/paths";
-import { SESSION_COOKIE_NAMES, readSessionToken } from "./lib/lean-event/session-token";
-
-async function readSessionFromRequest(request: NextRequest) {
-  for (const name of SESSION_COOKIE_NAMES) {
-    const token = request.cookies.get(name)?.value;
-    if (token) {
-      const session = await readSessionToken(token);
-      if (session) {
-        return session;
-      }
-    }
-  }
-  return null;
-}
+} from "@/lib/lean-event/paths";
+import { SESSION_COOKIE, readSessionToken } from "@/lib/lean-event/session-token";
 
 function redirectToUnifiedLogin(
   request: NextRequest,
@@ -40,25 +27,15 @@ function redirectToUnifiedLogin(
   return NextResponse.redirect(loginUrl);
 }
 
-function mapLegacyPath(pathname: string): string {
-  if (pathname.startsWith("/api/leanyou")) {
-    return pathname.replace("/api/leanyou", "/api/lean-event");
-  }
-  return pathname.replace("/leanyou", "/lean-event");
+async function readSessionFromRequest(request: NextRequest) {
+  const token =
+    request.cookies.get(SESSION_COOKIE)?.value ??
+    request.cookies.get("leanyou_session")?.value;
+  return token ? readSessionToken(token) : null;
 }
 
 export async function middleware(request: NextRequest) {
-  let { pathname } = request.nextUrl;
-
-  if (pathname.startsWith("/leanyou") || pathname.startsWith("/api/leanyou")) {
-    const mapped = mapLegacyPath(pathname);
-    if (request.method === "GET" || request.method === "HEAD") {
-      const url = request.nextUrl.clone();
-      url.pathname = mapped;
-      return NextResponse.redirect(url, 308);
-    }
-    pathname = mapped;
-  }
+  const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/api/lean-event/auth/login")) {
     return NextResponse.next();
@@ -129,10 +106,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/lean-event/:path*",
-    "/api/lean-event/:path*",
-    "/leanyou/:path*",
-    "/api/leanyou/:path*",
-  ],
+  matcher: ["/lean-event/:path*", "/api/lean-event/:path*"],
 };
