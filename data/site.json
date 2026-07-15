@@ -12,7 +12,7 @@
     { "label": "Come possiamo aiutarti", "href": "/come-possiamo-aiutarti" },
     { "label": "Lean Lab", "href": "/leanlab" },
     { "label": "Lean Academy", "href": "/lean-academy" },
-    { "label": "LeanYou", "href": "/leanyou/login" }
+    { "label": "Lean Event", "href": "/lean-event/login" }
   ],
   "footer": {
     "tagline": "Digital Innovation Company — Progettiamo Aziende Ibride.",

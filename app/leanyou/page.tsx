@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { leanyouLoginPath } from "@/lib/leanyou/paths";
+import { leanEventLoginPath } from "@/lib/lean-event/paths";
 
-export default function LeanYouRootPage() {
-  redirect(leanyouLoginPath());
+export default function LeanEventRootPage() {
+  redirect(leanEventLoginPath());
 }

@@ -14,12 +14,12 @@ export function agentCardImageSrc(slug: string): string {
   return `/assets/official/agenti-schede/${slug}-card.png`;
 }
 
-/** LeanYou gestionale badges (portrait circle + name + action). */
+/** LeanEvent gestionale badges (portrait circle + name + action). */
 export const AGENT_BADGE_ASPECT = "280 / 384" as const;
 
 export const agentBadgeClassName =
   "aspect-[280/384] w-full max-w-[9rem] self-start object-contain";
 
 export function agentBadgeSrc(slug: string): string {
-  return `/assets/official/leanyou/agent-badges/${slug}.png`;
+  return `/assets/official/lean-event/agent-badges/${slug}.png`;
 }

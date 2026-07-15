@@ -2,9 +2,9 @@
 
 **Versione documento:** 2026-07-10 (rev. 2)  
 **Stato:** Architettura target (post-vocale Luana)  
-**Fonti:** vocali 2026-07-10, `docs/leanyou-event-platform-packs.md`, `docs/leanyou-events.md`  
-**Dati tipologia evento:** `data/leanyou/event-taxonomy.json`  
-**Mapping agenti AI:** `data/leanyou/ai-agent-map.json`  
+**Fonti:** vocali 2026-07-10, `docs/lean-event-event-platform-packs.md`, `docs/lean-event-events.md`  
+**Dati tipologia evento:** `data/lean-event/event-taxonomy.json`  
+**Mapping agenti AI:** `data/lean-event/ai-agent-map.json`  
 **Tenant pilota:** I&C srl — `iec`
 
 ---
@@ -12,7 +12,7 @@
 ## 1. Principio architetturale
 
 ```
-LeanYou (multi-tenant)
+Lean Event (multi-tenant)
 └── Leonardo (hub gestionale)
     ├── Menu GLOBALE (agenzia)     → cruscotto, eventi, rubrica, verbali AI, finance, Lean.Human, Government
     └── Scheda SINGOLO EVENTO      → tutte le operazioni per quell'evento
@@ -34,13 +34,13 @@ LeanYou (multi-tenant)
 
 | # | Voce menu | ID | URL | Ruolo |
 |---|-----------|-----|-----|-------|
-| 1 | **Cruscotto** | `hub` | `/leanyou/{tenant}/leonardo` | KPI, scorciatoie, attività recenti |
-| 2 | **Eventi** | `eventi` | `/leanyou/{tenant}/leonardo/eventi` | Lista + creazione eventi; ingresso alle schede |
-| 3 | **Rubrica contatti** | `contatti` | `/leanyou/{tenant}/leonardo/contatti` | Anagrafica globale tenant (source of truth contatti) |
-| 4 | **Verbali AI** | `verbali` | `/leanyou/{tenant}/leonardo/verbali` | Secretary Assistant — verbali da audio/video; **non** sempre legati a un evento |
-| 5 | **Finance** | `finance` | `/leanyou/{tenant}/leonardo/finance` | **Report aggregato** di tutti i budget di tutti gli eventi — andamento economico agenzia |
-| 6 | **Lean.Human** | `lean_human` | `/leanyou/{tenant}/leonardo/lean-human` | Supporto umano LMI — assistenza, integrazioni, intervento manuale (icona **Teresa**) |
-| 7 | **Government** | `government` | `/leanyou/{tenant}/leonardo/government` | Gestione **società scientifiche** — servizio separato, locked di default |
+| 1 | **Cruscotto** | `hub` | `/lean-event/{tenant}/leonardo` | KPI, scorciatoie, attività recenti |
+| 2 | **Eventi** | `eventi` | `/lean-event/{tenant}/leonardo/eventi` | Lista + creazione eventi; ingresso alle schede |
+| 3 | **Rubrica contatti** | `contatti` | `/lean-event/{tenant}/leonardo/contatti` | Anagrafica globale tenant (source of truth contatti) |
+| 4 | **Verbali AI** | `verbali` | `/lean-event/{tenant}/leonardo/verbali` | Secretary Assistant — verbali da audio/video; **non** sempre legati a un evento |
+| 5 | **Finance** | `finance` | `/lean-event/{tenant}/leonardo/finance` | **Report aggregato** di tutti i budget di tutti gli eventi — andamento economico agenzia |
+| 6 | **Lean.Human** | `lean_human` | `/lean-event/{tenant}/leonardo/lean-human` | Supporto umano LMI — assistenza, integrazioni, intervento manuale (icona **Teresa**) |
+| 7 | **Government** | `government` | `/lean-event/{tenant}/leonardo/government` | Gestione **società scientifiche** — servizio separato, locked di default |
 
 **Redirect legacy:** `/leonardo/supporto` → `/leonardo/lean-human`
 
@@ -66,7 +66,7 @@ Ogni azione AI mostra l'**iconcina dell'agente** responsabile (`LeanAgentAiIcon`
 | ECM / Attestati / Certificati | **Angela** |
 | Lean.Human | **Teresa** |
 
-Config: `data/leanyou/ai-agent-map.json` · Helper: `lib/leanyou/ai-agents.ts`
+Config: `data/lean-event/ai-agent-map.json` · Helper: `lib/lean-event/ai-agents.ts`
 
 ---
 
@@ -107,7 +107,7 @@ Campi in scheda evento (`LeonardoEvent`):
 - BLENDED RES-FSC
 - RES / FAD
 
-Taxonomy: `data/leanyou/event-taxonomy.json`
+Taxonomy: `data/lean-event/event-taxonomy.json`
 
 ---
 
@@ -221,7 +221,7 @@ Quando un evento ha contenuti sufficienti, il modulo AI (se attivo nel pack):
 6. **AI Assistant** — per sezione: «Scrivi la mail ai relatori», «Genera nuova immagine evento», …
 
 ```
-Event + brand tenant + prompts (data/leanyou/prompts.json esteso)
+Event + brand tenant + prompts (data/lean-event/prompts.json esteso)
     → job AI (async, Inngest futuro)
     → Stampati (Blob) + Public site (SSR/ISR)
 ```
@@ -251,7 +251,7 @@ Modelli **prestabiliti** selezionati da criteri:
 | Compensi | Con FI / senza FI |
 | Ruolo | Relatore, moderatore, discussant, … |
 
-Storage template: `data/leanyou/templates/lettere-incarico/` (o Blob per tenant custom).  
+Storage template: `data/lean-event/templates/lettere-incarico/` (o Blob per tenant custom).  
 Generazione: merge dati docente + evento → PDF/DOCX.
 
 ---
@@ -358,11 +358,11 @@ Override opzionale **per singolo evento** (es. congresso ECM con tutto, cena sen
 
 | Documento | Contenuto |
 |-----------|-----------|
-| `docs/leanyou-event-platform-packs.md` | CORE / PRO / AI / PLATINUM + add-on |
-| `docs/leanyou-events.md` | Specifica operativa e sprint dettagliati |
-| `docs/leanyou-leonardo-scheda-tecnica.md` | Verbali AI (produzione) |
-| `docs/leanyou.md` | Overview LeanYou |
+| `docs/lean-event-event-platform-packs.md` | CORE / PRO / AI / PLATINUM + add-on |
+| `docs/lean-event-events.md` | Specifica operativa e sprint dettagliati |
+| `docs/lean-event-leonardo-scheda-tecnica.md` | Verbali AI (produzione) |
+| `docs/lean-event.md` | Overview Lean Event |
 
 ---
 
-*Prossimo passo: allineare `config.json`, `types/leanyou.ts` e UI tab evento allo schema §3.*
+*Prossimo passo: allineare `config.json`, `types/lean-event.ts` e UI tab evento allo schema §3.*

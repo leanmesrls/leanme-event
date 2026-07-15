@@ -3,18 +3,18 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/auth";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   createEventSupplierLink,
   listEventSuppliersWithSupplier,
   saveEventSupplierLink,
-} from "@/lib/leanyou/event-suppliers";
+} from "@/lib/lean-event/event-suppliers";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -39,7 +39,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const links = await listEventSuppliersWithSupplier(session.tenantId, eventId);
     return NextResponse.json({ links });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Caricamento fornitori evento non riuscito."
     );
@@ -91,7 +91,7 @@ export async function POST(request: Request, context: RouteContext) {
     await saveEventSupplierLink(link);
     return NextResponse.json({ link });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Collegamento fornitore non riuscito."
     );

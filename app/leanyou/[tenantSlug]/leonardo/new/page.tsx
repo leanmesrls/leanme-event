@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { leanyouLeonardoNewPath } from "@/lib/leanyou/paths";
+import { leanEventLeonardoNewPath } from "@/lib/lean-event/paths";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -8,5 +8,5 @@ interface PageProps {
 
 export default async function LeonardoLegacyNewRedirect({ params }: PageProps) {
   const { tenantSlug } = await params;
-  redirect(leanyouLeonardoNewPath(tenantSlug));
+  redirect(leanEventLeonardoNewPath(tenantSlug));
 }

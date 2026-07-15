@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { importAllMeetingCongressiCatalog, importMeetingCongressiVenues } from "@/lib/leanyou/import-meetingecongressi";
-import { searchMeetingCongressiCatalog } from "@/lib/leanyou/meetingecongressi-catalog";
+} from "@/lib/lean-event/auth";
+import { importAllMeetingCongressiCatalog, importMeetingCongressiVenues } from "@/lib/lean-event/import-meetingecongressi";
+import { searchMeetingCongressiCatalog } from "@/lib/lean-event/meetingecongressi-catalog";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 export const runtime = "nodejs";
 
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Ricerca catalogo Meeting e Congressi non riuscita."
     );
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     const result = await importMeetingCongressiVenues(session, links);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Importazione da Meeting e Congressi non riuscita."
     );

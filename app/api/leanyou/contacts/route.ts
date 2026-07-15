@@ -3,19 +3,23 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 import {
   createContact,
   findContactByEmailForTenant,
   listContacts,
   saveContact,
-} from "@/lib/leanyou/contacts";
-import { normalizeTagsList, parseTagsRaw } from "@/lib/leanyou/contact-tags";
+} from "@/lib/lean-event/contacts";
+import { normalizeTagsList, parseTagsRaw } from "@/lib/lean-event/contact-tags";
+import {
+  contactCreateLockKey,
+  contactCreateLocks,
+} from "@/lib/lean-event/contact-create-lock";
 
 export async function GET() {
   try {
@@ -30,7 +34,7 @@ export async function GET() {
     const contacts = await listContacts(session.tenantId);
     return NextResponse.json({ contacts });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento contatti non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento contatti non riuscito.");
   }
 }
 
@@ -62,39 +66,68 @@ export async function POST(request: Request) {
     }
 
     const email = body.email?.trim() ?? "";
-    if (email) {
-      const existing = await findContactByEmailForTenant(session.tenantId, email);
-      if (existing) {
+    const lockKey = email ? contactCreateLockKey(session.tenantId, email) : null;
+
+    if (lockKey) {
+      if (contactCreateLocks.has(lockKey)) {
+        const existing = await findContactByEmailForTenant(session.tenantId, email);
+        if (existing) {
+          return NextResponse.json({ contact: existing });
+        }
         return NextResponse.json(
-          {
-            error: "Contatto già presente.",
-            duplicate: true,
-            contact: existing,
-          },
-          { status: 409 }
+          { error: "Creazione contatto già in corso. Riprova tra un istante." },
+          { status: 429 }
         );
       }
+      contactCreateLocks.add(lockKey);
     }
 
-    const tags = Array.isArray(body.tags)
-      ? normalizeTagsList(body.tags)
-      : parseTagsRaw(body.tags ?? "");
+    try {
+      if (email) {
+        const existing = await findContactByEmailForTenant(session.tenantId, email);
+        if (existing) {
+          return NextResponse.json(
+            {
+              error: "Contatto già presente.",
+              duplicate: true,
+              contact: existing,
+            },
+            { status: 409 }
+          );
+        }
+      }
 
-    const contact = createContact(session, {
-      firstName: body.firstName,
-      lastName: body.lastName,
-      email,
-      phones: body.phone?.trim()
-        ? [{ label: "Principale", number: body.phone.trim() }]
-        : [],
-      organization: body.organization ?? "",
-      tags,
-      notes: body.notes ?? "",
-    });
+      const tags = Array.isArray(body.tags)
+        ? normalizeTagsList(body.tags)
+        : parseTagsRaw(body.tags ?? "");
 
-    await saveContact(contact);
-    return NextResponse.json({ contact });
+      const contact = createContact(session, {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email,
+        phones: body.phone?.trim()
+          ? [{ label: "Principale", number: body.phone.trim() }]
+          : [],
+        organization: body.organization ?? "",
+        tags,
+        notes: body.notes ?? "",
+      });
+
+      if (email) {
+        const raced = await findContactByEmailForTenant(session.tenantId, email);
+        if (raced) {
+          return NextResponse.json({ contact: raced });
+        }
+      }
+
+      await saveContact(contact);
+      return NextResponse.json({ contact });
+    } finally {
+      if (lockKey) {
+        contactCreateLocks.delete(lockKey);
+      }
+    }
   } catch (error) {
-    return handleLeanYouRouteError(error, "Creazione contatto non riuscita.");
+    return handleLeanEventRouteError(error, "Creazione contatto non riuscita.");
   }
 }

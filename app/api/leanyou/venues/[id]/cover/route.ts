@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { readVenueCoverFile } from "@/lib/leanyou/venue-cover-storage";
-import { getVenue } from "@/lib/leanyou/venues";
+} from "@/lib/lean-event/server-auth";
+import { readVenueCoverFile } from "@/lib/lean-event/venue-cover-storage";
+import { getVenue } from "@/lib/lean-event/venues";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -22,7 +22,7 @@ async function fetchExternalCover(
   try {
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "LeanYou-VenueCover/1.0",
+        "User-Agent": "LeanEvent-VenueCover/1.0",
         Accept: "image/*",
       },
       signal: AbortSignal.timeout(15_000),
@@ -92,6 +92,6 @@ export async function GET(_request: Request, context: RouteContext) {
       },
     });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento immagine non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento immagine non riuscito.");
   }
 }

@@ -3,19 +3,19 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   createEventContactAssignment,
   isValidRoleCategory,
   listAssignmentsForEventWithContacts,
   listEventRoleCategories,
-} from "@/lib/leanyou/event-assignments";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/event-assignments";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -47,7 +47,7 @@ export async function GET(_request: Request, context: RouteContext) {
       roleCategories: listEventRoleCategories(),
     });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Caricamento ospiti evento non riuscito."
     );
@@ -128,7 +128,7 @@ export async function POST(request: Request, context: RouteContext) {
       throw error;
     }
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Assegnazione ospite non riuscita."
     );

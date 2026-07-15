@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { isTrashEntityType, restoreTrashItem } from "@/lib/leanyou/trash";
+} from "@/lib/lean-event/server-auth";
+import { isTrashEntityType, restoreTrashItem } from "@/lib/lean-event/trash";
 
 interface RouteContext {
   params: Promise<{ type: string; id: string }>;
@@ -47,6 +47,6 @@ export async function POST(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Ripristino non riuscito.");
+    return handleLeanEventRouteError(error, "Ripristino non riuscito.");
   }
 }

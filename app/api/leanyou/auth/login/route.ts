@@ -3,18 +3,18 @@ import { NextResponse } from "next/server";
 import {
   auditContextFromSession,
   clientIpFromRequest,
-  writeLeanYouAuditEvent,
-} from "@/lib/leanyou/audit-log";
+  writeLeanEventAuditEvent,
+} from "@/lib/lean-event/audit-log";
 import {
   createSessionPayload,
   findUserByEmail,
   findUserByToken,
   verifyPassword,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   createSessionToken,
   withSessionCookie,
-} from "@/lib/leanyou/session";
+} from "@/lib/lean-event/session";
 
 function tenantMismatch(
   requestedTenantSlug: string | undefined,
@@ -37,7 +37,7 @@ async function logLoginFailure(
     method?: "email" | "token";
   }
 ) {
-  await writeLeanYouAuditEvent({
+  await writeLeanEventAuditEvent({
     action: "login_failed",
     detail,
     ip: clientIpFromRequest(request),
@@ -117,7 +117,7 @@ async function handleLogin(
 
     const session = createSessionPayload(match.tenant, match.user);
     const token = await createSessionToken(session);
-    await writeLeanYouAuditEvent({
+    await writeLeanEventAuditEvent({
       action: "login_success",
       method: "token",
       ip: clientIpFromRequest(request),
@@ -183,7 +183,7 @@ async function handleLogin(
 
   const session = createSessionPayload(match.tenant, match.user);
   const token = await createSessionToken(session);
-  await writeLeanYouAuditEvent({
+  await writeLeanEventAuditEvent({
     action: "login_success",
     method: "email",
     ip: clientIpFromRequest(request),

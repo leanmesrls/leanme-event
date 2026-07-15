@@ -1,20 +1,20 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoEventList } from "@/components/leanyou/LeonardoEventList";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoEventList } from "@/components/lean-event/LeonardoEventList";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoEventiPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
-import { listEvents } from "@/lib/leanyou/events";
+  leanEventLeonardoEventiPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
+import { listEvents } from "@/lib/lean-event/events";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -24,9 +24,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Eventi",
+    title: "Lean Event · Eventi",
     description: "Gestione eventi Leonardo.",
-    path: leanyouLeonardoEventiPath(tenantSlug),
+    path: leanEventLeonardoEventiPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -40,20 +40,20 @@ export default async function LeonardoEventiPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "events") ||
     !tenantHasLeonardoCapability(session, "eventi")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   const events = await listEvents(session.tenantId);
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoEventList tenantSlug={tenantSlug} initialEvents={events} />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

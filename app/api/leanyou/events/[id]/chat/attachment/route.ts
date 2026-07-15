@@ -4,15 +4,15 @@ import path from "node:path";
 
 import { NextResponse } from "next/server";
 
-import { tenantHasLeonardoCapability, tenantHasModule } from "@/lib/leanyou/auth";
-import { getEvent } from "@/lib/leanyou/events";
+import { tenantHasLeonardoCapability, tenantHasModule } from "@/lib/lean-event/auth";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { saveChatAttachmentFile } from "@/lib/leanyou/chat-attachment-storage";
-import { getDataRoot } from "@/lib/leanyou/storage";
+} from "@/lib/lean-event/server-auth";
+import { saveChatAttachmentFile } from "@/lib/lean-event/chat-attachment-storage";
+import { getDataRoot } from "@/lib/lean-event/storage";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -96,6 +96,6 @@ export async function POST(request: Request, context: RouteContext) {
     if (error instanceof Error && error.message.includes("Formato")) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    return handleLeanYouRouteError(error, "Upload allegato non riuscito.");
+    return handleLeanEventRouteError(error, "Upload allegato non riuscito.");
   }
 }

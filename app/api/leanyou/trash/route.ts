@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { listTrashItems } from "@/lib/leanyou/trash";
+} from "@/lib/lean-event/server-auth";
+import { listTrashItems } from "@/lib/lean-event/trash";
 
 export async function GET() {
   try {
@@ -28,6 +28,6 @@ export async function GET() {
     const items = await listTrashItems(session.tenantId);
     return NextResponse.json({ items });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento cestino non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento cestino non riuscito.");
   }
 }

@@ -1,15 +1,15 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoTrashList } from "@/components/leanyou/LeonardoTrashList";
-import { findTenantBySlug, tenantHasModule } from "@/lib/leanyou/auth";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoTrashList } from "@/components/lean-event/LeonardoTrashList";
+import { findTenantBySlug, tenantHasModule } from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoCestinoPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoCestinoPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -19,9 +19,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Cestino",
+    title: "Lean Event · Cestino",
     description: "Recupero elementi eliminati Leonardo.",
-    path: leanyouLeonardoCestinoPath(tenantSlug),
+    path: leanEventLeonardoCestinoPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -35,15 +35,15 @@ export default async function LeonardoCestinoPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (!tenantHasModule(session, "events")) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoTrashList tenantSlug={tenantSlug} />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

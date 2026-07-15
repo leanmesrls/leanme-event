@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 
-import { transcribeAudioBuffer } from "@/lib/leanyou/leonardo-processor";
-import { cleanTranscriptionPart } from "@/lib/leanyou/transcription-cleanup";
-import { tenantHasModule } from "@/lib/leanyou/auth";
+import { transcribeAudioBuffer } from "@/lib/lean-event/leonardo-processor";
+import { cleanTranscriptionPart } from "@/lib/lean-event/transcription-cleanup";
+import { tenantHasModule } from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 import {
   decodeUploadFile,
   isMediaFileName,
   MAX_CHUNK_BYTES,
   type LeonardoProcessUploadFile,
-} from "@/lib/leanyou/upload-payload";
-import { getWorkspace } from "@/lib/leanyou/workspaces";
+} from "@/lib/lean-event/upload-payload";
+import { getWorkspace } from "@/lib/lean-event/workspaces";
 
 interface RouteContext {
   params: Promise<{ id: string }>;

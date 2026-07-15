@@ -5,21 +5,21 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/auth";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   appendEventSupplierDocument,
   getEventSupplierLink,
   saveEventSupplierLink,
-} from "@/lib/leanyou/event-suppliers";
+} from "@/lib/lean-event/event-suppliers";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { saveSupplierDocumentFile } from "@/lib/leanyou/supplier-document-storage";
-import { isoDateToEuropeanDate } from "@/lib/leanyou/dates";
-import type { LeonardoSupplierDocumentKind } from "@/types/leanyou";
+} from "@/lib/lean-event/server-auth";
+import { saveSupplierDocumentFile } from "@/lib/lean-event/supplier-document-storage";
+import { isoDateToEuropeanDate } from "@/lib/lean-event/dates";
+import type { LeonardoSupplierDocumentKind } from "@/types/lean-event";
 
 interface RouteContext {
   params: Promise<{ id: string; linkId: string }>;
@@ -98,6 +98,6 @@ export async function POST(request: Request, context: RouteContext) {
     if (error instanceof Error && error.message.includes("Formato")) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    return handleLeanYouRouteError(error, "Upload documento non riuscito.");
+    return handleLeanEventRouteError(error, "Upload documento non riuscito.");
   }
 }

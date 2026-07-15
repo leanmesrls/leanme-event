@@ -1,20 +1,20 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoRubricaNav } from "@/components/leanyou/LeonardoRubricaNav";
-import { LEONARDO_PAGE_TITLE } from "@/components/leanyou/leonardo-ui";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoClientiPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoClientiPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -24,9 +24,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Rubrica clienti",
+    title: "Lean Event · Rubrica clienti",
     description: "Rubrica clienti Leonardo.",
-    path: leanyouLeonardoClientiPath(tenantSlug),
+    path: leanEventLeonardoClientiPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -40,17 +40,17 @@ export default async function LeonardoClientiPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "events") ||
     !tenantHasLeonardoCapability(session, "clienti")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <div className="space-y-6">
         <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled />
         <div className="rounded-xl border border-white/10 bg-[#111111] p-8">
@@ -61,6 +61,6 @@ export default async function LeonardoClientiPage({ params }: PageProps) {
           </p>
         </div>
       </div>
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

@@ -14,7 +14,7 @@ const nextCli = join(root, "node_modules", "next", "dist", "bin", "next");
 const result = spawnSync(process.execPath, [nextCli, "build"], {
   cwd: root,
   stdio: "inherit",
-  env: { ...process.env, LEANYOU_PROD_BUILD: "1" },
+  env: { ...process.env, LEAN_EVENT_PROD_BUILD: "1" },
 });
 
 if (result.status === 0) {

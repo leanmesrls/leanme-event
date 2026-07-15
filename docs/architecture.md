@@ -64,10 +64,10 @@ Vercel automatically deploys from GitHub.
 
 All commits must remain production ready.
 
-LeanYou / Leonardo
+Lean Event / Leonardo
 
 Multi-tenant customer area. Architecture:
 
-- `docs/leanyou-event-architecture.md` — menu, sezioni evento, AI, sito pubblico
-- `docs/leanyou-events.md` — operational spec and sprints
-- `docs/leanyou-event-platform-packs.md` — commercial packs CORE → PLATINUM
+- `docs/lean-event-event-architecture.md` — menu, sezioni evento, AI, sito pubblico
+- `docs/lean-event-events.md` — operational spec and sprints
+- `docs/lean-event-event-platform-packs.md` — commercial packs CORE → PLATINUM

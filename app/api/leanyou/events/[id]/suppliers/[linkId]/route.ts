@@ -3,18 +3,18 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   deleteEventSupplierLink,
   getEventSupplierLink,
   saveEventSupplierLink,
-} from "@/lib/leanyou/event-suppliers";
+} from "@/lib/lean-event/event-suppliers";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { isValidSupplierCategory } from "@/lib/leanyou/supplier-categories";
+} from "@/lib/lean-event/server-auth";
+import { isValidSupplierCategory } from "@/lib/lean-event/supplier-categories";
 
 interface RouteContext {
   params: Promise<{ id: string; linkId: string }>;
@@ -38,7 +38,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ link });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento fornitore evento non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento fornitore evento non riuscito.");
   }
 }
 
@@ -77,7 +77,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     await saveEventSupplierLink(next);
     return NextResponse.json({ link: next });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Aggiornamento fornitore evento non riuscito.");
+    return handleLeanEventRouteError(error, "Aggiornamento fornitore evento non riuscito.");
   }
 }
 
@@ -100,6 +100,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await deleteEventSupplierLink(session.tenantId, linkId);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Rimozione fornitore evento non riuscita.");
+    return handleLeanEventRouteError(error, "Rimozione fornitore evento non riuscita.");
   }
 }

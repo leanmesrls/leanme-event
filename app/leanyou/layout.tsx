@@ -1,4 +1,4 @@
-export default function LeanYouRootLayout({
+export default function LeanEventRootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

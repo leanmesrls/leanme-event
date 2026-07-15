@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { findTenantBySlug, tenantHasLeonardoCapability } from "@/lib/leanyou/auth";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { findTenantBySlug, tenantHasLeonardoCapability } from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoGovernmentPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoGovernmentPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +19,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
   return createPageMetadata({
-    title: "LeanYou · Government",
+    title: "Lean Event · Government",
     description: "Gestione società scientifiche — modulo attivabile come servizio.",
-    path: leanyouLeonardoGovernmentPath(tenantSlug),
+    path: leanEventLeonardoGovernmentPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -30,19 +30,19 @@ export default async function LeonardoGovernmentPage({ params }: PageProps) {
   const { tenantSlug } = await params;
   const tenant = await findTenantBySlug(tenantSlug);
   if (!tenant) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (!tenantHasLeonardoCapability(session, "government")) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <div className="space-y-6 p-6 md:p-8">
         <div>
           <h2 className="text-2xl font-bold">Government</h2>
@@ -52,6 +52,6 @@ export default async function LeonardoGovernmentPage({ params }: PageProps) {
           </p>
         </div>
       </div>
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

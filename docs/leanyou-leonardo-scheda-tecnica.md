@@ -1,6 +1,6 @@
 # Leonardo · Secretary Assistant — Scheda tecnica (generazione verbali)
 
-**Prodotto:** LeanYou · modulo **Workspace verbali** (parte della piattaforma **Leonardo** — vedi `docs/leanyou-events.md` §0)  
+**Prodotto:** Lean Event · modulo **Workspace verbali** (parte della piattaforma **Leonardo** — vedi `docs/lean-event-events.md` §0)  
 **Versione documento:** 2026-07-10  
 **Stato:** v1.0 in produzione su `demo.leanme.it` — flusso end-to-end verificato (trascrizione video + generazione documenti, ~10 minuti per riunione tipica)  
 **Scope:** generazione verbali da audio/video, trascrizione testuale e output documentali  
@@ -10,7 +10,7 @@
 
 ## 1. Scopo e perimetro
 
-Leonardo · Secretary Assistant consente a un tenant LeanYou (es. I&C srl) di:
+Leonardo · Secretary Assistant consente a un tenant Lean Event (es. I&C srl) di:
 
 1. Creare un **workspace** per ogni riunione (metadati: titolo, cliente, data, partecipanti, tipo riunione).
 2. Caricare **video/audio** (Zoom, registrazioni) fino a **2 GB**, oppure testo (txt/vtt/srt) o note testuali integrative.
@@ -76,8 +76,8 @@ flowchart TB
 |-------|------------|
 | Framework | Next.js 15.5 (App Router), React, TypeScript |
 | Styling | Tailwind CSS |
-| Auth session | Cookie firmato `leanyou_session` (HMAC) |
-| Storage workspace | Vercel Blob (prod) / filesystem `.leanyou-data/` (locale) |
+| Auth session | Cookie firmato `lean_event_session` (HMAC) |
+| Storage workspace | Vercel Blob (prod) / filesystem `.lean-event-data/` (locale) |
 | Audio client | `@ffmpeg/ffmpeg@0.12.10`, `@ffmpeg/core@0.12.6` (self-hosted in `/public/ffmpeg/`) |
 | Trascrizione | OpenAI `whisper-1` (configurabile) |
 | Strutturazione | OpenAI Chat Completions, `response_format: json_object` |
@@ -89,10 +89,10 @@ flowchart TB
 
 | Risorsa | Percorso |
 |---------|----------|
-| Login LeanYou | `/leanyou/login` |
-| Lista workspace (tenant I&C) | `/leanyou/iec/leonardo` |
-| Nuovo workspace | `/leanyou/iec/leonardo/new` |
-| Dettaglio / elaborazione | `/leanyou/iec/leonardo/[id]` |
+| Login Lean Event | `/lean-event/login` |
+| Lista workspace (tenant I&C) | `/lean-event/iec/leonardo` |
+| Nuovo workspace | `/lean-event/iec/leonardo/new` |
+| Dettaglio / elaborazione | `/lean-event/iec/leonardo/[id]` |
 
 **Isolamento tenant:** ogni workspace ha `tenantId`; le API usano `session.tenantId` — un tenant non accede ai workspace di un altro.
 
@@ -100,7 +100,7 @@ flowchart TB
 
 ## 5. Modello dati workspace
 
-File: `types/leanyou.ts` → `LeonardoWorkspace`
+File: `types/lean-event.ts` → `LeonardoWorkspace`
 
 | Campo | Tipo | Descrizione |
 |-------|------|-------------|
@@ -118,7 +118,7 @@ File: `types/leanyou.ts` → `LeonardoWorkspace`
 
 **Persistenza:**
 
-- **Locale:** `.leanyou-data/workspaces/{tenantId}/{id}.json`
+- **Locale:** `.lean-event-data/workspaces/{tenantId}/{id}.json`
 - **Produzione:** Blob path `leanyou/workspaces/{tenantId}/{id}.json` (accesso `private`)
 
 ---
@@ -127,7 +127,7 @@ File: `types/leanyou.ts` → `LeonardoWorkspace`
 
 Tutte richiedono sessione valida + modulo `leonardo` sul tenant.
 
-### `POST /api/leanyou/workspaces/{id}/transcribe`
+### `POST /api/lean-event/workspaces/{id}/transcribe`
 
 - **Body:** `{ file: { name, mimeType, dataBase64 } }`
 - **Limite body:** audio decodificato ≤ **3 MB** (Vercel 4.5 MB con overhead base64/JSON)
@@ -135,19 +135,19 @@ Tutte richiedono sessione valida + modulo `leonardo` sul tenant.
 - **Output:** `{ text: string }`
 - **Backend:** `transcribeAudioBuffer()` → OpenAI `/v1/audio/transcriptions`
 
-### `PATCH /api/leanyou/workspaces/{id}`
+### `PATCH /api/lean-event/workspaces/{id}`
 
 - Aggiorna metadati; supporta `transcript` + `status: "content_ready"`
 - Usato **prima** del process per non perdere la trascrizione in caso di timeout
 
-### `POST /api/leanyou/workspaces/{id}/process`
+### `POST /api/lean-event/workspaces/{id}/process`
 
 - **Body:** `{}` (legge `transcript` dal workspace salvato) opzionale `{ transcript }` legacy
 - **maxDuration:** **300 s** (5 min, Vercel Pro)
 - **Output:** `{ ok: true, workspaceId }` — il client fa GET per caricare i documenti
 - **Backend:** `processLeonardoWorkspace()` → segmentazione → OpenAI × N → merge → render HTML → save Blob
 
-### `GET /api/leanyou/workspaces/{id}`
+### `GET /api/lean-event/workspaces/{id}`
 
 - Restituisce workspace completo inclusi `documents`
 
@@ -155,7 +155,7 @@ Tutte richiedono sessione valida + modulo `leonardo` sul tenant.
 
 ## 7. Pipeline audio (browser)
 
-**File:** `lib/leanyou/ffmpeg-client.ts`
+**File:** `lib/lean-event/ffmpeg-client.ts`
 
 ### Input supportati
 
@@ -188,7 +188,7 @@ Tutte richiedono sessione valida + modulo `leonardo` sul tenant.
 
 `next.config.ts` imposta `Cross-Origin-Opener-Policy: same-origin` e `Cross-Origin-Embedder-Policy: require-corp` su:
 
-- `/leanyou/*`
+- `/lean-event/*`
 - `/_next/static/chunks/*`
 
 Necessario per `SharedArrayBuffer` usato da FFmpeg.wasm.
@@ -197,7 +197,7 @@ Necessario per `SharedArrayBuffer` usato da FFmpeg.wasm.
 
 ## 8. Pipeline OpenAI (server)
 
-**File:** `lib/leanyou/leonardo-processor.ts`
+**File:** `lib/lean-event/leonardo-processor.ts`
 
 ### 8.1 Trascrizione (Whisper)
 
@@ -208,8 +208,8 @@ Necessario per `SharedArrayBuffer` usato da FFmpeg.wasm.
 | Lingua | `it` (fissa) |
 | Limite segmento server | 24 MB (OpenAI); i chunk arrivano già ≤ 3 MB |
 | Min bytes | 512 |
-| Normalizzazione MIME | `lib/leanyou/audio-upload.ts` |
-| Pulizia output | `lib/leanyou/transcription-cleanup.ts` (rimozione hallucination Whisper: “sottotitoli amara.org”, “grazie per aver guardato”, ecc.) |
+| Normalizzazione MIME | `lib/lean-event/audio-upload.ts` |
+| Pulizia output | `lib/lean-event/transcription-cleanup.ts` (rimozione hallucination Whisper: “sottotitoli amara.org”, “grazie per aver guardato”, ecc.) |
 
 ### 8.2 Strutturazione (Chat Completions)
 
@@ -225,7 +225,7 @@ Necessario per `SharedArrayBuffer` usato da FFmpeg.wasm.
 
 ### 8.3 Prompt e template
 
-**File configurazione:** `data/leanyou/prompts.json`
+**File configurazione:** `data/lean-event/prompts.json`
 
 | Chiave | Contenuto |
 |--------|-----------|
@@ -234,7 +234,7 @@ Necessario per `SharedArrayBuffer` usato da FFmpeg.wasm.
 | `documentGuidelines` | Regole redazione verbale dettagliato, sintetico, keywords |
 | `emailFollowupInstructions` | Template email post-riunione |
 
-**Tipi riunione** (`data/leanyou/config.json`):
+**Tipi riunione** (`data/lean-event/config.json`):
 
 | `meetingType` | Label UI | Template prompt |
 |---------------|----------|-----------------|
@@ -251,7 +251,7 @@ Titolo, Cliente, Organizzazione, Data, Tipo, Partecipanti, Moderatore, Segretari
 
 ### 8.4 Compaction keywords
 
-**File:** `lib/leanyou/keyword-compaction.ts`
+**File:** `lib/lean-event/keyword-compaction.ts`
 
 Limiti post-processing (deduplica case-insensitive, varianti prefix):
 
@@ -269,7 +269,7 @@ Limiti post-processing (deduplica case-insensitive, varianti prefix):
 
 ## 9. Documenti generati
 
-**File rendering:** `lib/leanyou/document-renderer.ts`
+**File rendering:** `lib/lean-event/document-renderer.ts`
 
 | ID documento | Label UI | Contenuto |
 |--------------|----------|-----------|
@@ -290,14 +290,14 @@ Limiti post-processing (deduplica case-insensitive, varianti prefix):
 
 | Variabile | Obbligatoria | Descrizione |
 |-----------|--------------|-------------|
-| `LEANYOU_SESSION_SECRET` | Sì | Firma cookie sessione |
-| `LEANYOU_TENANTS_JSON` | Sì (prod) | JSON tenant/utenti/moduli |
+| `LEAN_EVENT_SESSION_SECRET` | Sì | Firma cookie sessione |
+| `LEAN_EVENT_TENANTS_JSON` | Sì (prod) | JSON tenant/utenti/moduli |
 | `OPENAI_API_KEY` | Sì | Trascrizione + strutturazione |
 | `OPENAI_TRANSCRIPTION_MODEL` | No | Default `whisper-1` |
 | `OPENAI_STRUCTURING_MODEL` | No | Default `gpt-4.1-mini` |
 | `BLOB_READ_WRITE_TOKEN` | Sì (prod) | Persistenza workspace |
 | `NEXT_PUBLIC_SITE_URL` | Sì | URL canonico (es. `https://demo.leanme.it`) |
-| `LEANYOU_DATA_DIR` | No (locale) | Default `.leanyou-data` |
+| `LEAN_EVENT_DATA_DIR` | No (locale) | Default `.lean-event-data` |
 
 Template: `.env.example`
 
@@ -305,10 +305,10 @@ Template: `.env.example`
 
 ## 11. Sicurezza e audit
 
-- **Auth:** email/password o token URL (`/leanyou/login?token=...`)
+- **Auth:** email/password o token URL (`/lean-event/login?token=...`)
 - **Session cookie:** `withSessionCookie()` su NextResponse
 - **RBAC:** modulo `leonardo` in `tenant.modules[]`
-- **Audit log (locale):** `.leanyou-data/audit/{tenantId}/events.jsonl`
+- **Audit log (locale):** `.lean-event-data/audit/{tenantId}/events.jsonl`
 - **Audit log (Vercel):** stdout prefisso `leanyou_audit` → Vercel Logs
 - **Eventi workspace:** `workspace_create`, `workspace_update`, `workspace_process_start/complete/failed`
 
@@ -332,17 +332,17 @@ Template: `.env.example`
 ```
 app/
   leanyou/[tenantSlug]/leonardo/          # Pagine UI
-  api/leanyou/workspaces/                 # CRUD workspace
-  api/leanyou/workspaces/[id]/transcribe # Whisper
-  api/leanyou/workspaces/[id]/process    # Generazione verbali
+  api/lean-event/workspaces/                 # CRUD workspace
+  api/lean-event/workspaces/[id]/transcribe # Whisper
+  api/lean-event/workspaces/[id]/process    # Generazione verbali
 
-components/leanyou/
+components/lean-event/
   LeonardoWorkspaceDetail.tsx             # Orchestrazione client (upload → transcribe → process)
   LeonardoWorkspaceForm.tsx
   LeonardoWorkspaceList.tsx
   LeonardoWorkspaceMetadataForm.tsx
 
-lib/leanyou/
+lib/lean-event/
   ffmpeg-client.ts                        # Preparazione audio browser
   leonardo-processor.ts                   # Whisper + Chat Completions
   document-renderer.ts                    # HTML documenti
@@ -355,7 +355,7 @@ lib/leanyou/
   workspace-storage.ts                    # Astrazione Blob/filesystem
   workspace-blob-storage.ts               # Vercel Blob
 
-data/leanyou/
+data/lean-event/
   config.json                             # Tipi riunione, tipi documento, nav
   prompts.json                            # Prompt OpenAI (modificabile senza deploy codice*)
 
@@ -436,13 +436,13 @@ Dipende da: durata video, numero chunk, lunghezza trascrizione, numero segmenti 
 
 ## 18. Riferimenti interni
 
-- Panoramica LeanYou: `docs/leanyou.md`
-- Config UI: `data/leanyou/config.json`
-- Prompt OpenAI: `data/leanyou/prompts.json`
+- Panoramica Lean Event: `docs/lean-event.md`
+- Config UI: `data/lean-event/config.json`
+- Prompt OpenAI: `data/lean-event/prompts.json`
 - Env template: `.env.example`
-- Script accesso tenant: `npm run leanyou:access`
-- Sync Vercel env: `npm run leanyou:sync-vercel`
+- Script accesso tenant: `npm run lean-event:access`
+- Sync Vercel env: `npm run lean-event:sync-vercel`
 
 ---
 
-*Documento archivio — LeanMe / LeanYou · Leonardo Secretary Assistant · generazione verbali.*
+*Documento archivio — LeanMe / Lean Event · Leonardo Secretary Assistant · generazione verbali.*

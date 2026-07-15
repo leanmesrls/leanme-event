@@ -28,7 +28,7 @@ async function check(url, label) {
 async function main() {
   console.log(`Base URL: ${baseUrl}\n`);
 
-  const okPage = await check(`${baseUrl}/leanyou/login`, "LeanYou login page");
+  const okPage = await check(`${baseUrl}/lean-event/login`, "LeanEvent login page");
   const okJs = await check(`${baseUrl}/ffmpeg/ffmpeg-core.js`, "FFmpeg core JS");
   const okWasm = await check(`${baseUrl}/ffmpeg/ffmpeg-core.wasm`, "FFmpeg core WASM");
 

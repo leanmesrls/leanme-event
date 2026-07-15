@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { saveVenueCoverFile } from "@/lib/leanyou/venue-cover-storage";
-import { getVenue, saveVenue } from "@/lib/leanyou/venues";
+} from "@/lib/lean-event/server-auth";
+import { saveVenueCoverFile } from "@/lib/lean-event/venue-cover-storage";
+import { getVenue, saveVenue } from "@/lib/lean-event/venues";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -59,6 +59,6 @@ export async function POST(request: Request, context: RouteContext) {
 
     return NextResponse.json({ venue: next, coverImageUrl });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Upload immagine non riuscito.");
+    return handleLeanEventRouteError(error, "Upload immagine non riuscito.");
   }
 }

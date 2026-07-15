@@ -3,16 +3,16 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import type { LeanYouContact } from "@/types/leanyou";
-import { deleteContact, getContact, saveContact } from "@/lib/leanyou/contacts";
-import { sessionUserId } from "@/lib/leanyou/entity-lifecycle";
-import { normalizeTagsList, parseTagsRaw } from "@/lib/leanyou/contact-tags";
+} from "@/lib/lean-event/server-auth";
+import type { LeanEventContact } from "@/types/lean-event";
+import { deleteContact, getContact, saveContact } from "@/lib/lean-event/contacts";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
+import { normalizeTagsList, parseTagsRaw } from "@/lib/lean-event/contact-tags";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -36,7 +36,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ contact });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento contatto non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento contatto non riuscito.");
   }
 }
 
@@ -56,13 +56,13 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Contatto non trovato." }, { status: 404 });
     }
 
-    const body = (await request.json()) as Partial<LeanYouContact> & {
+    const body = (await request.json()) as Partial<LeanEventContact> & {
       phone?: string;
       tags?: string | string[];
       expectedRevision?: number;
     };
 
-    const next: LeanYouContact = {
+    const next: LeanEventContact = {
       ...contact,
       firstName:
         body.firstName !== undefined ? body.firstName.trim() : contact.firstName,
@@ -97,7 +97,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
     return NextResponse.json({ contact: saved });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Aggiornamento contatto non riuscito.");
+    return handleLeanEventRouteError(error, "Aggiornamento contatto non riuscito.");
   }
 }
 
@@ -115,6 +115,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await deleteContact(session.tenantId, id, sessionUserId(session));
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Eliminazione contatto non riuscita.");
+    return handleLeanEventRouteError(error, "Eliminazione contatto non riuscita.");
   }
 }

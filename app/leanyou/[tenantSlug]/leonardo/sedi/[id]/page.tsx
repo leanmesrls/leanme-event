@@ -1,20 +1,20 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoVenueDetail } from "@/components/leanyou/LeonardoVenueDetail";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoVenueDetail } from "@/components/lean-event/LeonardoVenueDetail";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoPath,
-  leanyouLeonardoVenuePath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
-import { getVenue } from "@/lib/leanyou/venues";
+  leanEventLeonardoPath,
+  leanEventLeonardoVenuePath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
+import { getVenue } from "@/lib/lean-event/venues";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; id: string }>;
@@ -24,9 +24,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug, id } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Scheda sede",
+    title: "Lean Event · Scheda sede",
     description: "Dettaglio sede Leonardo.",
-    path: leanyouLeonardoVenuePath(tenantSlug, id),
+    path: leanEventLeonardoVenuePath(tenantSlug, id),
     noIndex: true,
   });
 }
@@ -40,13 +40,13 @@ export default async function LeonardoVenueDetailPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "events") ||
     !tenantHasLeonardoCapability(session, "eventi")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   const venue = await getVenue(session.tenantId, id);
@@ -55,8 +55,8 @@ export default async function LeonardoVenueDetailPage({ params }: PageProps) {
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoVenueDetail tenantSlug={tenantSlug} initialVenue={venue} />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

@@ -3,17 +3,17 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   createVenue,
   listVenues,
   saveVenue,
-} from "@/lib/leanyou/venues";
+} from "@/lib/lean-event/venues";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 export async function GET() {
   try {
@@ -28,7 +28,7 @@ export async function GET() {
     const venues = await listVenues(session.tenantId);
     return NextResponse.json({ venues });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento sedi non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento sedi non riuscito.");
   }
 }
 
@@ -80,6 +80,6 @@ export async function POST(request: Request) {
     await saveVenue(venue);
     return NextResponse.json({ venue });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Creazione sede non riuscita.");
+    return handleLeanEventRouteError(error, "Creazione sede non riuscita.");
   }
 }

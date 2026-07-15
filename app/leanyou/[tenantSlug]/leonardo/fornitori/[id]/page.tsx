@@ -1,22 +1,22 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoSupplierDetail } from "@/components/leanyou/LeonardoSupplierDetail";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoSupplierDetail } from "@/components/lean-event/LeonardoSupplierDetail";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { getSessionLeonardoCapabilities } from "@/lib/leanyou/capabilities";
-import { getSupplier } from "@/lib/leanyou/suppliers";
+} from "@/lib/lean-event/auth";
+import { getSessionLeonardoCapabilities } from "@/lib/lean-event/capabilities";
+import { getSupplier } from "@/lib/lean-event/suppliers";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoFornitoriPath,
-  leanyouLeonardoPath,
-  leanyouLeonardoSupplierPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoFornitoriPath,
+  leanEventLeonardoPath,
+  leanEventLeonardoSupplierPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; id: string }>;
@@ -26,9 +26,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug, id } = await params;
 
   return createPageMetadata({
-    title: `LeanYou · Fornitore ${id.slice(0, 8)}`,
+    title: `Lean Event · Fornitore ${id.slice(0, 8)}`,
     description: "Scheda fornitore Leonardo.",
-    path: leanyouLeonardoSupplierPath(tenantSlug, id),
+    path: leanEventLeonardoSupplierPath(tenantSlug, id),
     noIndex: true,
   });
 }
@@ -42,29 +42,29 @@ export default async function LeonardoFornitoreDetailPage({ params }: PageProps)
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "events") ||
     !tenantHasLeonardoCapability(session, "fornitori")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   const supplier = await getSupplier(session.tenantId, id);
   if (!supplier) {
-    redirect(`${leanyouLeonardoFornitoriPath(tenantSlug)}?fornitore=missing`);
+    redirect(`${leanEventLeonardoFornitoriPath(tenantSlug)}?fornitore=missing`);
   }
 
   const capabilities = getSessionLeonardoCapabilities(session);
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoSupplierDetail
         tenantSlug={tenantSlug}
         initialSupplier={supplier}
         clientiEnabled={capabilities.clienti}
       />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

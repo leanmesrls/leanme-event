@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { DEFAULT_PUBLIC_TENANT_SLUG } from "@/lib/leanyou/constants";
-import { leanyouLeonardoWorkspacePath } from "@/lib/leanyou/paths";
+import { DEFAULT_PUBLIC_TENANT_SLUG } from "@/lib/lean-event/constants";
+import { leanEventLeonardoWorkspacePath } from "@/lib/lean-event/paths";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -9,5 +9,5 @@ interface PageProps {
 
 export default async function LeonardoLegacyWorkspacePage({ params }: PageProps) {
   const { id } = await params;
-  redirect(leanyouLeonardoWorkspacePath(DEFAULT_PUBLIC_TENANT_SLUG, id));
+  redirect(leanEventLeonardoWorkspacePath(DEFAULT_PUBLIC_TENANT_SLUG, id));
 }

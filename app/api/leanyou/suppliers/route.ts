@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { createSupplier, listSuppliers, saveSupplier } from "@/lib/leanyou/suppliers";
+} from "@/lib/lean-event/server-auth";
+import { createSupplier, listSuppliers, saveSupplier } from "@/lib/lean-event/suppliers";
 
 export async function GET() {
   try {
@@ -24,7 +24,7 @@ export async function GET() {
     const suppliers = await listSuppliers(session.tenantId);
     return NextResponse.json({ suppliers });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento fornitori non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento fornitori non riuscito.");
   }
 }
 
@@ -74,6 +74,6 @@ export async function POST(request: Request) {
     await saveSupplier(supplier);
     return NextResponse.json({ supplier });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Creazione fornitore non riuscita.");
+    return handleLeanEventRouteError(error, "Creazione fornitore non riuscita.");
   }
 }

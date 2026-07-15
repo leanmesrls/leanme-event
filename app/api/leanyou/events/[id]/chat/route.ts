@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 
-import { tenantHasLeonardoCapability, tenantHasModule } from "@/lib/leanyou/auth";
+import { tenantHasLeonardoCapability, tenantHasModule } from "@/lib/lean-event/auth";
 import {
   appendEventChatMessage,
   extractMentions,
   listEventChatMessages,
-} from "@/lib/leanyou/event-chat";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/event-chat";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -36,7 +36,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const messages = await listEventChatMessages(session.tenantId, eventId);
     return NextResponse.json({ messages });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Lettura chat non riuscita.");
+    return handleLeanEventRouteError(error, "Lettura chat non riuscita.");
   }
 }
 
@@ -84,6 +84,6 @@ export async function POST(request: Request, context: RouteContext) {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(error, "Invio messaggio non riuscito.");
+    return handleLeanEventRouteError(error, "Invio messaggio non riuscito.");
   }
 }

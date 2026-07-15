@@ -14,13 +14,25 @@ const crossOriginIsolationHeaders = [
 // Build locale (`npm run build`) usa `.next-prod` per non corrompere la cache dev.
 // Su Vercel resta sempre `.next` (output atteso dalla piattaforma).
 const useLocalProdDistDir =
-  process.env.LEANYOU_PROD_BUILD === "1" && process.env.VERCEL !== "1";
+  process.env.LEAN_EVENT_PROD_BUILD === "1" && process.env.VERCEL !== "1";
 
 const nextConfig: NextConfig = {
   distDir: useLocalProdDistDir ? ".next-prod" : ".next",
   devIndicators: false,
   experimental: {
     middlewareClientMaxBodySize: "35mb",
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/lean-event/:path*",
+        destination: "/leanyou/:path*",
+      },
+      {
+        source: "/api/lean-event/:path*",
+        destination: "/api/leanyou/:path*",
+      },
+    ];
   },
   images: {
     formats: ["image/avif", "image/webp"],
@@ -77,7 +89,7 @@ const nextConfig: NextConfig = {
         headers: crossOriginIsolationHeaders,
       },
       {
-        source: "/leanyou/:path*",
+        source: "/lean-event/:path*",
         headers: crossOriginIsolationHeaders,
       },
     ];

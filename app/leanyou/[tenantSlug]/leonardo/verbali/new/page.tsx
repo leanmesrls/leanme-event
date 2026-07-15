@@ -1,19 +1,19 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoWorkspaceForm } from "@/components/leanyou/LeonardoWorkspaceForm";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoWorkspaceForm } from "@/components/lean-event/LeonardoWorkspaceForm";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoNewPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoNewPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -24,9 +24,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Nuovo workspace verbale",
+    title: "Lean Event · Nuovo workspace verbale",
     description: "Crea un nuovo workspace verbali.",
-    path: leanyouLeonardoNewPath(tenantSlug),
+    path: leanEventLeonardoNewPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -44,18 +44,18 @@ export default async function LeonardoVerbaliNewPage({
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "leonardo") ||
     !tenantHasLeonardoCapability(session, "verbali")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoWorkspaceForm tenantSlug={tenantSlug} linkedEventId={eventId} />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

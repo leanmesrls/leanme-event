@@ -1,29 +1,29 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoEventDetail } from "@/components/leanyou/LeonardoEventDetail";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoEventDetail } from "@/components/lean-event/LeonardoEventDetail";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoEventPath,
-  leanyouLeonardoEventiPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSessionLeonardoCapabilities } from "@/lib/leanyou/capabilities";
-import { listContacts } from "@/lib/leanyou/contacts";
-import { listAssignmentsForEventWithContacts } from "@/lib/leanyou/event-assignments";
-import { listEventSuppliersWithSupplier } from "@/lib/leanyou/event-suppliers";
-import { getEvent, listEvents } from "@/lib/leanyou/events";
-import { listSuppliers } from "@/lib/leanyou/suppliers";
-import { getSession } from "@/lib/leanyou/session";
-import { listVenues } from "@/lib/leanyou/venues";
-import { listWorkspacesForEvent } from "@/lib/leanyou/workspaces";
+  leanEventLeonardoEventPath,
+  leanEventLeonardoEventiPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSessionLeonardoCapabilities } from "@/lib/lean-event/capabilities";
+import { listContacts } from "@/lib/lean-event/contacts";
+import { listAssignmentsForEventWithContacts } from "@/lib/lean-event/event-assignments";
+import { listEventSuppliersWithSupplier } from "@/lib/lean-event/event-suppliers";
+import { getEvent, listEvents } from "@/lib/lean-event/events";
+import { listSuppliers } from "@/lib/lean-event/suppliers";
+import { getSession } from "@/lib/lean-event/session";
+import { listVenues } from "@/lib/lean-event/venues";
+import { listWorkspacesForEvent } from "@/lib/lean-event/workspaces";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +35,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug, id } = await params;
 
   return createPageMetadata({
-    title: `LeanYou · Evento ${id.slice(0, 8)}`,
+    title: `Lean Event · Evento ${id.slice(0, 8)}`,
     description: "Dettaglio evento Leonardo.",
-    path: leanyouLeonardoEventPath(tenantSlug, id),
+    path: leanEventLeonardoEventPath(tenantSlug, id),
     noIndex: true,
   });
 }
@@ -51,18 +51,18 @@ export default async function LeonardoEventiDetailPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "events") ||
     !tenantHasLeonardoCapability(session, "eventi")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   const event = await getEvent(session.tenantId, id);
   if (!event) {
-    redirect(`${leanyouLeonardoEventiPath(tenantSlug)}?event=missing`);
+    redirect(`${leanEventLeonardoEventiPath(tenantSlug)}?event=missing`);
   }
 
   const capabilities = getSessionLeonardoCapabilities(session);
@@ -86,7 +86,7 @@ export default async function LeonardoEventiDetailPage({ params }: PageProps) {
   const otherEvents = allEvents.filter((item) => item.id !== id);
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <Suspense fallback={<p className="text-sm text-white/50">Caricamento evento…</p>}>
         <LeonardoEventDetail
         tenantSlug={tenantSlug}
@@ -105,6 +105,6 @@ export default async function LeonardoEventiDetailPage({ params }: PageProps) {
         currentUserEmail={session.userEmail}
         />
       </Suspense>
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

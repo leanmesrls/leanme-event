@@ -20,7 +20,7 @@ if (shouldCleanNextForDev(nextDir)) {
 console.log(`[leanme] Avvio dev server su http://localhost:${DEV_PORT}`);
 
 const devEnv = { ...process.env };
-delete devEnv.LEANYOU_PROD_BUILD;
+delete devEnv.LEAN_EVENT_PROD_BUILD;
 
 const nextCli = join(root, "node_modules", "next", "dist", "bin", "next");
 const child = spawn(

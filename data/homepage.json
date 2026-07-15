@@ -16,7 +16,7 @@
     { "label": "COME POSSIAMO AIUTARTI", "href": "/come-possiamo-aiutarti" },
     { "label": "LEAN LAB", "href": "/leanlab" },
     { "label": "LEAN ACADEMY", "href": "/lean-academy" },
-    { "label": "🔒 LEANYOU", "href": "/leanyou/login" }
+    { "label": "🔒 LEAN EVENT", "href": "/lean-event/login" }
   ],
   "hero": {
     "claimPrimary": "POWERED BY HUMAN INTELLIGENCE.",

@@ -1,21 +1,21 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoContactDetail } from "@/components/leanyou/LeonardoContactDetail";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoContactDetail } from "@/components/lean-event/LeonardoContactDetail";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { getContact } from "@/lib/leanyou/contacts";
-import { listAssignmentsForContactWithEvents } from "@/lib/leanyou/event-assignments";
+} from "@/lib/lean-event/auth";
+import { getContact } from "@/lib/lean-event/contacts";
+import { listAssignmentsForContactWithEvents } from "@/lib/lean-event/event-assignments";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoContactPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoContactPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; id: string }>;
@@ -25,9 +25,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug, id } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Scheda contatto",
+    title: "Lean Event · Scheda contatto",
     description: "Dettaglio contatto rubrica Leonardo.",
-    path: leanyouLeonardoContactPath(tenantSlug, id),
+    path: leanEventLeonardoContactPath(tenantSlug, id),
     noIndex: true,
   });
 }
@@ -41,13 +41,13 @@ export default async function LeonardoContactDetailPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "events") ||
     !tenantHasLeonardoCapability(session, "contatti")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   const contact = await getContact(session.tenantId, id);
@@ -61,12 +61,12 @@ export default async function LeonardoContactDetailPage({ params }: PageProps) {
   );
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoContactDetail
         tenantSlug={tenantSlug}
         initialContact={{ ...contact, tags: contact.tags ?? [] }}
         assignments={assignments}
       />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

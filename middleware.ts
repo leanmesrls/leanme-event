@@ -1,21 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { DEFAULT_PUBLIC_TENANT_SLUG } from "@/lib/leanyou/constants";
+import { DEFAULT_PUBLIC_TENANT_SLUG } from "@/lib/lean-event/constants";
 import {
-  isLegacyLeanYouLeonardoPath,
+  isLegacyLeanEventLeonardoPath,
   isTenantLoginPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-  mapLegacyLeanYouLeonardoPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+  mapLegacyLeanEventLeonardoPath,
   parseTenantSlugFromPath,
-} from "@/lib/leanyou/paths";
-import { SESSION_COOKIE, readSessionToken } from "@/lib/leanyou/session-token";
+} from "@/lib/lean-event/paths";
+import { SESSION_COOKIE_NAMES, readSessionToken } from "@/lib/lean-event/session-token";
+
+async function readSessionFromRequest(request: NextRequest) {
+  for (const name of SESSION_COOKIE_NAMES) {
+    const token = request.cookies.get(name)?.value;
+    if (token) {
+      const session = await readSessionToken(token);
+      if (session) {
+        return session;
+      }
+    }
+  }
+  return null;
+}
 
 function redirectToUnifiedLogin(
   request: NextRequest,
   nextPath?: string
 ): NextResponse {
-  const loginUrl = new URL(leanyouLoginPath(), request.url);
+  const loginUrl = new URL(leanEventLoginPath(), request.url);
   if (nextPath) {
     loginUrl.searchParams.set("next", nextPath);
   }
@@ -27,53 +40,68 @@ function redirectToUnifiedLogin(
   return NextResponse.redirect(loginUrl);
 }
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+function mapLegacyPath(pathname: string): string {
+  if (pathname.startsWith("/api/leanyou")) {
+    return pathname.replace("/api/leanyou", "/api/lean-event");
+  }
+  return pathname.replace("/leanyou", "/lean-event");
+}
 
-  if (pathname.startsWith("/api/leanyou/auth/login")) {
+export async function middleware(request: NextRequest) {
+  let { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/leanyou") || pathname.startsWith("/api/leanyou")) {
+    const mapped = mapLegacyPath(pathname);
+    if (request.method === "GET" || request.method === "HEAD") {
+      const url = request.nextUrl.clone();
+      url.pathname = mapped;
+      return NextResponse.redirect(url, 308);
+    }
+    pathname = mapped;
+  }
+
+  if (pathname.startsWith("/api/lean-event/auth/login")) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/leanyou")) {
-    const token = request.cookies.get(SESSION_COOKIE)?.value;
-    const session = token ? await readSessionToken(token) : null;
+  if (pathname.startsWith("/api/lean-event")) {
+    const session = await readSessionFromRequest(request);
     if (!session) {
       return NextResponse.json({ error: "Non autorizzato." }, { status: 401 });
     }
     return NextResponse.next();
   }
 
-  if (!pathname.startsWith("/leanyou")) {
+  if (!pathname.startsWith("/lean-event")) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const session = token ? await readSessionToken(token) : null;
+  const session = await readSessionFromRequest(request);
 
-  if (pathname === leanyouLoginPath()) {
+  if (pathname === leanEventLoginPath()) {
     if (session) {
       return NextResponse.redirect(
-        new URL(leanyouLeonardoPath(session.tenantSlug), request.url)
+        new URL(leanEventLeonardoPath(session.tenantSlug), request.url)
       );
     }
     return NextResponse.next();
   }
 
-  if (pathname === "/leanyou") {
+  if (pathname === "/lean-event") {
     if (session) {
       return NextResponse.redirect(
-        new URL(leanyouLeonardoPath(session.tenantSlug), request.url)
+        new URL(leanEventLeonardoPath(session.tenantSlug), request.url)
       );
     }
-    return NextResponse.redirect(new URL(leanyouLoginPath(), request.url));
+    return NextResponse.redirect(new URL(leanEventLoginPath(), request.url));
   }
 
   if (isTenantLoginPath(pathname)) {
     return redirectToUnifiedLogin(request);
   }
 
-  if (isLegacyLeanYouLeonardoPath(pathname)) {
-    const target = mapLegacyLeanYouLeonardoPath(
+  if (isLegacyLeanEventLeonardoPath(pathname)) {
+    const target = mapLegacyLeanEventLeonardoPath(
       pathname,
       session?.tenantSlug ?? DEFAULT_PUBLIC_TENANT_SLUG
     );
@@ -93,7 +121,7 @@ export async function middleware(request: NextRequest) {
 
   if (session.tenantSlug !== tenantSlug) {
     return NextResponse.redirect(
-      new URL(leanyouLeonardoPath(session.tenantSlug), request.url)
+      new URL(leanEventLeonardoPath(session.tenantSlug), request.url)
     );
   }
 
@@ -101,5 +129,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/leanyou/:path*", "/api/leanyou/:path*"],
+  matcher: [
+    "/lean-event/:path*",
+    "/api/lean-event/:path*",
+    "/leanyou/:path*",
+    "/api/leanyou/:path*",
+  ],
 };

@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { importVenuesFromRows } from "@/lib/leanyou/import-venues";
-import { parseSpreadsheetBuffer } from "@/lib/leanyou/spreadsheet-import";
+} from "@/lib/lean-event/auth";
+import { importVenuesFromRows } from "@/lib/lean-event/import-venues";
+import { parseSpreadsheetBuffer } from "@/lib/lean-event/spreadsheet-import";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 export const runtime = "nodejs";
 
@@ -46,6 +46,6 @@ export async function POST(request: Request) {
     const result = await importVenuesFromRows(session, parsed.rows);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Importazione sedi non riuscita.");
+    return handleLeanEventRouteError(error, "Importazione sedi non riuscita.");
   }
 }

@@ -1,0 +1,110 @@
+{
+  "productName": "Lean Event",
+  "version": "1.2.0",
+  "leonardo": {
+    "title": "Leonardo",
+    "subtitle": "Piattaforma gestionale · Lean.Agent.AI",
+    "logo": "/assets/official/homepage/leonardo-hp.png",
+    "meetingTypes": [
+      { "value": "client_meeting", "label": "Riunione cliente" },
+      { "value": "scientific_committee", "label": "Comitato scientifico" },
+      { "value": "internal_meeting", "label": "Riunione interna" }
+    ],
+    "documentTypes": [
+      { "id": "integral_transcript", "label": "Trascrizione integrale" },
+      { "id": "detailed_minutes", "label": "Verbale dettagliato" },
+      { "id": "synthetic_minutes", "label": "Verbale sintettico" },
+      { "id": "keywords_topics", "label": "Keywords & Topics" },
+      { "id": "executive_report", "label": "Executive Report" },
+      { "id": "action_plan", "label": "Piano d'azione" },
+      { "id": "email_followup", "label": "Email di follow-up" }
+    ]
+  },
+  "navigation": [
+    {
+      "id": "hub",
+      "label": "Cruscotto",
+      "segment": "leonardo",
+      "capability": "hub",
+      "icon": "dashboard"
+    },
+    {
+      "id": "eventi",
+      "label": "Eventi",
+      "segment": "leonardo/eventi",
+      "module": "events",
+      "capability": "eventi",
+      "icon": "events"
+    },
+    {
+      "id": "rubrica",
+      "label": "Rubrica",
+      "icon": "contacts",
+      "children": [
+        {
+          "id": "contatti",
+          "label": "Contatti",
+          "segment": "leonardo/contatti",
+          "module": "events",
+          "capability": "contatti",
+          "icon": "contacts"
+        },
+        {
+          "id": "sedi",
+          "label": "Sedi",
+          "segment": "leonardo/sedi",
+          "module": "events",
+          "capability": "eventi",
+          "icon": "events"
+        },
+        {
+          "id": "fornitori",
+          "label": "Fornitori",
+          "segment": "leonardo/fornitori",
+          "module": "events",
+          "capability": "fornitori",
+          "icon": "contacts"
+        },
+        {
+          "id": "clienti",
+          "label": "Clienti",
+          "segment": "leonardo/clienti",
+          "module": "events",
+          "capability": "clienti",
+          "icon": "contacts"
+        }
+      ]
+    },
+    {
+      "id": "verbali",
+      "label": "Verbali AI",
+      "segment": "leonardo/verbali",
+      "module": "leonardo",
+      "capability": "verbali",
+      "icon": "leonardo"
+    },
+    {
+      "id": "finance",
+      "label": "Finance",
+      "segment": "leonardo/finance",
+      "module": "events",
+      "capability": "finance",
+      "icon": "finance"
+    },
+    {
+      "id": "government",
+      "label": "Government",
+      "segment": "leonardo/government",
+      "module": "government",
+      "capability": "government",
+      "icon": "government"
+    },
+    {
+      "id": "lean-human",
+      "label": "Lean.Human",
+      "segment": "leonardo/lean-human",
+      "capability": "lean_human",
+      "icon": "support"
+    }
+  ]
+}

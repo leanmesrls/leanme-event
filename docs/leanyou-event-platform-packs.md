@@ -2,9 +2,9 @@
 
 **Versione documento:** 2026-07-10  
 **Stato:** Proposta commerciale / product idea (non implementata)  
-**Prodotto:** **Lean.Event Platform** dentro **Leonardo** (LeanYou multi-tenant)  
+**Prodotto:** **Lean.Event Platform** dentro **Leonardo** (Lean Event multi-tenant)  
 **Tenant pilota:** I&C srl — `iec`  
-**Documenti correlati:** `docs/leanyou-events.md`, `docs/leanyou.md`, `docs/leanyou-leonardo-scheda-tecnica.md`
+**Documenti correlati:** `docs/lean-event-events.md`, `docs/lean-event.md`, `docs/lean-event-leonardo-scheda-tecnica.md`
 
 ---
 
@@ -21,7 +21,7 @@ Allineamento tecnico (implementazione futura):
 | Livello | Dove si configura |
 |---------|-------------------|
 | Pack commerciale | Contratto / onboarding |
-| Moduli LeanYou | `tenant.modules[]` |
+| Moduli Lean Event | `tenant.modules[]` |
 | Capability Leonardo | `tenant.leonardoCapabilities` + override opzionale per evento |
 | Add-on separati | Care, Studio, Marketplace — **mai compresi** nei pack base |
 
@@ -35,7 +35,7 @@ Allineamento tecnico (implementazione futura):
 | **Lean Digital Event Ecosystem** | Nome alternativo pack **Platinum** |
 | **Lean.Event Enterprise** | Nome alternativo pack **Platinum** |
 
-Leonardo resta il **cruscotto gestionale** (`/leanyou/{tenant}/leonardo`).  
+Leonardo resta il **cruscotto gestionale** (`/lean-event/{tenant}/leonardo`).  
 Lean.Event Platform è il **dominio funzionale eventi** attivato dal pack.
 
 ---
@@ -450,7 +450,7 @@ Implementato in dev, non ancora deploy completo:
 ### Prossimi passi suggeriti
 
 1. **Modello pack** in `tenants.json`: `eventPack: "core" | "pro" | "ai" | "platinum"`
-2. **Derivazione capability** da pack in `lib/leanyou/capabilities.ts` (come oggi da `modules[]`)
+2. **Derivazione capability** da pack in `lib/lean-event/capabilities.ts` (come oggi da `modules[]`)
 3. **Sidebar** — voci visibili ma locked se non nel pack
 4. **Override per evento** — capability granulari (già previsto in `leanyou-events.md` §2.5)
 5. **Care / Studio / Marketplace** — entità e billing separati, mai ereditati dal pack

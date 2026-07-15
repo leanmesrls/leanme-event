@@ -2,21 +2,21 @@ import { NextResponse } from "next/server";
 
 import {
   auditContextFromSession,
-  writeLeanYouAuditEvent,
-} from "@/lib/leanyou/audit-log";
+  writeLeanEventAuditEvent,
+} from "@/lib/lean-event/audit-log";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { normalizeMeetingDateInput } from "@/lib/leanyou/dates";
-import { tenantHasModule } from "@/lib/leanyou/auth";
-import type { LeonardoWorkspace } from "@/types/leanyou";
+} from "@/lib/lean-event/server-auth";
+import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
+import { tenantHasModule } from "@/lib/lean-event/auth";
+import type { LeonardoWorkspace } from "@/types/lean-event";
 import {
   deleteWorkspace,
   getWorkspace,
   saveWorkspace,
-} from "@/lib/leanyou/workspaces";
+} from "@/lib/lean-event/workspaces";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -43,7 +43,7 @@ export async function GET(_request: Request, context: RouteContext) {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(error, "Operazione workspace non riuscita.");
+    return handleLeanEventRouteError(error, "Operazione workspace non riuscita.");
   }
 }
 
@@ -93,7 +93,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     };
 
     await saveWorkspace(next);
-    await writeLeanYouAuditEvent({
+    await writeLeanEventAuditEvent({
       action: "workspace_update",
       resourceType: "leonardo_workspace",
       resourceId: next.id,
@@ -108,7 +108,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(error, "Aggiornamento workspace non riuscito.");
+    return handleLeanEventRouteError(error, "Aggiornamento workspace non riuscito.");
   }
 }
 
@@ -126,7 +126,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
 
     await deleteWorkspace(session.tenantId, id);
-    await writeLeanYouAuditEvent({
+    await writeLeanEventAuditEvent({
       action: "workspace_delete",
       resourceType: "leonardo_workspace",
       resourceId: workspace.id,
@@ -135,6 +135,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Eliminazione workspace non riuscita.");
+    return handleLeanEventRouteError(error, "Eliminazione workspace non riuscita.");
   }
 }

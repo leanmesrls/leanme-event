@@ -3,20 +3,20 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import type { LeanYouSupplier } from "@/types/leanyou";
+} from "@/lib/lean-event/server-auth";
+import type { LeanEventSupplier } from "@/types/lean-event";
 import {
   deleteSupplier,
   getSupplier,
   saveSupplier,
-} from "@/lib/leanyou/suppliers";
-import { sessionUserId } from "@/lib/leanyou/entity-lifecycle";
-import { isValidSupplierCategory } from "@/lib/leanyou/supplier-categories";
+} from "@/lib/lean-event/suppliers";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
+import { isValidSupplierCategory } from "@/lib/lean-event/supplier-categories";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -40,7 +40,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ supplier });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento fornitore non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento fornitore non riuscito.");
   }
 }
 
@@ -60,11 +60,11 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Fornitore non trovato." }, { status: 404 });
     }
 
-    const body = (await request.json()) as Partial<LeanYouSupplier> & {
+    const body = (await request.json()) as Partial<LeanEventSupplier> & {
       expectedRevision?: number;
     };
 
-    const next: LeanYouSupplier = {
+    const next: LeanEventSupplier = {
       ...supplier,
       name: body.name !== undefined ? body.name.trim() : supplier.name,
       categoryId:
@@ -95,7 +95,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
     return NextResponse.json({ supplier: saved });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Aggiornamento fornitore non riuscito.");
+    return handleLeanEventRouteError(error, "Aggiornamento fornitore non riuscito.");
   }
 }
 
@@ -113,6 +113,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await deleteSupplier(session.tenantId, id, sessionUserId(session));
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Eliminazione fornitore non riuscita.");
+    return handleLeanEventRouteError(error, "Eliminazione fornitore non riuscita.");
   }
 }

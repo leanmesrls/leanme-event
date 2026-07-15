@@ -3,19 +3,19 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { normalizeVenue, clampInternalRating } from "@/lib/leanyou/venue-normalize";
+} from "@/lib/lean-event/auth";
+import { normalizeVenue, clampInternalRating } from "@/lib/lean-event/venue-normalize";
 import {
   deleteVenue,
   getVenue,
   saveVenue,
-} from "@/lib/leanyou/venues";
+} from "@/lib/lean-event/venues";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import type { LeonardoVenue } from "@/types/leanyou";
+} from "@/lib/lean-event/server-auth";
+import type { LeonardoVenue } from "@/types/lean-event";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -39,7 +39,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ venue });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento sede non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento sede non riuscito.");
   }
 }
 
@@ -98,7 +98,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     await saveVenue(next);
     return NextResponse.json({ venue: next });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Aggiornamento sede non riuscito.");
+    return handleLeanEventRouteError(error, "Aggiornamento sede non riuscito.");
   }
 }
 
@@ -116,6 +116,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await deleteVenue(session.tenantId, id);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Eliminazione sede non riuscita.");
+    return handleLeanEventRouteError(error, "Eliminazione sede non riuscita.");
   }
 }

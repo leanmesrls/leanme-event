@@ -3,22 +3,22 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   deleteEventContactAssignment,
   getAssignment,
   listAssignmentsForEventWithContacts,
   updateEventContactAssignment,
-} from "@/lib/leanyou/event-assignments";
-import { getEvent } from "@/lib/leanyou/events";
-import { sessionUserId } from "@/lib/leanyou/entity-lifecycle";
-import { validateAllotmentAssignment } from "@/lib/leanyou/allotment-report";
+} from "@/lib/lean-event/event-assignments";
+import { getEvent } from "@/lib/lean-event/events";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
+import { validateAllotmentAssignment } from "@/lib/lean-event/allotment-report";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import type { LeonardoAssignmentHospitality, LeonardoRelatedEventParticipation } from "@/types/leanyou";
+} from "@/lib/lean-event/server-auth";
+import type { LeonardoAssignmentHospitality, LeonardoRelatedEventParticipation } from "@/types/lean-event";
 
 interface RouteContext {
   params: Promise<{ id: string; assignmentId: string }>;
@@ -96,7 +96,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       throw error;
     }
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Aggiornamento scheda ospitalità non riuscito."
     );
@@ -134,7 +134,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Rimozione assegnazione non riuscita."
     );

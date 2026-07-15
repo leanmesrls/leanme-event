@@ -2,20 +2,20 @@ import { NextResponse } from "next/server";
 
 import {
   auditContextFromSession,
-  writeLeanYouAuditEvent,
-} from "@/lib/leanyou/audit-log";
+  writeLeanEventAuditEvent,
+} from "@/lib/lean-event/audit-log";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { normalizeMeetingDateInput } from "@/lib/leanyou/dates";
-import { tenantHasModule } from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/server-auth";
+import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
+import { tenantHasModule } from "@/lib/lean-event/auth";
 import {
   createWorkspace,
   listWorkspaces,
   saveWorkspace,
-} from "@/lib/leanyou/workspaces";
+} from "@/lib/lean-event/workspaces";
 
 export async function GET() {
   try {
@@ -33,7 +33,7 @@ export async function GET() {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Operazione workspace non riuscita."
     );
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     });
 
     await saveWorkspace(workspace);
-    await writeLeanYouAuditEvent({
+    await writeLeanEventAuditEvent({
       action: "workspace_create",
       resourceType: "leonardo_workspace",
       resourceId: workspace.id,
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Creazione workspace non riuscita."
     );

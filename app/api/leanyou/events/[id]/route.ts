@@ -3,23 +3,23 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { sessionUserId } from "@/lib/leanyou/entity-lifecycle";
-import { normalizeMeetingDateInput } from "@/lib/leanyou/dates";
+} from "@/lib/lean-event/server-auth";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
+import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
 import {
   isHealthFormationCategory,
   normalizeLeonardoEvent,
   validateEventTaxonomy,
-} from "@/lib/leanyou/event-taxonomy";
-import type { LeonardoEvent, LeonardoEventHotelBlock } from "@/types/leanyou";
-import { deleteEvent, getEvent, saveEvent } from "@/lib/leanyou/events";
-import { resolveEventVenueFields } from "@/lib/leanyou/event-venue";
-import { normalizeHotelBlocks } from "@/lib/leanyou/event-hotel";
+} from "@/lib/lean-event/event-taxonomy";
+import type { LeonardoEvent, LeonardoEventHotelBlock } from "@/types/lean-event";
+import { deleteEvent, getEvent, saveEvent } from "@/lib/lean-event/events";
+import { resolveEventVenueFields } from "@/lib/lean-event/event-venue";
+import { normalizeHotelBlocks } from "@/lib/lean-event/event-hotel";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -43,7 +43,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ event });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento evento non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento evento non riuscito.");
   }
 }
 
@@ -135,7 +135,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(error, "Aggiornamento evento non riuscito.");
+    return handleLeanEventRouteError(error, "Aggiornamento evento non riuscito.");
   }
 }
 
@@ -153,6 +153,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await deleteEvent(session.tenantId, id, sessionUserId(session));
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Eliminazione evento non riuscita.");
+    return handleLeanEventRouteError(error, "Eliminazione evento non riuscita.");
   }
 }

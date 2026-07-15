@@ -5,18 +5,18 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/auth";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   appendEventSupplierEmail,
   getEventSupplierLink,
   saveEventSupplierLink,
-} from "@/lib/leanyou/event-suppliers";
+} from "@/lib/lean-event/event-suppliers";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 interface RouteContext {
   params: Promise<{ id: string; linkId: string }>;
@@ -76,6 +76,6 @@ export async function POST(request: Request, context: RouteContext) {
     await saveEventSupplierLink(updated);
     return NextResponse.json({ link: updated, email: emailRecord });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Registrazione email non riuscita.");
+    return handleLeanEventRouteError(error, "Registrazione email non riuscita.");
   }
 }

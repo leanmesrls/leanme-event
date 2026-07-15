@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 
-import { leanyouLoginPath } from "@/lib/leanyou/paths";
+import { leanEventLoginPath } from "@/lib/lean-event/paths";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function LeanYouTenantLoginRedirectPage({
+export default async function LeanEventTenantLoginRedirectPage({
   searchParams,
 }: PageProps) {
   const query = await searchParams;
@@ -22,5 +22,5 @@ export default async function LeanYouTenantLoginRedirectPage({
   }
 
   const suffix = params.toString();
-  redirect(suffix ? `${leanyouLoginPath()}?${suffix}` : leanyouLoginPath());
+  redirect(suffix ? `${leanEventLoginPath()}?${suffix}` : leanEventLoginPath());
 }

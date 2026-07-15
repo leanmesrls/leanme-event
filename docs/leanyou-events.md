@@ -1,12 +1,12 @@
-# LeanYou · Modulo Eventi — Specifica e piano di produzione
+# Lean Event · Modulo Eventi — Specifica e piano di produzione
 
 **Versione documento:** 2026-07-10 (rev. 4)  
 **Stato:** Pianificazione (pre-sviluppo)  
 **Tenant pilota:** I&C srl — slug **`iec`**  
 **Prodotto:** **Leonardo** — piattaforma gestionale eventi + strumenti di segreteria (non solo verbali)  
-**Hub:** **`/leanyou/iec/leonardo`** — cruscotto con sidebar strumenti  
-**Prerequisito:** Secretary Assistant · Verbali v1 — `docs/leanyou-leonardo-scheda-tecnica.md`  
-**Pack commerciali (CORE / PRO / AI / PLATINUM + add-on):** `docs/leanyou-event-platform-packs.md`
+**Hub:** **`/lean-event/iec/leonardo`** — cruscotto con sidebar strumenti  
+**Prerequisito:** Secretary Assistant · Verbali v1 — `docs/lean-event-leonardo-scheda-tecnica.md`  
+**Pack commerciali (CORE / PRO / AI / PLATINUM + add-on):** `docs/lean-event-event-platform-packs.md`
 
 ---
 
@@ -14,7 +14,7 @@
 
 ### Visione
 
-**Leonardo** è il nome dell’**intera piattaforma operativa** dentro LeanYou per un tenant (es. I&C), non solo lo strumento di generazione verbali.
+**Leonardo** è il nome dell’**intera piattaforma operativa** dentro Lean Event per un tenant (es. I&C), non solo lo strumento di generazione verbali.
 
 | Prima (v1) | Da ora (roadmap) |
 |------------|------------------|
@@ -22,22 +22,22 @@
 | Un solo menu in sidebar | Sidebar con **tutti gli strumenti** eventi + segreteria |
 | `/leonardo` = lista workspace verbali | `/leonardo` = **hub**; verbali in sottomenu dedicato |
 
-LeanYou resta il contenitore multi-tenant (`/leanyou/{azienda}/…`).  
-Per I&C: **`/leanyou/iec/leonardo`** apre il cruscotto Leonardo.
+Lean Event resta il contenitore multi-tenant (`/lean-event/{azienda}/…`).  
+Per I&C: **`/lean-event/iec/leonardo`** apre il cruscotto Leonardo.
 
 ### Sidebar — menu agenzia (rev. 5 — vocale 2026-07-10)
 
-**Architettura completa:** `docs/leanyou-event-architecture.md`
+**Architettura completa:** `docs/lean-event-event-architecture.md`
 
 | Voce menu | Ruolo | URL |
 |-----------|-------|-----|
-| **Cruscotto** | Home / KPI / scorciatoie | `/leanyou/iec/leonardo` |
-| **Eventi** | Lista eventi → scheda con tab interne | `/leanyou/iec/leonardo/eventi` |
-| **Rubrica contatti** | Anagrafica globale tenant | `/leanyou/iec/leonardo/contatti` |
-| **Verbali AI** | Secretary Assistant (anche senza evento) | `/leanyou/iec/leonardo/verbali` |
-| **Finance** | Report budget **aggregato** tutti gli eventi | `/leanyou/iec/leonardo/finance` |
-| **Lean.Human** | Supporto umano LMI (Teresa) | `/leanyou/iec/leonardo/lean-human` |
-| **Government** | Società scientifiche (servizio separato) | `/leanyou/iec/leonardo/government` |
+| **Cruscotto** | Home / KPI / scorciatoie | `/lean-event/iec/leonardo` |
+| **Eventi** | Lista eventi → scheda con tab interne | `/lean-event/iec/leonardo/eventi` |
+| **Rubrica contatti** | Anagrafica globale tenant | `/lean-event/iec/leonardo/contatti` |
+| **Verbali AI** | Secretary Assistant (anche senza evento) | `/lean-event/iec/leonardo/verbali` |
+| **Finance** | Report budget **aggregato** tutti gli eventi | `/lean-event/iec/leonardo/finance` |
+| **Lean.Human** | Supporto umano LMI (Teresa) | `/lean-event/iec/leonardo/lean-human` |
+| **Government** | Società scientifiche (servizio separato) | `/lean-event/iec/leonardo/government` |
 
 **Dentro ogni evento** (non in sidebar): Hotel, Logistica, Budget, Comunicazioni, Ospiti, Docenti, Delegazioni, Registrazione, Abstract, Survey, Connect, Stampati, Verbali collegati, ECM, sito pubblico.
 
@@ -73,28 +73,28 @@ Non duplicare i dati del verbale dentro l’evento: l’evento **referenzia** i 
 
 | Voce sidebar | Percorso |
 |--------------|----------|
-| Cruscotto Leonardo | `/leanyou/iec/leonardo` |
-| **Workspace verbali** | `/leanyou/iec/leonardo/verbali` |
-| | `/leanyou/iec/leonardo/verbali/new` |
-| | `/leanyou/iec/leonardo/verbali/[id]` |
-| **Eventi** | `/leanyou/iec/leonardo/eventi` |
-| | `/leanyou/iec/leonardo/eventi/[id]` → tab **Verbali** incluso |
-| **Rubrica contatti** | `/leanyou/iec/leonardo/contatti` |
+| Cruscotto Leonardo | `/lean-event/iec/leonardo` |
+| **Workspace verbali** | `/lean-event/iec/leonardo/verbali` |
+| | `/lean-event/iec/leonardo/verbali/new` |
+| | `/lean-event/iec/leonardo/verbali/[id]` |
+| **Eventi** | `/lean-event/iec/leonardo/eventi` |
+| | `/lean-event/iec/leonardo/eventi/[id]` → tab **Verbali** incluso |
+| **Rubrica contatti** | `/lean-event/iec/leonardo/contatti` |
 
 **Redirect legacy:**
 
-- `/leanyou/iec/leonardo/new` → `/leanyou/iec/leonardo/verbali/new`
-- `/leanyou/iec/leonardo/[uuid]` → `/leanyou/iec/leonardo/verbali/[uuid]`
+- `/lean-event/iec/leonardo/new` → `/lean-event/iec/leonardo/verbali/new`
+- `/lean-event/iec/leonardo/[uuid]` → `/lean-event/iec/leonardo/verbali/[uuid]`
 
-### Sidebar `LeanYouShell`
+### Sidebar `LeanEventShell`
 
-Popolare la colonna sinistra da `data/leanyou/config.json` → `navigation[]` con capability e voci locked (CTA `info@leanme.it`).
+Popolare la colonna sinistra da `data/lean-event/config.json` → `navigation[]` con capability e voci locked (CTA `info@leanme.it`).
 
 ---
 
 ## 1. Obiettivo
 
-Gestionale eventi dentro LeanYou per logistica, anagrafiche, comunicazioni (inclusi clienti e patrocinanti), archivio documentale/mail per **certificazione di qualità**, e servizi aggiuntivi. Eventi **base** ed **ECM** (modulistica CM attivabile solo se il tenant ha il capability pack).
+Gestionale eventi dentro Lean Event per logistica, anagrafiche, comunicazioni (inclusi clienti e patrocinanti), archivio documentale/mail per **certificazione di qualità**, e servizi aggiuntivi. Eventi **base** ed **ECM** (modulistica CM attivabile solo se il tenant ha il capability pack).
 
 ---
 
@@ -124,15 +124,15 @@ Gestionale eventi dentro LeanYou per logistica, anagrafiche, comunicazioni (incl
 ### 2.4 Tenant pilota
 
 - **Confermato:** `iec` (I&C srl)
-- Pattern URL: `/leanyou/{slug}/{modulo}` — es. `/leanyou/iec/events`
+- Pattern URL: `/lean-event/{slug}/{modulo}` — es. `/lean-event/iec/events`
 
 ### 2.5 Attivazione moduli — due livelli
 
-> **Proposta pack commerciali** (CORE → PLATINUM, Care, Studio, Marketplace): vedi **`docs/leanyou-event-platform-packs.md`**.
+> **Proposta pack commerciali** (CORE → PLATINUM, Care, Studio, Marketplace): vedi **`docs/lean-event-event-platform-packs.md`**.
 
 Ogni funzione deve essere **attivabile o disattivabile** al momento dell'onboarding di un'azienda. Configurazione definita caso per caso («attiva tutto», «solo eventi», «solo segreteria», ecc.).
 
-#### Livello A — Moduli LeanYou (tenant)
+#### Livello A — Moduli Lean Event (tenant)
 
 | Modulo ID | Descrizione | URL segment |
 |-----------|-------------|-------------|
@@ -185,7 +185,7 @@ Stesse capability del livello B, applicabili **per evento** quando serve granula
 
 - Tab/sezione **visibile** con stato **locked**
 - Messaggio: *«Funzione non inclusa nel tuo abbonamento. Contatta LMI per l'upgrade.»*
-- **CTA:** `mailto:info@leanme.it?subject=LeanYou%20-%20Richiesta%20upgrade%20modulo`
+- **CTA:** `mailto:info@leanme.it?subject=Lean Event%20-%20Richiesta%20upgrade%20modulo`
 
 Helper previsti: `tenantHasModule()`, `tenantHasEventCapability()`, `eventHasCapability()`.
 
@@ -297,7 +297,7 @@ Modulo dedicato (capability `comunicazioni`) per gestire **tutta la corrisponden
 | **Registrazione partecipanti** | Popola `Contact` + `EventAssignment` (partecipante) | `events_form_registrazione` | 6 |
 | **Ospitalità partecipanti** | Popola preferenze hotel/viaggio/allergie su scheda partecipante | `events_form_ospitalita` | 6 |
 
-- URL pubblico tokenizzato per evento (no login LeanYou)
+- URL pubblico tokenizzato per evento (no login Lean Event)
 - Validazione + antispam
 - Notifica referente evento su nuova iscrizione
 
@@ -394,11 +394,11 @@ Ogni merge registrato: `contact_merge`, contactId, campi modificati, utente, tim
 
 | Aspetto | Scelta |
 |---------|--------|
-| URL hub | `/leanyou/{tenant}/leonardo/*` |
-| Eventi | `/leanyou/{tenant}/leonardo/eventi` |
-| API | `/api/leanyou/events`, `/api/leanyou/contacts`, … (invariate) |
+| URL hub | `/lean-event/{tenant}/leonardo/*` |
+| Eventi | `/lean-event/{tenant}/leonardo/eventi` |
+| API | `/api/lean-event/events`, `/api/lean-event/contacts`, … (invariate) |
 | Storage | Vercel Blob (JSON + binari mail/grafica) |
-| Config | `data/leanyou/events-config.json` (sezioni, categorie stampati, ruoli) |
+| Config | `data/lean-event/events-config.json` (sezioni, categorie stampati, ruoli) |
 | Mail `.msg` | Parser server-side (es. `msgreader` o conversione EML) |
 
 ---
@@ -472,9 +472,9 @@ Tab locked → CTA `info@leanme.it`.
 
 ## 13. Riferimenti
 
-- `docs/leanyou.md`
-- `docs/leanyou-leonardo-scheda-tecnica.md`
-- `types/leanyou.ts`
+- `docs/lean-event.md`
+- `docs/lean-event-leonardo-scheda-tecnica.md`
+- `types/lean-event.ts`
 
 ---
 

@@ -1,22 +1,22 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoWorkspaceDetail } from "@/components/leanyou/LeonardoWorkspaceDetail";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoWorkspaceDetail } from "@/components/lean-event/LeonardoWorkspaceDetail";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoPath,
-  leanyouLeonardoVerbaliPath,
-  leanyouLeonardoWorkspacePath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
-import { listEvents } from "@/lib/leanyou/events";
-import { getWorkspace } from "@/lib/leanyou/workspaces";
+  leanEventLeonardoPath,
+  leanEventLeonardoVerbaliPath,
+  leanEventLeonardoWorkspacePath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
+import { listEvents } from "@/lib/lean-event/events";
+import { getWorkspace } from "@/lib/lean-event/workspaces";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +28,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug, id } = await params;
 
   return createPageMetadata({
-    title: `LeanYou · Workspace ${id.slice(0, 8)}`,
+    title: `Lean Event · Workspace ${id.slice(0, 8)}`,
     description: "Dettaglio workspace verbali.",
-    path: leanyouLeonardoWorkspacePath(tenantSlug, id),
+    path: leanEventLeonardoWorkspacePath(tenantSlug, id),
     noIndex: true,
   });
 }
@@ -44,18 +44,18 @@ export default async function LeonardoVerbaliWorkspacePage({ params }: PageProps
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (
     !tenantHasModule(session, "leonardo") ||
     !tenantHasLeonardoCapability(session, "verbali")
   ) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   const workspace = await getWorkspace(session.tenantId, id);
   if (!workspace) {
-    redirect(`${leanyouLeonardoVerbaliPath(tenantSlug)}?workspace=missing`);
+    redirect(`${leanEventLeonardoVerbaliPath(tenantSlug)}?workspace=missing`);
   }
 
   const events = tenantHasLeonardoCapability(session, "eventi")
@@ -63,12 +63,12 @@ export default async function LeonardoVerbaliWorkspacePage({ params }: PageProps
     : [];
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoWorkspaceDetail
         tenantSlug={tenantSlug}
         initialWorkspace={workspace}
         events={events}
       />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

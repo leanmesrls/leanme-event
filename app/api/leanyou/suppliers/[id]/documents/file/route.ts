@@ -6,12 +6,12 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { getDataRoot } from "@/lib/leanyou/storage";
+} from "@/lib/lean-event/server-auth";
+import { getDataRoot } from "@/lib/lean-event/storage";
 
 interface RouteContext {
   params: Promise<{ id: string }>;

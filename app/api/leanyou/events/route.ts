@@ -3,19 +3,19 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import { createEvent, listEvents, saveEvent } from "@/lib/leanyou/events";
-import { resolveEventVenueFields } from "@/lib/leanyou/event-venue";
-import { normalizeMeetingDateInput } from "@/lib/leanyou/dates";
+} from "@/lib/lean-event/server-auth";
+import { createEvent, listEvents, saveEvent } from "@/lib/lean-event/events";
+import { resolveEventVenueFields } from "@/lib/lean-event/event-venue";
+import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
 import type {
   LeonardoEcmModality,
   LeonardoEventCategoryId,
-} from "@/types/leanyou";
+} from "@/types/lean-event";
 
 export async function GET() {
   try {
@@ -30,7 +30,7 @@ export async function GET() {
     const events = await listEvents(session.tenantId);
     return NextResponse.json({ events });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento eventi non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento eventi non riuscito.");
   }
 }
 
@@ -98,6 +98,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    return handleLeanYouRouteError(error, "Creazione evento non riuscita.");
+    return handleLeanEventRouteError(error, "Creazione evento non riuscita.");
   }
 }

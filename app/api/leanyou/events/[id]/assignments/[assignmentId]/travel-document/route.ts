@@ -3,18 +3,18 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { getAssignment } from "@/lib/leanyou/event-assignments";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/auth";
+import { getAssignment } from "@/lib/lean-event/event-assignments";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 import {
   readTravelDocumentFile,
   saveTravelDocumentFile,
-} from "@/lib/leanyou/travel-document-storage";
+} from "@/lib/lean-event/travel-document-storage";
 
 interface RouteContext {
   params: Promise<{ id: string; assignmentId: string }>;
@@ -58,7 +58,7 @@ export async function GET(request: Request, context: RouteContext) {
       },
     });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Caricamento documento non riuscito.");
+    return handleLeanEventRouteError(error, "Caricamento documento non riuscito.");
   }
 }
 
@@ -119,6 +119,6 @@ export async function POST(request: Request, context: RouteContext) {
 
     return NextResponse.json({ url, segmentId, side });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Upload documento non riuscito.");
+    return handleLeanEventRouteError(error, "Upload documento non riuscito.");
   }
 }

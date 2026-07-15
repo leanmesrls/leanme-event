@@ -1,14 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { LeonardoProfilePanel } from "@/components/leanyou/LeonardoProfilePanel";
-import { findTenantBySlug } from "@/lib/leanyou/auth";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoProfilePanel } from "@/components/lean-event/LeonardoProfilePanel";
+import { findTenantBySlug } from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoProfiloPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoProfiloPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -18,9 +18,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
 
   return createPageMetadata({
-    title: "LeanYou · Profilo",
-    description: "Profilo utente LeanYou Leonardo.",
-    path: leanyouLeonardoProfiloPath(tenantSlug),
+    title: "Lean Event · Profilo",
+    description: "Profilo utente LeanEvent Leonardo.",
+    path: leanEventLeonardoProfiloPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -34,12 +34,12 @@ export default async function LeonardoProfiloPage({ params }: PageProps) {
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <LeonardoProfilePanel session={session} />
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

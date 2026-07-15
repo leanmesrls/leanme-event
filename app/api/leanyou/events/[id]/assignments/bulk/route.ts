@@ -3,23 +3,23 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import {
   applyBulkEventAssignments,
   previewBulkEventAssignments,
   type BulkAssignmentSource,
-} from "@/lib/leanyou/event-assignment-bulk";
+} from "@/lib/lean-event/event-assignment-bulk";
 import {
   isValidRoleCategory,
   listAssignmentsForEventWithContacts,
-} from "@/lib/leanyou/event-assignments";
-import { getEvent } from "@/lib/leanyou/events";
+} from "@/lib/lean-event/event-assignments";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
-import type { LeonardoEventRoleCategory } from "@/types/leanyou";
+} from "@/lib/lean-event/server-auth";
+import type { LeonardoEventRoleCategory } from "@/types/lean-event";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -159,7 +159,7 @@ export async function POST(request: Request, context: RouteContext) {
       assignments,
     });
   } catch (error) {
-    return handleLeanYouRouteError(
+    return handleLeanEventRouteError(
       error,
       "Assegnazione gruppo non riuscita."
     );

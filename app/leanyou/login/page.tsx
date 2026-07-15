@@ -1,14 +1,14 @@
-import { LeanYouLoginPageContent } from "@/components/leanyou/LeanYouLoginPageContent";
+import { LeanEventLoginPageContent } from "@/components/lean-event/LeanEventLoginPageContent";
 import { createPageMetadata } from "@/lib/metadata";
-import { leanyouLoginPath } from "@/lib/leanyou/paths";
+import { leanEventLoginPath } from "@/lib/lean-event/paths";
 
 export const metadata = createPageMetadata({
-  title: "LeanYou · Accesso riservato",
+  title: "Lean Event · Accesso riservato",
   description: "Area riservata clienti LeanMe.",
-  path: leanyouLoginPath(),
+  path: leanEventLoginPath(),
   noIndex: true,
 });
 
-export default function LeanYouLoginPage() {
-  return <LeanYouLoginPageContent />;
+export default function LeanEventLoginPage() {
+  return <LeanEventLoginPageContent />;
 }

@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
-import { findTenantBySlug, tenantHasLeonardoCapability } from "@/lib/leanyou/auth";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { findTenantBySlug, tenantHasLeonardoCapability } from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoLeanHumanPath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoLeanHumanPath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +19,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
   return createPageMetadata({
-    title: "LeanYou · Lean.Human",
+    title: "Lean Event · Lean.Human",
     description: "Supporto umano LeanMe — assistenza, integrazioni e produzione.",
-    path: leanyouLeonardoLeanHumanPath(tenantSlug),
+    path: leanEventLeonardoLeanHumanPath(tenantSlug),
     noIndex: true,
   });
 }
@@ -30,19 +30,19 @@ export default async function LeonardoLeanHumanPage({ params }: PageProps) {
   const { tenantSlug } = await params;
   const tenant = await findTenantBySlug(tenantSlug);
   if (!tenant) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (!tenantHasLeonardoCapability(session, "lean_human")) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <div className="mx-auto max-w-2xl space-y-6 p-6 md:p-8">
         <div>
           <h2 className="text-2xl font-bold">Lean.Human</h2>
@@ -52,12 +52,12 @@ export default async function LeonardoLeanHumanPage({ params }: PageProps) {
           </p>
         </div>
         <a
-          href="mailto:info@leanme.it?subject=LeanYou%20-%20Lean.Human%20richiesta%20supporto"
+          href="mailto:info@leanme.it?subject=Lean Event%20-%20Lean.Human%20richiesta%20supporto"
           className="inline-flex rounded-full bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
         >
           Richiedi supporto
         </a>
       </div>
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

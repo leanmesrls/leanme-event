@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 import {
   tenantHasLeonardoCapability,
   tenantHasModule,
-} from "@/lib/leanyou/auth";
-import { previewContactImportFromRows } from "@/lib/leanyou/import-contacts";
-import { parseSpreadsheetBuffer } from "@/lib/leanyou/spreadsheet-import";
+} from "@/lib/lean-event/auth";
+import { previewContactImportFromRows } from "@/lib/lean-event/import-contacts";
+import { parseSpreadsheetBuffer } from "@/lib/lean-event/spreadsheet-import";
 import {
   forbiddenResponse,
-  handleLeanYouRouteError,
+  handleLeanEventRouteError,
   requireSession,
-} from "@/lib/leanyou/server-auth";
+} from "@/lib/lean-event/server-auth";
 
 export const runtime = "nodejs";
 
@@ -50,6 +50,6 @@ export async function POST(request: Request) {
     const preview = await previewContactImportFromRows(session, parsed.rows);
     return NextResponse.json({ ok: true, ...preview });
   } catch (error) {
-    return handleLeanYouRouteError(error, "Importazione rubrica non riuscita.");
+    return handleLeanEventRouteError(error, "Importazione rubrica non riuscita.");
   }
 }

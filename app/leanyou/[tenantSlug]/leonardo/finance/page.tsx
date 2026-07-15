@@ -1,17 +1,17 @@
 import { redirect } from "next/navigation";
 
-import { LeanYouShell } from "@/components/leanyou/LeanYouShell";
+import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
-} from "@/lib/leanyou/auth";
+} from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  leanyouLeonardoFinancePath,
-  leanyouLeonardoPath,
-  leanyouLoginPath,
-} from "@/lib/leanyou/paths";
-import { getSession } from "@/lib/leanyou/session";
+  leanEventLeonardoFinancePath,
+  leanEventLeonardoPath,
+  leanEventLoginPath,
+} from "@/lib/lean-event/paths";
+import { getSession } from "@/lib/lean-event/session";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +22,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
   return createPageMetadata({
-    title: "LeanYou · Finance",
+    title: "Lean Event · Finance",
     description: "Report economico aggregato di tutti gli eventi.",
-    path: leanyouLeonardoFinancePath(tenantSlug),
+    path: leanEventLeonardoFinancePath(tenantSlug),
     noIndex: true,
   });
 }
@@ -33,19 +33,19 @@ export default async function LeonardoFinancePage({ params }: PageProps) {
   const { tenantSlug } = await params;
   const tenant = await findTenantBySlug(tenantSlug);
   if (!tenant) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
 
   const session = await getSession();
   if (!session) {
-    redirect(leanyouLoginPath());
+    redirect(leanEventLoginPath());
   }
   if (!tenantHasLeonardoCapability(session, "finance")) {
-    redirect(leanyouLeonardoPath(tenantSlug));
+    redirect(leanEventLeonardoPath(tenantSlug));
   }
 
   return (
-    <LeanYouShell session={session}>
+    <LeanEventShell session={session}>
       <div className="space-y-6 p-6 md:p-8">
         <div>
           <h2 className="text-2xl font-bold">Finance</h2>
@@ -59,6 +59,6 @@ export default async function LeonardoFinancePage({ params }: PageProps) {
           configurabili dalla scheda di ciascun evento.
         </div>
       </div>
-    </LeanYouShell>
+    </LeanEventShell>
   );
 }

@@ -1,4 +1,4 @@
-# LeanYou · Resilienza dati, concorrenza, versioning e cestino
+# Lean Event · Resilienza dati, concorrenza, versioning e cestino
 
 **Versione documento:** 2026-07-14  
 **Stato:** architettura approvata — implementazione per fasi  
@@ -44,7 +44,7 @@ Blob è ottimo per file immutabili; non offre transazioni ACID, query su cestino
 ### 3.1 Campi su ogni entità gestita
 
 ```typescript
-interface LeanYouEntityBase {
+interface Lean EventEntityBase {
   id: string;
   tenantId: string;
   revision: number;           // incrementa ad ogni save riuscito
@@ -172,7 +172,7 @@ leanyou-backups/{YYYY-MM-DD}/{tenantId}/{entityType}/*.json.gz
 ### Livello 3 — Export tenant settimanale
 
 - ZIP criptato (AES-256, chiave in Vercel env) per tenant → Blob `leanyou-exports/{tenantId}/weekly/`.
-- Downloadabile da admin LeanYou / LMI per compliance e archivio cliente.
+- Downloadabile da admin Lean Event / LMI per compliance e archivio cliente.
 
 ### Livello 4 — Audit immutabile
 
@@ -212,12 +212,12 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 
 | Metodo | Path | Descrizione |
 |--------|------|-------------|
-| GET | `/api/leanyou/trash` | Lista cestino tenant (paginata) |
-| POST | `/api/leanyou/trash/{type}/{id}/restore` | Ripristino |
-| DELETE | `/api/leanyou/trash/{type}/{id}` | Purge immediata (admin) |
-| GET | `/api/leanyou/{type}/{id}/versions` | Storico revisioni |
-| POST | `/api/leanyou/{type}/{id}/versions/{rev}/restore` | Ripristina revisione |
-| PATCH | `/api/leanyou/{type}/{id}` | Richiede `expectedRevision` |
+| GET | `/api/lean-event/trash` | Lista cestino tenant (paginata) |
+| POST | `/api/lean-event/trash/{type}/{id}/restore` | Ripristino |
+| DELETE | `/api/lean-event/trash/{type}/{id}` | Purge immediata (admin) |
+| GET | `/api/lean-event/{type}/{id}/versions` | Storico revisioni |
+| POST | `/api/lean-event/{type}/{id}/versions/{rev}/restore` | Ripristina revisione |
+| PATCH | `/api/lean-event/{type}/{id}` | Richiede `expectedRevision` |
 
 ---
 
@@ -279,16 +279,16 @@ ROI: elimina rischio perdita eventi/ospiti multi-giorno — accettabile per piat
 
 ## 11. Riferimenti codice attuale
 
-- Storage entità: `lib/leanyou/*-storage.ts`, `entity-blob-storage.ts`
+- Storage entità: `lib/lean-event/*-storage.ts`, `entity-blob-storage.ts`
 - Delete hard: `deleteJsonFile` / `entityBlob.delete`
-- Audit parziale: `lib/leanyou/audit-log.ts`
-- UI liste resilienti: `components/leanyou/leonardo-ui.ts` (`LEONARDO_LIST_UX_STANDARD`)
+- Audit parziale: `lib/lean-event/audit-log.ts`
+- UI liste resilienti: `components/lean-event/leonardo-ui.ts` (`LEONARDO_LIST_UX_STANDARD`)
 
 ---
 
 ## 12. Decisione
 
-**Soluzione migliore per LeanYou Leonardo:**  
+**Soluzione migliore per Lean Event Leonardo:**  
 **Neon Postgres (metadati + versioni + cestino + concorrenza) + Vercel Blob (file + snapshot backup) + Cron backup + soft delete 30 giorni.**
 
 Implementazione incrementale: Fase A subito (senza migrazione DB) per locking e soft delete; Fase B migrazione Postgres per cestino e versioning queryable.
