@@ -39,16 +39,32 @@ export async function POST(_request: Request, context: RouteContext) {
     if (type === "venue" && !tenantHasLeonardoCapability(session, "eventi")) {
       return forbiddenResponse();
     }
-
-    const restored = await restoreTrashItem(session, type, id);
-    if (!restored) {
-      return NextResponse.json(
-        { error: "Elemento non trovato nel cestino." },
-        { status: 404 }
-      );
+    if (type === "assignment" && !tenantHasLeonardoCapability(session, "ospiti")) {
+      return forbiddenResponse();
     }
 
-    return NextResponse.json({ ok: true });
+    try {
+      const restored = await restoreTrashItem(session, type, id);
+      if (!restored) {
+        return NextResponse.json(
+          { error: "Elemento non trovato nel cestino." },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      if (error instanceof Error && error.message === "ASSIGNMENT_DUPLICATE") {
+        return NextResponse.json(
+          {
+            error:
+              "Impossibile ripristinare: lo stesso contatto ha già questo ruolo sull'evento.",
+          },
+          { status: 409 }
+        );
+      }
+      throw error;
+    }
   } catch (error) {
     return handleLeanEventRouteError(error, "Ripristino non riuscito.");
   }

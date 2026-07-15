@@ -102,6 +102,21 @@ export function LeonardoEventGuestsPanel({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSizeValue>(DEFAULT_PAGE_SIZE);
   const [queueMode, setQueueMode] = useState(false);
+  const [removingAssignmentId, setRemovingAssignmentId] = useState<string | null>(
+    null
+  );
+
+  async function refreshAssignmentsFromServer() {
+    const response = await fetch(`/api/lean-event/events/${eventId}/assignments`, {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as { assignments?: AssignmentRow[] };
+    if (response.ok && payload.assignments) {
+      updateAssignments(payload.assignments);
+      return payload.assignments;
+    }
+    return assignments;
+  }
 
   function openGuestSheet(assignmentId: string) {
     setSheetAssignmentId(assignmentId);
@@ -224,14 +239,25 @@ export function LeonardoEventGuestsPanel({
       return;
     }
 
-    updateAssignments([payload.assignment!, ...assignments]);
+    await refreshAssignmentsFromServer();
     setContactId("");
     setNotes("");
     setRoleCategory("ospite");
   }
 
   async function handleRemove(assignmentId: string) {
+    const row = assignments.find((item) => item.id === assignmentId);
+    const label = row?.contactName ?? "questo ospite";
+    if (
+      !window.confirm(
+        `Rimuovere ${label} dall'evento? L'assegnazione va nel cestino (recuperabile per 30 giorni). Allotment, report e eventi correlati si aggiornano subito.`
+      )
+    ) {
+      return;
+    }
+
     setError(null);
+    setRemovingAssignmentId(assignmentId);
     const response = await fetch(
       `/api/lean-event/events/${eventId}/assignments/${assignmentId}`,
       {
@@ -239,6 +265,8 @@ export function LeonardoEventGuestsPanel({
         credentials: "same-origin",
       }
     );
+    setRemovingAssignmentId(null);
+
     if (!response.ok) {
       const payload = (await response.json()) as { error?: string };
       setError(payload.error ?? "Rimozione non riuscita.");
@@ -247,9 +275,7 @@ export function LeonardoEventGuestsPanel({
     if (sheetAssignmentId === assignmentId) {
       closeGuestSheet();
     }
-    updateAssignments(
-      assignments.filter((assignment) => assignment.id !== assignmentId)
-    );
+    await refreshAssignmentsFromServer();
   }
 
   async function saveAssignmentSheet(
@@ -597,6 +623,7 @@ export function LeonardoEventGuestsPanel({
             activeSheetId={sheetAssignmentId}
             onOpenSheet={openGuestSheet}
             onRemove={handleRemove}
+            removingAssignmentId={removingAssignmentId}
             virtualScroll={pageSize === "virtual"}
           />
 
@@ -658,7 +685,10 @@ export function LeonardoEventGuestsPanel({
           hotelBlocks={hotelBlocks}
           venues={venues}
           relatedEvents={relatedEvents ?? []}
-          saving={savingAssignmentId === sheetAssignment.id}
+          saving={
+            savingAssignmentId === sheetAssignment.id ||
+            removingAssignmentId === sheetAssignment.id
+          }
           error={sheetError}
           onClose={() => {
             if (!savingAssignmentId) {

@@ -15,6 +15,7 @@ interface LeonardoGuestListTableProps {
   activeSheetId: string | null;
   onOpenSheet: (assignmentId: string) => void;
   onRemove: (assignmentId: string) => void;
+  removingAssignmentId?: string | null;
   virtualScroll?: boolean;
 }
 
@@ -40,6 +41,7 @@ export function LeonardoGuestListTable({
   activeSheetId,
   onOpenSheet,
   onRemove,
+  removingAssignmentId = null,
   virtualScroll = false,
 }: LeonardoGuestListTableProps) {
   if (virtualScroll) {
@@ -64,6 +66,7 @@ export function LeonardoGuestListTable({
               isActive={activeSheetId === assignment.id}
               onOpenSheet={onOpenSheet}
               onRemove={onRemove}
+              removing={removingAssignmentId === assignment.id}
               asTableRow={false}
             />
           )}
@@ -87,6 +90,7 @@ export function LeonardoGuestListTable({
                 isActive={activeSheetId === assignment.id}
                 onOpenSheet={onOpenSheet}
                 onRemove={onRemove}
+                removing={removingAssignmentId === assignment.id}
               />
             ))}
           </tbody>

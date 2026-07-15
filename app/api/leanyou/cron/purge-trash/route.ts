@@ -39,8 +39,9 @@ export async function GET(request: Request) {
         contacts: acc.contacts + item.purged.contacts,
         suppliers: acc.suppliers + item.purged.suppliers,
         venues: acc.venues + item.purged.venues,
+        assignments: acc.assignments + item.purged.assignments,
       }),
-      { events: 0, contacts: 0, suppliers: 0, venues: 0 }
+      { events: 0, contacts: 0, suppliers: 0, venues: 0, assignments: 0 }
     );
 
     console.info(

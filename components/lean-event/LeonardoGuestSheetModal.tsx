@@ -86,14 +86,26 @@ export function LeonardoGuestSheetModal({
               {assignment.roleLabel} · Scheda ospite
             </p>
           </div>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={onClose}
-            className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
-          >
-            Chiudi
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {onRemove ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onRemove}
+                className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-red-300/80 transition hover:bg-red-500/10 hover:text-red-200 disabled:opacity-40"
+              >
+                Rimuovi
+              </button>
+            ) : null}
+            <button
+              type="button"
+              disabled={saving}
+              onClick={onClose}
+              className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
+            >
+              Chiudi
+            </button>
+          </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-1 py-1">

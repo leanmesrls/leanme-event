@@ -23,6 +23,7 @@ interface LeonardoGuestListRowProps {
   isActive: boolean;
   onOpenSheet: (assignmentId: string) => void;
   onRemove: (assignmentId: string) => void;
+  removing?: boolean;
   asTableRow?: boolean;
 }
 
@@ -33,6 +34,7 @@ export function LeonardoGuestListRow({
   isActive,
   onOpenSheet,
   onRemove,
+  removing = false,
   asTableRow = true,
 }: LeonardoGuestListRowProps) {
   const hospitality = normalizeAssignmentHospitality(assignment.hospitality);
@@ -99,10 +101,12 @@ export function LeonardoGuestListRow({
           </button>
           <button
             type="button"
+            disabled={removing}
             onClick={() => onRemove(assignment.id)}
-            className="rounded-full px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/35 transition hover:text-red-300"
+            aria-label={`Rimuovi ${assignment.contactName} dall'evento`}
+            className="rounded-full border border-white/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/45 transition hover:border-red-400/40 hover:text-red-300 disabled:opacity-40"
           >
-            ×
+            {removing ? "…" : "Rimuovi"}
           </button>
         </div>
       </td>

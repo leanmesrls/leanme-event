@@ -534,6 +534,23 @@ export function LeonardoGuestHospitalityCard({
           >
             {saving ? "Salvataggio…" : "Salva scheda ospite"}
           </button>
+
+          {isDialog && onRemove ? (
+            <div className="border-t border-white/10 pt-4">
+              <button
+                type="button"
+                onClick={onRemove}
+                disabled={saving}
+                className="w-full rounded-full border border-red-500/30 px-5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-red-200 transition hover:border-red-400 hover:bg-red-500/10 disabled:opacity-50 sm:w-auto"
+              >
+                Rimuovi dall&apos;evento
+              </button>
+              <p className="mt-2 text-xs text-white/40">
+                L&apos;ospite esce dall&apos;elenco e i contatori allotment si
+                aggiornano. Recuperabile dal cestino per 30 giorni.
+              </p>
+            </div>
+          ) : null}
         </form>
   );
 

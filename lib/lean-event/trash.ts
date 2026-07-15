@@ -1,4 +1,11 @@
+import {
+  getEventRoleCategoryLabel,
+  listDeletedAssignments,
+  restoreEventContactAssignment,
+} from "@/lib/lean-event/event-assignments";
+import { getContact } from "@/lib/lean-event/contacts";
 import { formatContactName } from "@/lib/lean-event/contact-display";
+import { getEvent } from "@/lib/lean-event/events";
 import {
   listDeletedContacts,
   restoreContact,
@@ -31,11 +38,12 @@ export function isTrashEntityType(
 export async function listTrashItems(
   tenantId: string
 ): Promise<LeanEventTrashItem[]> {
-  const [events, contacts, suppliers, venues] = await Promise.all([
+  const [events, contacts, suppliers, venues, assignments] = await Promise.all([
     listDeletedEvents(tenantId),
     listDeletedContacts(tenantId),
     listDeletedSuppliers(tenantId),
     listDeletedVenues(tenantId),
+    listDeletedAssignments(tenantId),
   ]);
 
   const items: LeanEventTrashItem[] = [
@@ -83,6 +91,29 @@ export async function listTrashItems(
       purgeAfter: venue.purgeAfter,
       revision: venue.revision ?? 1,
     })),
+    ...(await Promise.all(
+      assignments.map(async (assignment) => {
+        const [event, contact] = await Promise.all([
+          getEvent(tenantId, assignment.eventId),
+          getContact(tenantId, assignment.contactId),
+        ]);
+        return {
+          entityType: "assignment" as const,
+          id: assignment.id,
+          tenantId: assignment.tenantId,
+          title: contact
+            ? formatContactName(contact)
+            : "Ospite evento",
+          subtitle: event
+            ? `${event.title} · ${getEventRoleCategoryLabel(assignment.roleCategory)}`
+            : getEventRoleCategoryLabel(assignment.roleCategory),
+          deletedAt: assignment.deletedAt!,
+          deletedBy: assignment.deletedBy ?? undefined,
+          purgeAfter: assignment.purgeAfter,
+          revision: assignment.revision ?? 1,
+        };
+      })
+    )),
   ];
 
   return items.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
@@ -104,6 +135,10 @@ export async function restoreTrashItem(
       return Boolean(await restoreSupplier(session.tenantId, entityId, userId));
     case "venue":
       return Boolean(await restoreVenue(session.tenantId, entityId, userId));
+    case "assignment":
+      return Boolean(
+        await restoreEventContactAssignment(session.tenantId, entityId, userId)
+      );
     default:
       return false;
   }

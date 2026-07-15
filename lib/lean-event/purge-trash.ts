@@ -10,11 +10,15 @@ import {
   listDeletedSuppliers,
 } from "@/lib/lean-event/suppliers";
 import { deleteStoredSupplier } from "@/lib/lean-event/supplier-storage";
-import { loadTenantsFile } from "@/lib/lean-event/storage";
+import {
+  listDeletedAssignments,
+} from "@/lib/lean-event/event-assignments";
+import { deleteStoredAssignment } from "@/lib/lean-event/event-assignment-storage";
 import {
   listDeletedVenues,
 } from "@/lib/lean-event/venues";
 import { deleteStoredVenue } from "@/lib/lean-event/venue-storage";
+import { loadTenantsFile } from "@/lib/lean-event/storage";
 
 export interface PurgeTrashResult {
   tenantId: string;
@@ -23,6 +27,7 @@ export interface PurgeTrashResult {
     contacts: number;
     suppliers: number;
     venues: number;
+    assignments: number;
   };
 }
 
@@ -39,7 +44,7 @@ export async function purgeExpiredTrashForTenant(
 ): Promise<PurgeTrashResult> {
   const result: PurgeTrashResult = {
     tenantId,
-    purged: { events: 0, contacts: 0, suppliers: 0, venues: 0 },
+    purged: { events: 0, contacts: 0, suppliers: 0, venues: 0, assignments: 0 },
   };
 
   for (const event of await listDeletedEvents(tenantId)) {
@@ -67,6 +72,13 @@ export async function purgeExpiredTrashForTenant(
     if (isPurgeDue(venue.purgeAfter)) {
       await deleteStoredVenue(tenantId, venue.id);
       result.purged.venues += 1;
+    }
+  }
+
+  for (const assignment of await listDeletedAssignments(tenantId)) {
+    if (isPurgeDue(assignment.purgeAfter)) {
+      await deleteStoredAssignment(tenantId, assignment.id);
+      result.purged.assignments += 1;
     }
   }
 

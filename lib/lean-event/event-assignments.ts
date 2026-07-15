@@ -16,6 +16,7 @@ import {
   assertRevisionMatch,
   isEntityActive,
   markEntityDeleted,
+  markEntityRestored,
   prepareEntityCreate,
   prepareEntityUpdate,
   sessionUserId,
@@ -57,6 +58,34 @@ export function getEventRoleCategoryLabel(
 
 export function listEventRoleCategories() {
   return roleCategories;
+}
+
+export async function listDeletedAssignments(
+  tenantId: string
+): Promise<LeonardoEventContactAssignment[]> {
+  const assignments = await listStoredAssignments(tenantId);
+  return assignments
+    .map((assignment) => normalizeAssignment(assignment))
+    .filter((assignment) => !isEntityActive(assignment))
+    .sort((a, b) => (b.deletedAt ?? "").localeCompare(a.deletedAt ?? ""));
+}
+
+async function findStoredAssignmentByIdentity(
+  tenantId: string,
+  eventId: string,
+  contactId: string,
+  roleCategory: LeonardoEventRoleCategory
+): Promise<LeonardoEventContactAssignment | null> {
+  const assignments = await listStoredAssignments(tenantId);
+  const match = assignments
+    .map((assignment) => normalizeAssignment(assignment))
+    .find(
+      (assignment) =>
+        assignment.eventId === eventId &&
+        assignment.contactId === contactId &&
+        assignment.roleCategory === roleCategory
+    );
+  return match ?? null;
 }
 
 export async function listAssignmentsForEvent(
@@ -143,18 +172,41 @@ export async function createEventContactAssignment(
     throw new Error("CONTACT_NOT_FOUND");
   }
 
-  const existing = await listAssignmentsForEvent(session.tenantId, input.eventId);
-  const duplicate = existing.find(
-    (assignment) =>
-      assignment.contactId === input.contactId &&
-      assignment.roleCategory === input.roleCategory
+  const userId = sessionUserId(session);
+  const storedMatch = await findStoredAssignmentByIdentity(
+    session.tenantId,
+    input.eventId,
+    input.contactId,
+    input.roleCategory
   );
-  if (duplicate) {
+
+  if (storedMatch && isEntityActive(storedMatch)) {
     throw new Error("ASSIGNMENT_DUPLICATE");
   }
 
+  if (storedMatch && !isEntityActive(storedMatch)) {
+    const restored = markEntityRestored(storedMatch, userId);
+    const merged: LeonardoEventContactAssignment = {
+      ...restored,
+      notes:
+        input.notes !== undefined ? input.notes.trim() : restored.notes,
+      hospitality:
+        input.hospitality !== undefined
+          ? normalizeAssignmentHospitality(input.hospitality)
+          : normalizeAssignmentHospitality(restored.hospitality),
+    };
+    const updated = prepareEntityUpdate(merged, userId);
+    const assignment: LeonardoEventContactAssignment = {
+      ...merged,
+      revision: updated.revision,
+      updatedAt: updated.updatedAt!,
+      updatedBy: updated.updatedBy,
+    };
+    await persistAssignment(assignment, storedMatch);
+    return assignment;
+  }
+
   const now = new Date().toISOString();
-  const userId = sessionUserId(session);
   const draft: LeonardoEventContactAssignment = {
     id: randomUUID(),
     tenantId: session.tenantId,
@@ -184,11 +236,49 @@ export async function deleteEventContactAssignment(
   const assignment = await getAssignment(tenantId, assignmentId, {
     includeDeleted: true,
   });
-  if (!assignment) {
+  if (!assignment || !isEntityActive(assignment)) {
     return;
   }
   const deleted = markEntityDeleted(assignment, userId);
   await persistAssignment(deleted, assignment);
+}
+
+export async function restoreEventContactAssignment(
+  tenantId: string,
+  assignmentId: string,
+  userId: string
+): Promise<LeonardoEventContactAssignment | null> {
+  const assignment = await getAssignment(tenantId, assignmentId, {
+    includeDeleted: true,
+  });
+  if (!assignment || isEntityActive(assignment)) {
+    return null;
+  }
+
+  const activeDuplicate = await findStoredAssignmentByIdentity(
+    tenantId,
+    assignment.eventId,
+    assignment.contactId,
+    assignment.roleCategory
+  );
+  if (
+    activeDuplicate &&
+    activeDuplicate.id !== assignment.id &&
+    isEntityActive(activeDuplicate)
+  ) {
+    throw new Error("ASSIGNMENT_DUPLICATE");
+  }
+
+  const restored = markEntityRestored(assignment, userId);
+  const updated = prepareEntityUpdate(restored, userId);
+  const next: LeonardoEventContactAssignment = {
+    ...restored,
+    revision: updated.revision,
+    updatedAt: updated.updatedAt!,
+    updatedBy: updated.updatedBy,
+  };
+  await persistAssignment(next, assignment);
+  return next;
 }
 
 export async function updateEventContactAssignment(
