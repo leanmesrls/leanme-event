@@ -1,0 +1,38 @@
+{
+  "eventStatuses": [
+    { "value": "draft", "label": "Bozza" },
+    { "value": "active", "label": "Attivo" },
+    { "value": "completed", "label": "Completato" },
+    { "value": "archived", "label": "Archiviato" }
+  ],
+  "roleCategories": [
+    { "id": "partecipante", "label": "Partecipante" },
+    { "id": "ospite", "label": "Ospite" },
+    { "id": "docente", "label": "Docente" },
+    { "id": "relatore", "label": "Relatore" },
+    { "id": "segreteria_scientifica", "label": "Segreteria scientifica" },
+    { "id": "pt", "label": "PT / Chair" },
+    { "id": "delegazione", "label": "Delegazione" },
+    { "id": "sponsor", "label": "Sponsor" },
+    { "id": "patrocinio", "label": "Patrocinio" },
+    { "id": "staff_interno", "label": "Staff interno" },
+    { "id": "staff_esterno", "label": "Staff esterno" }
+  ],
+  "graphicCategories": [
+    { "id": "programma", "label": "Programma" },
+    { "id": "set_date", "label": "Set date" },
+    { "id": "banner", "label": "Banner" },
+    { "id": "locandine", "label": "Locandine" },
+    { "id": "badge", "label": "Immagini badge" },
+    { "id": "attestati", "label": "Attestati" },
+    { "id": "cartelli", "label": "Cartelli" },
+    { "id": "loghi", "label": "Loghi" },
+    { "id": "transfer", "label": "Cartelli transfer" },
+    { "id": "rollup", "label": "Roll-up" },
+    { "id": "slide_relatori", "label": "Slide relazioni" },
+    { "id": "slide_sede", "label": "Slide / materiali sede" },
+    { "id": "pdf_stampa", "label": "PDF per stampa" },
+    { "id": "pdf_sede", "label": "PDF sede congressuale" },
+    { "id": "versione_superata", "label": "Versione superata" }
+  ]
+}

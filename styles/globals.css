@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fucsia LeanMe — riferimento mockup UI_HOME_APPROVED_v1.png */
+  --color-leanme-fuchsia: #e6007e;
+  --color-leanme-fuchsia-dark: #b80063;
+  --color-leanme-fuchsia-light: #ff1a8c;
+  /* Alias legacy → fucsia mockup */
+  --color-leanme-purple: #e6007e;
+  --color-leanme-black: #000000;
+  --color-leanme-white: #ffffff;
+  --color-leanme-gray-50: #fafafa;
+  --color-leanme-gray-100: #f4f4f5;
+  --color-leanme-gray-200: #e4e4e7;
+  --color-leanme-gray-300: #d4d4d8;
+  --color-leanme-gray-400: #a1a1aa;
+  --color-leanme-gray-500: #71717a;
+  --color-leanme-gray-600: #52525b;
+  --color-leanme-gray-700: #3f3f46;
+  --color-leanme-gray-800: #27272a;
+  --color-leanme-gray-900: #18181b;
+  --color-leanme-card: #111111;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --spacing-section: 6rem;
+  --spacing-section-sm: 4rem;
+
+  --shadow-card: 0 24px 48px -12px rgb(0 0 0 / 0.12);
+  --shadow-card-hover: 0 32px 64px -16px rgb(230 0 126 / 0.18);
+  --shadow-agent-glow: 0 0 20px rgb(230 0 126 / 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-black text-white antialiased;
+  }
+
+  ::selection {
+    @apply bg-leanme-fuchsia/30 text-white;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .section-padding {
+    @apply px-5 py-16 md:px-10 md:py-20 lg:px-16 lg:py-24;
+  }
+
+  /* Ritmo compatto homepage — mockup UI_HOME_APPROVED_v1 */
+  .homepage-flow {
+    display: flex;
+    flex-direction: column;
+    /* = padding verticale cumulativo tra sezioni (es. link agenti → titolo servizi) */
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .homepage-flow {
+      gap: 3rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .homepage-flow {
+      gap: 3.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .homepage-flow {
+      gap: 4rem;
+    }
+  }
+
+  .homepage-flow .section-padding {
+    @apply px-5 py-0 md:px-10 lg:px-16;
+  }
+
+  .gradient-fuchsia {
+    background: linear-gradient(135deg, #e6007e 0%, #b80063 100%);
+  }
+
+  .animate-partner-marquee {
+    animation: partner-marquee 45s linear infinite;
+  }
+
+  .partner-marquee-track {
+    animation: partner-marquee 28s linear infinite;
+  }
+
+  .contact-banner-animated {
+    position: relative;
+    isolation: isolate;
+    background-color: #e6007e;
+  }
+
+  .contact-banner-animated::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      90deg,
+      #e6007e 0%,
+      #ff3d9a 20%,
+      #7a0044 45%,
+      #ff60b0 70%,
+      #e6007e 100%
+    );
+    background-size: 300% 100%;
+    animation: contact-banner-shift 5s linear infinite;
+  }
+
+  .contact-banner-shimmer {
+    z-index: 1;
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgb(255 255 255 / 0.55) 50%,
+      transparent 70%
+    );
+    background-size: 60% 100%;
+    animation: contact-banner-shimmer 3s linear infinite;
+  }
+
+  @media (hover: hover) {
+    .leanlab-article-card:hover .leanlab-article-card-media {
+      transform: scale(1.12);
+    }
+
+    .leanlab-article-card:hover .leanlab-article-card-overlay {
+      background-color: rgb(230 0 126 / 0.32);
+    }
+  }
+
+  .leanlab-article-card-media {
+    transition: transform 0.45s ease-out;
+  }
+
+  .leanlab-article-card-overlay {
+    background-color: transparent;
+    transition: background-color 0.35s ease;
+  }
+
+  @keyframes contact-banner-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 300% 50%;
+    }
+  }
+
+  @keyframes contact-banner-shimmer {
+    0% {
+      background-position: -80% 0;
+    }
+    100% {
+      background-position: 180% 0;
+    }
+  }
+
+  .animate-contact-banner-bg {
+    background: linear-gradient(
+      120deg,
+      #e6007e 0%,
+      #c4006d 35%,
+      #e6007e 70%,
+      #ff1a8c 100%
+    );
+    background-size: 220% 220%;
+    animation: contact-banner-shift 6s ease-in-out infinite;
+  }
+
+  @keyframes partner-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes hero-ken-burns {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.12);
+    }
+  }
+
+  .animate-hero-ken-burns {
+    animation: hero-ken-burns 9s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes cta-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(230 0 126 / 0.45);
+    }
+    50% {
+      box-shadow: 0 0 28px 6px rgb(230 0 126 / 0.35);
+    }
+  }
+
+  .animate-cta-glow {
+    animation: cta-glow 2.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-partner-marquee,
+    .partner-marquee-track {
+      animation-duration: 60s;
+    }
+
+    .contact-banner-animated::before,
+    .contact-banner-shimmer {
+      animation-duration: 10s;
+    }
+
+    .animate-hero-ken-burns,
+    .animate-cta-glow {
+      animation: none;
+    }
+  }
+}

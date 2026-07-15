@@ -1,0 +1,75 @@
+{
+  "intro": {
+    "id": "lean-academy",
+    "title": "Lean Academy",
+    "subtitle": "Formazione e conoscenza condivisa",
+    "description": "Crediamo che la conoscenza abbia valore solo quando viene condivisa. Lean Academy mette a disposizione esperienza, strumenti, guide e formazione."
+  },
+  "publicArea": {
+    "title": "Area Pubblica",
+    "description": "Accessibile a tutti. Video introduttivi, guide, articoli, tutorial, webinar gratuiti e risorse scaricabili.",
+    "resources": [
+      {
+        "slug": "intro-azienda-ibrida",
+        "title": "Introduzione all'Azienda Ibrida",
+        "type": "Video",
+        "description": "Video introduttivo sul concetto di Azienda Ibrida e sul metodo LeanMe.",
+        "image": {
+          "src": "/images/placeholders/academy-video.svg",
+          "alt": "Intro Azienda Ibrida",
+          "replaceHint": "REPLACE: Thumbnail video Lean Academy"
+        },
+        "href": "/lean-academy/intro-azienda-ibrida"
+      },
+      {
+        "slug": "guida-automazione",
+        "title": "Guida all'automazione dei processi",
+        "type": "Guida",
+        "description": "Guida pratica per identificare e automatizzare i processi aziendali.",
+        "image": {
+          "src": "/images/placeholders/academy-guide.svg",
+          "alt": "Guida automazione",
+          "replaceHint": "REPLACE: Cover guida Lean Academy"
+        },
+        "href": "/lean-academy/guida-automazione"
+      },
+      {
+        "slug": "webinar-lean-thinking",
+        "title": "Webinar: Lean Thinking e AI",
+        "type": "Webinar",
+        "description": "Webinar gratuito sul connubio tra Lean Thinking e Intelligenza Artificiale.",
+        "image": {
+          "src": "/images/placeholders/academy-webinar.svg",
+          "alt": "Webinar Lean Thinking",
+          "replaceHint": "REPLACE: Thumbnail webinar Lean Academy"
+        },
+        "href": "/lean-academy/webinar-lean-thinking"
+      },
+      {
+        "slug": "tutorial-primo-agente",
+        "title": "Tutorial: Il tuo primo Lean.Agent",
+        "type": "Tutorial",
+        "description": "Tutorial passo-passo per comprendere come funziona un agente AI specializzato.",
+        "image": {
+          "src": "/images/placeholders/academy-tutorial.svg",
+          "alt": "Tutorial Lean.Agent",
+          "replaceHint": "REPLACE: Thumbnail tutorial Lean Academy"
+        },
+        "href": "/lean-academy/tutorial-primo-agente"
+      }
+    ]
+  },
+  "reservedArea": {
+    "title": "Area Riservata",
+    "description": "Accessibile tramite autenticazione. Corsi premium, video lezioni, percorsi formativi, quiz, attestati e comunità.",
+    "features": [
+      "Corsi premium",
+      "Video lezioni",
+      "Percorsi formativi",
+      "Quiz e materiale didattico",
+      "Attestati e certificazioni",
+      "Download esclusivi",
+      "Comunità degli iscritti"
+    ]
+  }
+}

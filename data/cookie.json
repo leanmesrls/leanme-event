@@ -1,0 +1,119 @@
+{
+  "hero": {
+    "title": "Cookie Policy",
+    "lastUpdated": "4 luglio 2026"
+  },
+  "sections": [
+    {
+      "id": "cosa-sono",
+      "title": "Cosa sono i cookie",
+      "paragraphs": [
+        "I cookie sono piccoli file di testo che i siti web salvano sul dispositivo dell'utente durante la navigazione.",
+        "Servono a garantire il corretto funzionamento del sito, migliorare l'esperienza di navigazione, raccogliere statistiche anonime e, previo consenso, personalizzare contenuti e servizi."
+      ]
+    },
+    {
+      "id": "quali-cookie",
+      "title": "Quali cookie utilizziamo",
+      "paragraphs": [
+        "Il sito LeanMe utilizza diverse categorie di cookie."
+      ],
+      "subsections": [
+        {
+          "title": "Cookie necessari",
+          "paragraphs": [
+            "Sono indispensabili per il corretto funzionamento del sito.",
+            "Consentono, ad esempio, la navigazione, la sicurezza e l'utilizzo delle funzionalità essenziali.",
+            "Non richiedono il consenso dell'utente."
+          ]
+        },
+        {
+          "title": "Cookie statistici",
+          "paragraphs": [
+            "Ci aiutano a comprendere come viene utilizzato il sito, raccogliendo dati aggregati e anonimi.",
+            "Queste informazioni ci permettono di migliorare continuamente i contenuti e l'esperienza di navigazione."
+          ]
+        },
+        {
+          "title": "Cookie di marketing",
+          "paragraphs": [
+            "Sono utilizzati esclusivamente previo consenso dell'utente e consentono di offrire comunicazioni e contenuti più pertinenti."
+          ]
+        },
+        {
+          "title": "Cookie di preferenza",
+          "paragraphs": [
+            "Permettono di ricordare alcune preferenze espresse dall'utente durante la navigazione."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "terze-parti",
+      "title": "Servizi di terze parti",
+      "paragraphs": [
+        "Il sito LeanMe utilizza alcuni servizi esterni che possono installare cookie tecnici o, previo consenso, cookie statistici e di marketing.",
+        "Tra questi possono essere presenti:"
+      ],
+      "items": [
+        "Google Analytics 4 (analisi statistiche del traffico);",
+        "Google Tag Manager;",
+        "Cookiebot (gestione del consenso ai cookie);",
+        "Jotform (moduli di contatto, newsletter e assistente AI Teresa);",
+        "eventuali servizi di hosting, CDN e piattaforme di supporto tecnico."
+      ],
+      "footerParagraphs": [
+        "L'elenco completo e aggiornato dei cookie utilizzati è disponibile nella sezione dedicata gestita automaticamente da Cookiebot."
+      ]
+    },
+    {
+      "id": "jotform",
+      "title": "Cookie utilizzati da Jotform",
+      "paragraphs": [
+        "Alcuni moduli presenti sul sito, inclusi il modulo Contattaci, l'iscrizione alla newsletter e l'assistente virtuale Teresa · Lean.Agent AI, sono forniti tramite la piattaforma Jotform.",
+        "Jotform può utilizzare cookie tecnici necessari al corretto funzionamento dei moduli e dell'assistente virtuale.",
+        "Per maggiori informazioni è possibile consultare l'informativa privacy di Jotform."
+      ]
+    },
+    {
+      "id": "consenso",
+      "title": "Gestione del consenso",
+      "paragraphs": [
+        "Alla prima visita del sito viene mostrato un banner che consente di:"
+      ],
+      "items": [
+        "accettare tutti i cookie;",
+        "rifiutare i cookie non necessari;",
+        "personalizzare le proprie preferenze."
+      ],
+      "footerParagraphs": [
+        "L'utente può modificare il consenso in qualsiasi momento tramite il pulsante dedicato presente nel sito."
+      ]
+    },
+    {
+      "id": "disabilitare",
+      "title": "Come disabilitare i cookie",
+      "paragraphs": [
+        "È sempre possibile gestire o eliminare i cookie anche tramite le impostazioni del proprio browser.",
+        "La disabilitazione di alcuni cookie potrebbe limitare alcune funzionalità del sito."
+      ]
+    },
+    {
+      "id": "dichiarazione",
+      "title": "Dichiarazione dei Cookie",
+      "paragraphs": [
+        "L'elenco aggiornato dei cookie utilizzati da questo sito è generato automaticamente da Cookiebot."
+      ],
+      "embedPlaceholder": "Qui verrà inserito automaticamente il codice Cookie Declaration di Cookiebot."
+    },
+    {
+      "id": "contatti",
+      "title": "Contatti",
+      "paragraphs": [
+        "Per qualsiasi informazione relativa al trattamento dei dati personali o ai cookie è possibile contattare:"
+      ],
+      "lines": ["LeanMe S.r.l.s."],
+      "email": "info@leanme.it"
+    }
+  ]
+}

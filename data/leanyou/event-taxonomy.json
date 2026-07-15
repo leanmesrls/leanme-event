@@ -1,0 +1,132 @@
+{
+  "categoryGroups": [
+    {
+      "id": "formazione_sanitaria",
+      "label": "FORMAZIONE",
+      "requiresHealthArea": true,
+      "allowsEcm": true
+    },
+    {
+      "id": "altre_tipologie",
+      "label": "ALTRE TIPOLOGIE",
+      "requiresHealthArea": false,
+      "allowsEcm": false
+    }
+  ],
+  "categories": [
+    {
+      "id": "formazione_sanitaria",
+      "groupId": "formazione_sanitaria",
+      "label": "Evento di formazione sanitaria"
+    },
+    {
+      "id": "formazione_non_sanitaria",
+      "groupId": "formazione_sanitaria",
+      "label": "Evento di formazione non sanitaria"
+    },
+    {
+      "id": "artistico",
+      "groupId": "altre_tipologie",
+      "label": "ARTISTICO"
+    },
+    {
+      "id": "evento_aziendale",
+      "groupId": "altre_tipologie",
+      "label": "EVENTO AZIENDALE"
+    },
+    {
+      "id": "evento_incentive",
+      "groupId": "altre_tipologie",
+      "label": "EVENTO INCENTIVE"
+    },
+    {
+      "id": "inaugurazione",
+      "groupId": "altre_tipologie",
+      "label": "INAUGURAZIONE"
+    },
+    {
+      "id": "vernissage",
+      "groupId": "altre_tipologie",
+      "label": "VERNISSAGE"
+    },
+    {
+      "id": "fiera",
+      "groupId": "altre_tipologie",
+      "label": "FIERA"
+    }
+  ],
+  "healthAreas": [
+    {
+      "id": "area_sanitaria",
+      "label": "Area Sanitaria",
+      "parentOnly": true
+    },
+    {
+      "id": "infettivologica_immunologica_terapia_intensiva",
+      "label": "Area Infettivologica, Immunologica e Terapia Intensiva",
+      "code": 100
+    },
+    {
+      "id": "metabolica_endocrinologica",
+      "label": "Area Metabolica ed Endocrinologica",
+      "code": 48
+    },
+    {
+      "id": "cardiologica_cardiovascolare_respiratoria",
+      "label": "Area Cardiologica, Cardiovascolare e Respiratoria",
+      "code": 36
+    },
+    {
+      "id": "oncologica_ematologica",
+      "label": "Area Oncologica e Ematologica",
+      "code": 28
+    },
+    {
+      "id": "ginecologica_urologica_nefrologica",
+      "label": "Area Ginecologica, Urologica e Nefrologica",
+      "code": 24
+    },
+    {
+      "id": "gastroenterologica",
+      "label": "Area Gastroenterologica",
+      "code": 14
+    },
+    {
+      "id": "prevenzione_salute_pubblica",
+      "label": "Area Prevenzione e Salute Pubblica",
+      "code": 11
+    },
+    {
+      "id": "ortopedica_riabilitativa",
+      "label": "Area Ortopedica e Riabilitativa",
+      "code": 5
+    },
+    {
+      "id": "neurologica_psichiatrica_psicologica",
+      "label": "Area Neurologica, Psichiatrica e Psicologica",
+      "code": 2
+    }
+  ],
+  "ecmModalities": [
+    {
+      "id": "res",
+      "label": "RES (RESIDENZIALE)"
+    },
+    {
+      "id": "fad",
+      "label": "FAD (FORMAZIONE A DISTANZA)"
+    },
+    {
+      "id": "fsc",
+      "label": "FSC (FORMAZIONE SUL CAMPO)"
+    },
+    {
+      "id": "blended_res_fsc",
+      "label": "BLENDED RES-FSC (FORMAZIONE MISTA RESIDENZIALE E SUL CAMPO)"
+    },
+    {
+      "id": "res_fad",
+      "label": "RES (RESIDENZIALE) / FAD (FORMAZIONE A DISTANZA)"
+    }
+  ]
+}

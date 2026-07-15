@@ -1,0 +1,204 @@
+import { randomUUID } from "node:crypto";
+
+import type {
+  LeanYouSession,
+  LeanYouSupplier,
+  LeonardoSupplierDocument,
+} from "@/types/leanyou";
+
+import {
+  assertRevisionMatch,
+  isEntityActive,
+  markEntityDeleted,
+  markEntityRestored,
+  prepareEntityCreate,
+  prepareEntityUpdate,
+  sessionUserId,
+  withLifecycleDefaults,
+} from "./entity-lifecycle";
+import { isValidSupplierCategory } from "./supplier-categories";
+import {
+  getStoredSupplier,
+  listStoredSuppliers,
+  saveStoredSupplier,
+} from "./supplier-storage";
+import { saveEntityVersionSnapshot } from "./version-storage";
+
+function normalizeStoredSupplier(supplier: LeanYouSupplier): LeanYouSupplier {
+  return normalizeSupplier(withLifecycleDefaults(supplier) as LeanYouSupplier);
+}
+
+export async function listSuppliers(
+  tenantId: string
+): Promise<LeanYouSupplier[]> {
+  const suppliers = await listStoredSuppliers(tenantId);
+  return suppliers
+    .map((supplier) => normalizeStoredSupplier(supplier))
+    .filter(isEntityActive)
+    .sort((a, b) => a.name.localeCompare(b.name, "it"));
+}
+
+export async function listDeletedSuppliers(
+  tenantId: string
+): Promise<LeanYouSupplier[]> {
+  const suppliers = await listStoredSuppliers(tenantId);
+  return suppliers
+    .map((supplier) => normalizeStoredSupplier(supplier))
+    .filter((supplier) => !isEntityActive(supplier))
+    .sort((a, b) => (b.deletedAt ?? "").localeCompare(a.deletedAt ?? ""));
+}
+
+export async function getSupplier(
+  tenantId: string,
+  supplierId: string,
+  options?: { includeDeleted?: boolean }
+): Promise<LeanYouSupplier | null> {
+  const supplier = await getStoredSupplier(tenantId, supplierId);
+  if (!supplier) {
+    return null;
+  }
+  const normalized = normalizeStoredSupplier(supplier);
+  if (!options?.includeDeleted && !isEntityActive(normalized)) {
+    return null;
+  }
+  return normalized;
+}
+
+async function persistSupplier(
+  supplier: LeanYouSupplier,
+  previous: LeanYouSupplier | null
+): Promise<void> {
+  if (previous) {
+    await saveEntityVersionSnapshot(
+      supplier.tenantId,
+      "supplier",
+      supplier.id,
+      previous.revision ?? 1,
+      previous
+    );
+  }
+  await saveStoredSupplier(supplier);
+}
+
+export async function saveSupplier(
+  supplier: LeanYouSupplier,
+  options?: {
+    expectedRevision?: number;
+    userId?: string;
+    previous?: LeanYouSupplier | null;
+  }
+): Promise<LeanYouSupplier> {
+  const normalized = normalizeStoredSupplier(supplier);
+  const previous =
+    options?.previous ??
+    (await getStoredSupplier(normalized.tenantId, normalized.id));
+
+  if (previous) {
+    const prevNorm = normalizeStoredSupplier(previous);
+    assertRevisionMatch(prevNorm, options?.expectedRevision);
+    const userId = options?.userId ?? normalized.updatedBy ?? "system";
+    const next = prepareEntityUpdate(prevNorm, userId);
+    const merged = normalizeStoredSupplier({
+      ...normalized,
+      revision: next.revision,
+      updatedAt: next.updatedAt!,
+      updatedBy: next.updatedBy,
+    });
+    await persistSupplier(merged, prevNorm);
+    return merged;
+  }
+
+  await saveStoredSupplier(normalized);
+  return normalized;
+}
+
+export async function deleteSupplier(
+  tenantId: string,
+  supplierId: string,
+  userId: string
+): Promise<void> {
+  const supplier = await getSupplier(tenantId, supplierId, {
+    includeDeleted: true,
+  });
+  if (!supplier) {
+    return;
+  }
+  const deleted = markEntityDeleted(supplier, userId);
+  await persistSupplier(deleted, supplier);
+}
+
+export async function restoreSupplier(
+  tenantId: string,
+  supplierId: string,
+  userId: string
+): Promise<LeanYouSupplier | null> {
+  const supplier = await getSupplier(tenantId, supplierId, {
+    includeDeleted: true,
+  });
+  if (!supplier || isEntityActive(supplier)) {
+    return null;
+  }
+  const restored = markEntityRestored(supplier, userId);
+  await persistSupplier(restored, supplier);
+  return restored;
+}
+
+export function normalizeSupplier(supplier: LeanYouSupplier): LeanYouSupplier {
+  return {
+    ...supplier,
+    agreements: supplier.agreements ?? [],
+  };
+}
+
+export function createSupplier(
+  session: LeanYouSession,
+  input: {
+    name: string;
+    categoryId: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    province?: string;
+    vatNumber?: string;
+    contactPerson?: string;
+    notes?: string;
+  }
+): LeanYouSupplier {
+  const now = new Date().toISOString();
+  const userId = sessionUserId(session);
+  const categoryId = isValidSupplierCategory(input.categoryId)
+    ? input.categoryId
+    : "collaboratori";
+
+  const draft: LeanYouSupplier = {
+    id: randomUUID(),
+    tenantId: session.tenantId,
+    name: input.name.trim(),
+    categoryId,
+    email: input.email?.trim() ?? "",
+    phone: input.phone?.trim() ?? "",
+    address: input.address?.trim() ?? "",
+    city: input.city?.trim() ?? "",
+    province: input.province?.trim().toUpperCase() ?? "",
+    vatNumber: input.vatNumber?.trim() ?? "",
+    contactPerson: input.contactPerson?.trim() ?? "",
+    notes: input.notes?.trim() ?? "",
+    agreements: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  return prepareEntityCreate(normalizeStoredSupplier(draft), userId);
+}
+
+export function appendSupplierAgreement(
+  supplier: LeanYouSupplier,
+  document: LeonardoSupplierDocument
+): LeanYouSupplier {
+  return {
+    ...supplier,
+    agreements: [...(supplier.agreements ?? []), document],
+    updatedAt: new Date().toISOString(),
+  };
+}

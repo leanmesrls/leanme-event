@@ -1,0 +1,84 @@
+{
+  "hero": {
+    "title": "Credits",
+    "subtitle": "Questo sito è il nostro primo case study."
+  },
+  "intro": [
+    "È stato progettato, sviluppato e realizzato grazie alla collaborazione tra persone e Agenti AI, ciascuno con un ruolo preciso.",
+    "Per noi questa non è una dimostrazione teorica.",
+    "È il modo in cui lavoriamo ogni giorno."
+  ],
+  "people": {
+    "title": "Persone",
+    "members": [
+      {
+        "name": "Luana Martuzzi",
+        "role": "Founder · Innovation Strategist · AI & Digital Specialist",
+        "description": "Ideazione del progetto, architettura dei contenuti, UX, strategia digitale, branding e coordinamento."
+      },
+      {
+        "name": "Alessandro Lupinetti",
+        "role": "CTO · Full Stack Developer · Security & Infrastructure",
+        "description": "Sviluppo software, architettura tecnica, integrazioni, sicurezza e infrastruttura."
+      }
+    ]
+  },
+  "agents": {
+    "title": "Lean.Agent AI",
+    "members": [
+      {
+        "name": "Leonardo",
+        "role": "Segreteria e Organizzazione",
+        "description": "Supporto organizzativo, documentazione e pianificazione."
+      },
+      {
+        "name": "Vespucci",
+        "role": "Creatività e Ricerca",
+        "description": "Ricerca, concept, creatività e sviluppo delle idee."
+      },
+      {
+        "name": "Marconi",
+        "role": "Marketing e Comunicazione",
+        "description": "Copywriting, comunicazione e strategia editoriale."
+      },
+      {
+        "name": "Angela",
+        "role": "Formazione",
+        "description": "Progettazione dei contenuti della Lean Academy."
+      },
+      {
+        "name": "Galileo",
+        "role": "Workflow e Automazioni",
+        "description": "Analisi dei processi e progettazione delle automazioni."
+      },
+      {
+        "name": "Olivetti",
+        "role": "Programmazione, Tecnologia e Sviluppo",
+        "description": "Supporto allo sviluppo software e alla progettazione tecnica."
+      },
+      {
+        "name": "Teresa",
+        "role": "Customer Care & Support",
+        "description": "Accoglienza, assistenza e supporto agli utenti."
+      }
+    ]
+  },
+  "technologies": {
+    "title": "Tecnologie utilizzate",
+    "intro": "Il progetto è stato sviluppato utilizzando, tra gli altri:",
+    "items": [
+      "Next.js",
+      "React",
+      "Tailwind CSS",
+      "TypeScript",
+      "Cursor AI",
+      "GitHub",
+      "Vercel",
+      "OpenAI",
+      "Jotform",
+      "Cookiebot",
+      "Google Analytics"
+    ],
+    "footer": "L'elenco potrà essere aggiornato nel tempo."
+  }
+}

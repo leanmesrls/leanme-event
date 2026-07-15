@@ -1,0 +1,23 @@
+{
+  "tenants": [
+    {
+      "id": "demo",
+      "name": "Cliente Demo",
+      "slug": "demo",
+      "accessToken": "REPLACE_WITH_GENERATED_TENANT_TOKEN",
+      "modules": ["leonardo"],
+      "users": [
+        {
+          "id": "demo-admin",
+          "email": "admin@demo-cliente.it",
+          "firstName": "Amministratore",
+          "lastName": "Demo",
+          "name": "Amministratore Demo",
+          "role": "admin",
+          "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+          "accessToken": "REPLACE_WITH_GENERATED_USER_TOKEN"
+        }
+      ]
+    }
+  ]
+}

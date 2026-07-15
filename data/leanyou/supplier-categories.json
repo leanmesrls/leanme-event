@@ -1,0 +1,17 @@
+[
+  { "id": "grafico", "label": "Grafico" },
+  { "id": "regia_tecnica", "label": "Regia tecnica" },
+  { "id": "digital_innovazione", "label": "Digital e innovazione" },
+  { "id": "catering", "label": "Catering" },
+  { "id": "ristorante", "label": "Ristorante" },
+  { "id": "addobbi_floreali", "label": "Addobbi floreali" },
+  { "id": "allestimenti", "label": "Allestimenti" },
+  { "id": "fotografo", "label": "Fotografo" },
+  { "id": "hostess", "label": "Hostess" },
+  { "id": "collaboratori", "label": "Collaboratori" },
+  { "id": "interpreti", "label": "Interpreti" },
+  { "id": "pulizia", "label": "Pulizia" },
+  { "id": "sicurezza", "label": "Sicurezza" },
+  { "id": "tipografia", "label": "Tipografia" },
+  { "id": "trasporti", "label": "Trasporti" }
+]

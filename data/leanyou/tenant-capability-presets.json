@@ -1,0 +1,36 @@
+{
+  "iec_pilot": {
+    "label": "I&C — pilota eventi (provvisorio, da confermare)",
+    "capabilities": {
+      "hub": true,
+      "verbali": true,
+      "eventi": true,
+      "contatti": true,
+      "fornitori": true,
+      "clienti": true,
+      "hotel": true,
+      "logistica": true,
+      "ospiti": true,
+      "stampati": true,
+      "budget": false,
+      "comunicazioni": false,
+      "ecm": false,
+      "finance": false,
+      "government": false,
+      "lean_human": false,
+      "docenti": false,
+      "delegazioni": false,
+      "registrazione": false,
+      "abstract": false,
+      "survey": false,
+      "connect": false,
+      "archivio_mail": false,
+      "public_site": false,
+      "participant_portal": false,
+      "payments_paypal": false,
+      "ai_writing": true,
+      "ai_graphics": true,
+      "ai_assistant": true
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "hero": {
+    "title": "Dichiarazione di Accessibilità",
+    "subtitle": "L'innovazione è davvero innovazione solo quando può essere utilizzata da tutti.",
+    "lastUpdated": "4 luglio 2026"
+  },
+  "sections": [
+    {
+      "id": "impegno",
+      "title": "Il nostro impegno",
+      "paragraphs": [
+        "In LeanMe crediamo che l'innovazione abbia valore solo quando è davvero accessibile a tutti.",
+        "Per questo progettiamo esperienze digitali che possano essere utilizzate dal maggior numero possibile di persone, indipendentemente dalle capacità individuali, dai dispositivi utilizzati o dalle tecnologie assistive impiegate.",
+        "L'accessibilità non rappresenta per noi un semplice adempimento normativo, ma un principio di progettazione che guida lo sviluppo dei nostri servizi digitali."
+      ]
+    },
+    {
+      "id": "conformita",
+      "title": "Stato di conformità",
+      "paragraphs": [
+        "Il sito www.leanme.it è stato progettato seguendo le principali raccomandazioni internazionali in materia di accessibilità digitale, con particolare riferimento alle Web Content Accessibility Guidelines (WCAG) 2.2, livello AA.",
+        "Sono state adottate numerose soluzioni volte a migliorare l'esperienza di navigazione e l'utilizzo del sito da parte di tutti gli utenti.",
+        "Il sito è oggetto di miglioramento continuo e potrà essere aggiornato periodicamente per incrementarne ulteriormente il livello di accessibilità."
+      ]
+    },
+    {
+      "id": "misure",
+      "title": "Misure adottate",
+      "paragraphs": [
+        "Durante la progettazione del sito sono stati considerati, tra gli altri, i seguenti aspetti:"
+      ],
+      "items": [
+        "struttura semantica delle pagine;",
+        "navigazione chiara e coerente;",
+        "utilizzo corretto di titoli e gerarchie dei contenuti;",
+        "contrasto cromatico adeguato;",
+        "compatibilità con la navigazione tramite tastiera;",
+        "testi leggibili e facilmente comprensibili;",
+        "descrizioni alternative per le immagini significative;",
+        "design responsive per dispositivi desktop, tablet e smartphone;",
+        "attenzione alla compatibilità con le principali tecnologie assistive."
+      ]
+    },
+    {
+      "id": "miglioramento",
+      "title": "Miglioramento continuo",
+      "paragraphs": [
+        "L'accessibilità è un processo continuo.",
+        "Monitoriamo periodicamente il sito per individuare eventuali criticità e migliorare costantemente l'esperienza degli utenti.",
+        "Ogni nuovo contenuto pubblicato viene realizzato cercando di rispettare gli stessi principi di accessibilità adottati nello sviluppo del sito."
+      ]
+    },
+    {
+      "id": "segnalazioni",
+      "title": "Segnalazioni",
+      "paragraphs": [
+        "Se durante la navigazione dovessi riscontrare difficoltà nell'utilizzo del sito o desiderassi segnalare un problema di accessibilità, saremo lieti di ricevere il tuo contributo.",
+        "Puoi contattarci scrivendo a:"
+      ],
+      "lines": ["LeanMe S.r.l.s."],
+      "email": "info@leanme.it",
+      "footerParagraphs": [
+        "Ogni segnalazione verrà presa in considerazione con attenzione e, ove possibile, utilizzata per migliorare il sito."
+      ]
+    },
+    {
+      "id": "compatibilita",
+      "title": "Compatibilità",
+      "paragraphs": [
+        "Il sito è progettato per funzionare correttamente con i principali browser moderni e sui più diffusi dispositivi desktop e mobili.",
+        "Per ottenere la migliore esperienza di navigazione si consiglia di utilizzare versioni aggiornate dei browser."
+      ]
+    },
+    {
+      "id": "tecnologie",
+      "title": "Tecnologie utilizzate",
+      "paragraphs": [
+        "Il sito utilizza tecnologie web moderne, tra cui HTML5, CSS3 e JavaScript, sviluppate seguendo criteri di compatibilità, prestazioni e accessibilità.",
+        "Alcune funzionalità sono fornite tramite servizi di terze parti, come i moduli di contatto e l'assistente virtuale Teresa realizzati con Jotform. Sebbene LeanMe selezioni con attenzione tali strumenti, alcune caratteristiche di accessibilità dipendono dalle piattaforme fornite dai rispettivi sviluppatori."
+      ]
+    },
+    {
+      "id": "aggiornamenti",
+      "title": "Aggiornamenti della dichiarazione",
+      "paragraphs": [
+        "La presente dichiarazione potrà essere aggiornata in occasione di modifiche significative del sito, dell'introduzione di nuove funzionalità o di eventuali aggiornamenti normativi."
+      ]
+    }
+  ]
+}

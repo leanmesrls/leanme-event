@@ -1,0 +1,140 @@
+{
+  "hero": {
+    "title": "Informativa sul trattamento dei dati personali per l'iscrizione alla Newsletter LeanLab",
+    "lastUpdated": "4 luglio 2026"
+  },
+  "sections": [
+    {
+      "id": "titolare",
+      "title": "1. Titolare del trattamento",
+      "paragraphs": [
+        "Il Titolare del trattamento dei dati personali è:"
+      ],
+      "lines": [
+        "LeanMe S.r.l.s.",
+        "Via Porrettana 150",
+        "40135 Bologna (BO)",
+        "P. IVA: 03887091209",
+        "PEC: LeanMe@pec.it",
+        "E-mail: info@leanme.it"
+      ]
+    },
+    {
+      "id": "finalita",
+      "title": "2. Finalità del trattamento",
+      "paragraphs": [
+        "L'iscrizione alla newsletter LeanLab consente di ricevere comunicazioni periodiche dedicate al mondo dell'innovazione, dell'Intelligenza Artificiale e alle attività di LeanMe.",
+        "Potrai ricevere contenuti relativi a:"
+      ],
+      "items": [
+        "progetti realizzati;",
+        "ricerca e innovazione;",
+        "nuove tecnologie;",
+        "Intelligenza Artificiale;",
+        "automazione e digitalizzazione;",
+        "aggiornamenti sulla vita di LeanMe;",
+        "eventi;",
+        "nuovi articoli del LeanLab;",
+        "contenuti della Lean Academy;",
+        "webinar, corsi e iniziative formative;",
+        "eventuali novità sui servizi LeanMe."
+      ],
+      "footerParagraphs": [
+        "La newsletter ha finalità esclusivamente informative e divulgative. Non inviamo comunicazioni prive di interesse o con frequenza eccessiva."
+      ]
+    },
+    {
+      "id": "dati-trattati",
+      "title": "3. Dati trattati",
+      "paragraphs": [
+        "Attraverso il modulo di iscrizione possiamo raccogliere:"
+      ],
+      "items": [
+        "nome;",
+        "cognome;",
+        "indirizzo e-mail;",
+        "azienda (facoltativo);",
+        "settore o ambito professionale."
+      ],
+      "footerParagraphs": [
+        "Il settore professionale viene richiesto esclusivamente per inviare contenuti maggiormente pertinenti agli interessi dell'utente."
+      ]
+    },
+    {
+      "id": "base-giuridica",
+      "title": "4. Base giuridica",
+      "paragraphs": [
+        "Il trattamento avviene esclusivamente sulla base del consenso libero, specifico ed esplicito espresso dall'interessato ai sensi dell'art. 6, paragrafo 1, lettera a) del Regolamento (UE) 2016/679 (GDPR)."
+      ]
+    },
+    {
+      "id": "modalita",
+      "title": "5. Modalità del trattamento",
+      "paragraphs": [
+        "I dati sono trattati con strumenti informatici e telematici adottando misure tecniche e organizzative idonee a garantirne la sicurezza.",
+        "I dati non saranno ceduti né venduti a soggetti terzi."
+      ]
+    },
+    {
+      "id": "conservazione",
+      "title": "6. Conservazione dei dati",
+      "paragraphs": [
+        "I dati saranno conservati fino alla revoca del consenso o alla richiesta di cancellazione dell'iscrizione.",
+        "L'utente può disiscriversi in qualsiasi momento utilizzando il link presente in ogni newsletter oppure scrivendo a:"
+      ],
+      "email": "info@leanme.it"
+    },
+    {
+      "id": "comunicazione",
+      "title": "7. Comunicazione dei dati",
+      "paragraphs": [
+        "Per l'invio della newsletter LeanMe si avvale di piattaforme specializzate nell'email marketing.",
+        "Tali fornitori operano quali Responsabili del trattamento ai sensi dell'art. 28 del GDPR e trattano i dati esclusivamente per conto di LeanMe.",
+        "I dati non saranno diffusi."
+      ]
+    },
+    {
+      "id": "trasferimento",
+      "title": "8. Trasferimento verso Paesi extra UE",
+      "paragraphs": [
+        "Qualora la piattaforma utilizzata comporti il trasferimento dei dati verso Paesi extra UE, tale trasferimento avverrà nel rispetto delle garanzie previste dagli articoli 44 e seguenti del GDPR."
+      ]
+    },
+    {
+      "id": "diritti",
+      "title": "9. Diritti dell'interessato",
+      "paragraphs": [
+        "L'interessato può esercitare in qualsiasi momento i diritti previsti dagli articoli 15-22 del GDPR, tra cui:"
+      ],
+      "items": [
+        "accesso ai dati;",
+        "rettifica;",
+        "cancellazione;",
+        "limitazione del trattamento;",
+        "opposizione;",
+        "portabilità dei dati;",
+        "revoca del consenso."
+      ],
+      "footerParagraphs": [
+        "Le richieste possono essere inviate a:"
+      ],
+      "email": "info@leanme.it"
+    },
+    {
+      "id": "disiscrizione",
+      "title": "10. Disiscrizione",
+      "paragraphs": [
+        "Ogni comunicazione inviata tramite la newsletter LeanLab contiene un collegamento che consente la disiscrizione immediata.",
+        "La revoca del consenso non pregiudica la liceità del trattamento effettuato prima della revoca."
+      ]
+    },
+    {
+      "id": "modifiche",
+      "title": "11. Modifiche all'informativa",
+      "paragraphs": [
+        "LeanMe si riserva la facoltà di aggiornare la presente informativa per adeguarla a eventuali modifiche normative o organizzative.",
+        "La versione aggiornata sarà sempre disponibile su questa pagina."
+      ]
+    }
+  ]
+}

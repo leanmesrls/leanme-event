@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="LeanMe Open Graph placeholder">
+  <rect width="1200" height="630" fill="#8016D2"/>
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="12 8" opacity="0.5"/>
+  <text x="600" y="280" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="28" font-weight="600">LeanMe</text>
+  <text x="600" y="330" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="16" opacity="0.8">REPLACE: Open Graph image (1200×630)</text>
+  <text x="600" y="370" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="12" opacity="0.6">/images/placeholders/og-default.svg</text>
+</svg>

@@ -1,0 +1,239 @@
+{
+  "intro": {
+    "id": "chi-siamo",
+    "title": "Chi siamo",
+    "subtitle": "Persone e Agenti AI, insieme."
+  },
+  "hero": {
+    "background": "/assets/official/reception-render.png",
+    "imageAlt": "Reception LeanMe — ambiente premium, parete in legno e illuminazione calda"
+  },
+  "teaser": {
+    "text": "Se pensi che l'Intelligenza Artificiale sia un chat particolarmente evoluta per fare domande e ottenere risposte... stai per scoprire cosa significa davvero lavorare insieme a un Agente AI."
+  },
+  "comic": {
+    "row1": [
+      {
+        "id": "azienda-ibrida",
+        "image": "/assets/official/chi-siamo/chi-siamo-01-azienda-ibrida.png",
+        "alt": "Cos'è un'azienda ibrida — fumetto LeanMe"
+      },
+      {
+        "id": "agente-ai",
+        "image": "/assets/official/chi-siamo/chi-siamo-02-agente-ai.png",
+        "alt": "Cos'è un agente AI — fumetto LeanMe"
+      },
+      {
+        "id": "powered-by-ai",
+        "image": "/assets/official/chi-siamo/chi-siamo-03-powered-by-ai.png",
+        "alt": "Powered by Human Intelligence. Amplified by AI. — fumetto LeanMe"
+      }
+    ],
+    "row3": [
+      {
+        "id": "perche-leanme",
+        "image": "/assets/official/chi-siamo/chi-siamo-05-perche-leanme.png",
+        "alt": "Perché ci chiamiamo LeanMe — fumetto LeanMe"
+      },
+      {
+        "id": "metodo",
+        "image": "/assets/official/chi-siamo/chi-siamo-06-metodo.png",
+        "alt": "Il nostro metodo — fumetto LeanMe"
+      }
+    ],
+    "row4": [
+      {
+        "id": "impegno",
+        "image": "/assets/official/chi-siamo/chi-siamo-07-impegno.png",
+        "alt": "Il nostro impegno — fumetto LeanMe"
+      }
+    ]
+  },
+  "team": {
+    "members": [
+      {
+        "slug": "luana",
+        "name": "LUANA",
+        "role": "FOUNDER",
+        "image": "/assets/official/chi-siamo/chi-siamo-04a-luana.png",
+        "cta": { "label": "SCOPRI DI PIÙ", "href": "/chi-siamo/luana" }
+      },
+      {
+        "slug": "alessandro",
+        "name": "ALE",
+        "role": "CTO",
+        "image": "/assets/official/chi-siamo/chi-siamo-04b-ale.png",
+        "cta": { "label": "SCOPRI DI PIÙ", "href": "/chi-siamo/alessandro" }
+      },
+      {
+        "slug": "collaboratori-umani",
+        "name": "COLLABORATORI UMANI",
+        "image": "/assets/official/chi-siamo/chi-siamo-04c-collaboratori-umani.png"
+      },
+      {
+        "slug": "collaboratori-agenti",
+        "name": "COLLABORATORI AGENTI",
+        "image": "/assets/official/chi-siamo/chi-siamo-04d-collaboratori-agenti.png"
+      }
+    ]
+  },
+  "manifesto": {
+    "title": "Powered by Human Intelligence. Amplified by AI.",
+    "content": [
+      "Il futuro non appartiene alla tecnologia. Appartiene alle persone che sapranno usarla per creare valore.",
+      "Noi crediamo che l'innovazione non debba sostituire il talento umano. Debba amplificarlo.",
+      "Per questo LeanMe non nasce per vendere software. Non nasce per vendere Intelligenza Artificiale. LeanMe nasce per aiutare persone, aziende e organizzazioni a lavorare meglio."
+    ]
+  },
+  "people": {
+    "luana": {
+      "slug": "luana",
+      "name": "Dr. Luana Martuzzi",
+      "role": "Founder · Innovation Strategist · AI Specialist · Digital Innovation Consultant",
+      "tagline": "Immaginare il futuro è importante. Costruirlo, ancora di più.",
+      "bio": [
+        "Biologa Sanitaria con un percorso in innovation management. Da oltre quindici anni accompagna aziende, professionisti e organizzazioni nella trasformazione digitale.",
+        "Coordina team multidisciplinari di professionisti e Agenti AI, progettando ecosistemi digitali che rendono il lavoro più semplice, efficace e umano."
+      ],
+      "image": "/assets/official/luana.png",
+      "profile": {
+        "quote": "Immaginare il futuro è importante. Costruirlo, ancora di più.",
+        "identity": {
+          "title": "Founder LeanMe",
+          "background": "ALMA MATER STUDIORUM, Facoltà di Scienze Matematiche Fisiche e Naturali, laurea in Biologia Sanitaria.",
+          "path": "Master in Scientific Event Management · Specialista in Innovation Management",
+          "experience": "15+ anni nella trasformazione digitale",
+          "focus": "Sanità, tecnologia, comunicazione e organizzazione al servizio dell'innovazione"
+        },
+        "pillars": [
+          "Innovation Strategy",
+          "Intelligenza Artificiale",
+          "Digital Transformation",
+          "Sanità & Healthcare",
+          "Comunicazione",
+          "Team Ibridi"
+        ],
+        "accentImage": {
+          "src": "/assets/official/chi-siamo/chi-siamo-04a-luana.png",
+          "alt": "Luana Martuzzi — card team LeanMe"
+        },
+        "sections": [
+          {
+            "id": "journey",
+            "title": "Il filo conduttore",
+            "paragraphs": [
+              "Ho costruito il mio percorso professionale seguendo un filo conduttore preciso: la curiosità, il metodo scientifico e la continua ricerca dell'innovazione.",
+              "Nel corso degli anni ho maturato una visione trasversale che unisce sanità, tecnologia, comunicazione e organizzazione, trasformando esperienze provenienti da mondi diversi in un unico approccio orientato all'innovazione."
+            ]
+          },
+          {
+            "id": "experience",
+            "title": "Quindici anni di trasformazione",
+            "paragraphs": [
+              "Da oltre quindici anni accompagno aziende, professionisti, enti e organizzazioni nei loro percorsi di trasformazione digitale, progettando strategie, piattaforme e nuovi modelli organizzativi capaci di integrare persone, tecnologia e Intelligenza Artificiale."
+            ]
+          },
+          {
+            "id": "today",
+            "title": "Oggi",
+            "paragraphs": [
+              "Coordino team multidisciplinari composti da professionisti e Agenti AI, progettando ecosistemi digitali, automatizzando processi e trasformando idee in soluzioni concrete.",
+              "Ogni progetto nasce dall'ascolto delle persone e dalla convinzione che l'innovazione non debba complicare il lavoro, ma renderlo più semplice, più efficace e più umano."
+            ]
+          },
+          {
+            "id": "philosophy",
+            "title": "Filosofia",
+            "paragraphs": [
+              "Credo profondamente che l'Intelligenza Artificiale rappresenti una straordinaria opportunità per amplificare competenze, creatività e capacità decisionale, senza mai sostituire il valore delle persone.",
+              "Per questo ogni progetto LeanMe parte sempre da un principio semplice: la migliore innovazione è quella che rende il lavoro più semplice, le persone più libere e le idee più grandi."
+            ]
+          }
+        ],
+        "surprise": {
+          "title": "Quello che nessuna AI potrà mai essere.",
+          "paragraphs": [
+            "Da oltre 22 anni sono insegnante di danze caraibiche e, insieme ad Alessandro, sono mamma di due splendidi figli, che ogni giorno mi ricordano quanto siano importanti curiosità, empatia e capacità di mettersi continuamente in gioco.",
+            "Ballare significa ascoltare, comunicare, guidare, improvvisare e creare armonia tra persone diverse. È una passione che mi accompagna da sempre e che, inconsapevolmente, ha influenzato anche il mio modo di lavorare: ogni progetto, proprio come una danza, nasce dall'equilibrio tra tecnica, creatività e collaborazione."
+          ],
+          "image": "/assets/official/reception-render.png",
+          "imageAlt": "Ambiente LeanMe — reception e cultura dell'innovazione"
+        }
+      }
+    },
+    "alessandro": {
+      "slug": "alessandro",
+      "name": "Ing. Alessandro Lupinetti",
+      "role": "CTO · Full Stack Developer · Cybersecurity Specialist · Software Engineer",
+      "tagline": "La migliore tecnologia è quella che funziona così bene da diventare invisibile.",
+      "bio": [
+        "Ingegnere Informatico con solida esperienza nello sviluppo di soluzioni per il settore healthcare e nella progettazione di architetture software sicure e scalabili.",
+        "Progetta piattaforme, integrazioni, infrastrutture cloud e soluzioni di cybersecurity con un obiettivo preciso: tecnologie robuste, performanti e semplici da utilizzare."
+      ],
+      "image": "/assets/official/alessandro.png",
+      "profile": {
+        "quote": "La migliore tecnologia è quella che funziona così bene da diventare invisibile.",
+        "identity": {
+          "title": "CTO LeanMe",
+          "background": "ALMA MATER STUDIORUM, Facoltà di Ingegneria, Laurea in Ingegneria Informatica",
+          "path": "Full Stack Development · Cybersecurity · Software Engineering",
+          "experience": "Esperienza consolidata nello sviluppo per laboratori, centri medici e strutture sanitarie",
+          "focus": "Architetture software, integrazioni, cloud, automazioni e cybersecurity"
+        },
+        "pillars": [
+          "Full Stack Development",
+          "Cybersecurity",
+          "Cloud & Infrastrutture",
+          "Healthcare",
+          "Integrazioni",
+          "Automazioni"
+        ],
+        "accentImage": {
+          "src": "/assets/official/chi-siamo/chi-siamo-04b-ale.png",
+          "alt": "Alessandro Lupinetti — card team LeanMe"
+        },
+        "sections": [
+          {
+            "id": "principle",
+            "title": "Il principio",
+            "paragraphs": [
+              "Ho costruito il mio percorso professionale partendo da una convinzione semplice: una tecnologia è davvero efficace solo quando è affidabile, sicura e progettata per durare nel tempo.",
+              "Da sempre affronto ogni progetto con un approccio analitico e orientato alla soluzione, progettando piattaforme, applicazioni e infrastrutture capaci di crescere insieme alle aziende e di semplificare anche i processi più complessi."
+            ]
+          },
+          {
+            "id": "healthcare",
+            "title": "Healthcare",
+            "paragraphs": [
+              "Nel settore healthcare ho maturato una solida esperienza nello sviluppo di soluzioni dedicate a laboratori di analisi, centri medici e strutture sanitarie, realizzando sistemi che consentono a strumenti diagnostici, software gestionali e piattaforme informative di dialogare tra loro in modo sicuro, efficiente e conforme agli standard richiesti."
+            ]
+          },
+          {
+            "id": "today",
+            "title": "Oggi",
+            "paragraphs": [
+              "Oggi progetto architetture software, integrazioni tra sistemi, infrastrutture cloud, automazioni e soluzioni di cybersecurity con un obiettivo preciso: costruire tecnologie robuste, performanti e semplici da utilizzare, capaci di lavorare in modo silenzioso ma fondamentale per il successo di ogni progetto."
+            ]
+          },
+          {
+            "id": "philosophy",
+            "title": "Filosofia",
+            "paragraphs": [
+              "Credo che l'innovazione non si misuri dalla complessità della tecnologia, ma dalla sua capacità di essere affidabile, stabile e quasi invisibile, permettendo alle persone di concentrarsi su ciò che conta davvero.",
+              "Per me, il miglior software è quello che risolve problemi senza farsi notare, lasciando che siano le persone a fare la differenza."
+            ]
+          }
+        ],
+        "surprise": {
+          "title": "Quello che nessuna AI potrà mai essere.",
+          "paragraphs": [
+            "Nel tempo libero sono DJ e Commissario di Pista nelle competizioni automobilistiche e, insieme a Luana, sono papà di due figli, che mi insegnano ogni giorno quanto siano importanti pazienza, equilibrio e capacità di trovare soluzioni anche nelle situazioni più imprevedibili.",
+            "Due passioni molto diverse, accomunate dagli stessi valori che porto ogni giorno nel mio lavoro: precisione, concentrazione, velocità decisionale e attenzione assoluta ai dettagli. Perché, sia davanti a un server che a bordo pista, sono spesso i particolari a fare la differenza."
+          ],
+          "image": "/assets/official/reception-render.png",
+          "imageAlt": "Ambiente LeanMe — cultura tecnologica e innovazione"
+        }
+      }
+    }
+  }
+}

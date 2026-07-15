@@ -1,0 +1,19 @@
+{
+  "name": "LeanMe — Aziende Ibride",
+  "short_name": "LeanMe",
+  "description": "LeanMe Srls progetta Aziende Ibride attraverso Intelligenza Artificiale, automazione e trasformazione digitale.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#e6007e",
+  "lang": "it-IT",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/official/pittogramma.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

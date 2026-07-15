@@ -1,0 +1,16 @@
+[
+  {
+    "id": "testimonial-1",
+    "name": "Annamaria Tinarelli",
+    "role": "Direttore Generale",
+    "company": "I&C s.r.l.",
+    "quote": "Un partner affidabile, competente e sempre orientato all'innovazione. La sua consulenza proattiva e la capacità di proporre soluzioni concrete ci aiutano ogni giorno a lavorare in modo più efficiente. Grazie al costante aggiornamento sulle nuove tecnologie, ci supporta nel rispondere con tempestività e professionalità alle esigenze della nostra clientela. Una collaborazione che apprezziamo e consigliamo vivamente."
+  },
+  {
+    "id": "testimonial-2",
+    "name": "Leonardo Radicchi",
+    "role": "Government Affairs, Patient Advocacy & Communication Manager",
+    "company": "Offcina del Paziente e AOP Italia",
+    "quote": "Team professionale, disponibile e molto reattivo. Ho apprezzato l'approccio pragmatico, la capacità di trovare soluzioni efficaci e l'attenzione alle esigenze del cliente. Collaborare con LeanMe è stato un piacere: un partner affidabile, competente e corretto."
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "slug": "progetti-conclusi",
+    "title": "Progetti conclusi",
+    "description": "Case study e progetti realizzati con i nostri clienti."
+  },
+  {
+    "slug": "ricerca-e-innovazione",
+    "title": "Ricerca e Innovazione",
+    "description": "Esperimenti, prototipi e ricerca applicata nel LeanLab."
+  },
+  {
+    "slug": "vita-in-leanme",
+    "title": "Vita in LeanMe",
+    "description": "Cultura, team e momenti dalla sede LeanMe."
+  },
+  {
+    "slug": "tutorial",
+    "title": "Tutorial",
+    "description": "Guide pratiche su automazione, AI e trasformazione digitale."
+  }
+]

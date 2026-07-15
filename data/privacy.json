@@ -1,0 +1,169 @@
+{
+  "hero": {
+    "title": "Informativa sul trattamento dei dati personali",
+    "lastUpdated": "4 luglio 2026"
+  },
+  "sections": [
+    {
+      "id": "titolare",
+      "title": "1. Titolare del trattamento",
+      "paragraphs": [
+        "Il Titolare del trattamento dei dati personali è:"
+      ],
+      "lines": [
+        "LeanMe S.r.l.s.",
+        "Via Porrettana 150",
+        "40135 Bologna (BO)",
+        "P. IVA: 03887091209",
+        "PEC: LeanMe@pec.it",
+        "E-mail: info@leanme.it"
+      ]
+    },
+    {
+      "id": "finalita",
+      "title": "2. Finalità del trattamento",
+      "paragraphs": [
+        "I dati personali raccolti attraverso il sito sono trattati esclusivamente per le seguenti finalità:"
+      ],
+      "footerParagraphs": [
+        "I dati non saranno utilizzati per finalità diverse da quelle indicate senza il consenso dell'interessato."
+      ],
+      "items": [
+        "rispondere alle richieste inviate tramite il modulo di contatto;",
+        "fornire informazioni sui servizi offerti da LeanMe;",
+        "gestire eventuali richieste di collaborazione professionale;",
+        "organizzare incontri, consulenze o dimostrazioni;",
+        "garantire il corretto funzionamento del sito;",
+        "adempiere agli obblighi di legge."
+      ]
+    },
+    {
+      "id": "dati-raccolti",
+      "title": "3. Quali dati raccogliamo",
+      "paragraphs": [
+        "A seconda del servizio utilizzato, possiamo raccogliere:"
+      ],
+      "footerParagraphs": [
+        "Durante la navigazione possono inoltre essere raccolti dati tecnici quali indirizzo IP, browser utilizzato, sistema operativo e informazioni statistiche anonime."
+      ],
+      "items": [
+        "nome e cognome;",
+        "indirizzo e-mail;",
+        "numero di telefono;",
+        "azienda o organizzazione di appartenenza;",
+        "ruolo professionale;",
+        "curriculum vitae (in caso di candidatura);",
+        "contenuto dei messaggi inviati;",
+        "eventuali ulteriori dati forniti spontaneamente dall'utente."
+      ]
+    },
+    {
+      "id": "base-giuridica",
+      "title": "4. Base giuridica del trattamento",
+      "paragraphs": [
+        "Il trattamento dei dati personali avviene sulla base di:"
+      ],
+      "items": [
+        "richiesta dell'interessato;",
+        "esecuzione di misure precontrattuali;",
+        "adempimento di obblighi di legge;",
+        "legittimo interesse del Titolare;",
+        "consenso dell'interessato, quando previsto."
+      ]
+    },
+    {
+      "id": "modalita",
+      "title": "5. Modalità del trattamento",
+      "paragraphs": [
+        "I dati sono trattati con strumenti informatici e telematici nel rispetto dei principi di liceità, correttezza, trasparenza, minimizzazione e sicurezza previsti dal GDPR.",
+        "Sono adottate adeguate misure tecniche e organizzative per proteggere i dati da accessi non autorizzati, perdita, divulgazione o utilizzi illeciti."
+      ]
+    },
+    {
+      "id": "conservazione",
+      "title": "6. Conservazione dei dati",
+      "paragraphs": [
+        "I dati personali sono conservati per il tempo strettamente necessario al raggiungimento delle finalità per cui sono stati raccolti e comunque nel rispetto degli obblighi di legge.",
+        "Le candidature spontanee saranno conservate per un periodo massimo di 24 mesi, salvo diversa richiesta dell'interessato."
+      ]
+    },
+    {
+      "id": "comunicazione",
+      "title": "7. Comunicazione dei dati",
+      "paragraphs": [
+        "I dati potranno essere comunicati esclusivamente a soggetti che collaborano con LeanMe per l'erogazione dei servizi richiesti, quali:"
+      ],
+      "footerParagraphs": [
+        "Tali soggetti operano, ove previsto, in qualità di Responsabili del trattamento ai sensi dell'art. 28 del GDPR.",
+        "I dati non saranno diffusi."
+      ],
+      "items": [
+        "fornitori di servizi cloud;",
+        "fornitori di servizi di hosting;",
+        "consulenti informatici;",
+        "consulenti amministrativi o legali;",
+        "fornitori di piattaforme utilizzate per la gestione dei moduli di contatto."
+      ]
+    },
+    {
+      "id": "trasferimento",
+      "title": "8. Trasferimento dei dati",
+      "paragraphs": [
+        "Alcuni servizi utilizzati dal sito potrebbero comportare il trasferimento dei dati verso Paesi extra UE.",
+        "In tali casi il trattamento avviene esclusivamente nel rispetto degli articoli 44 e seguenti del GDPR, adottando le garanzie previste dalla normativa europea."
+      ]
+    },
+    {
+      "id": "diritti",
+      "title": "9. Diritti dell'interessato",
+      "paragraphs": [
+        "L'interessato può in qualsiasi momento esercitare i diritti previsti dagli articoli 15-22 del GDPR, tra cui:"
+      ],
+      "footerParagraphs": [
+        "Per esercitare tali diritti è possibile scrivere a:"
+      ],
+      "email": "info@leanme.it",
+      "items": [
+        "ottenere conferma dell'esistenza dei propri dati;",
+        "accedere ai dati personali;",
+        "richiederne la rettifica;",
+        "richiederne la cancellazione;",
+        "limitarne il trattamento;",
+        "opporsi al trattamento;",
+        "richiedere la portabilità dei dati;",
+        "revocare il consenso precedentemente prestato."
+      ]
+    },
+    {
+      "id": "reclamo",
+      "title": "10. Reclamo all'Autorità Garante",
+      "paragraphs": [
+        "L'interessato ha il diritto di proporre reclamo al Garante per la Protezione dei Dati Personali qualora ritenga che il trattamento dei propri dati avvenga in violazione della normativa vigente."
+      ]
+    },
+    {
+      "id": "sicurezza",
+      "title": "11. Sicurezza",
+      "paragraphs": [
+        "LeanMe adotta misure tecniche e organizzative adeguate per garantire la sicurezza dei dati personali e proteggerli da perdita, accessi non autorizzati o trattamenti illeciti."
+      ]
+    },
+    {
+      "id": "collegamenti",
+      "title": "12. Collegamenti a siti esterni",
+      "paragraphs": [
+        "Il sito può contenere collegamenti a siti web di terze parti.",
+        "LeanMe non è responsabile delle informative privacy o delle modalità di trattamento dei dati adottate da tali soggetti.",
+        "Si invita pertanto l'utente a consultare le rispettive informative."
+      ]
+    },
+    {
+      "id": "modifiche",
+      "title": "13. Modifiche alla presente informativa",
+      "paragraphs": [
+        "La presente informativa potrà essere aggiornata in qualsiasi momento per adeguarla a modifiche normative o organizzative.",
+        "La versione aggiornata sarà sempre disponibile su questa pagina."
+      ]
+    }
+  ]
+}

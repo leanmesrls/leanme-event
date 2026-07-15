@@ -1,0 +1,64 @@
+{
+  "name": "LeanMe",
+  "company": "LeanMe Srls",
+  "claim": "Powered by Human Intelligence. Amplified by AI.",
+  "claimSecondary": "Non usiamo semplicemente l'Intelligenza Artificiale. Progettiamo Aziende Ibride.",
+  "url": "https://leanme.it",
+  "locale": "it_IT",
+  "language": "it-IT",
+  "navigation": [
+    { "label": "Home", "href": "/" },
+    { "label": "Chi siamo", "href": "/chi-siamo" },
+    { "label": "Come possiamo aiutarti", "href": "/come-possiamo-aiutarti" },
+    { "label": "Lean Lab", "href": "/leanlab" },
+    { "label": "Lean Academy", "href": "/lean-academy" },
+    { "label": "LeanYou", "href": "/leanyou/login" }
+  ],
+  "footer": {
+    "tagline": "Digital Innovation Company — Progettiamo Aziende Ibride.",
+    "copyright": "© 2026 LeanMe S.r.l.s.",
+    "social": [
+      {
+        "label": "LinkedIn",
+        "href": "https://linkedin.com/company/leanme",
+        "platform": "linkedin"
+      },
+      {
+        "label": "Facebook",
+        "href": "https://facebook.com/leanme",
+        "platform": "facebook"
+      },
+      {
+        "label": "Instagram",
+        "href": "https://instagram.com/leanme",
+        "platform": "instagram"
+      },
+      {
+        "label": "Email",
+        "href": "mailto:info@leanme.it",
+        "platform": "email"
+      }
+    ],
+    "legalLinks": [
+      { "label": "Privacy Policy", "href": "/privacy" },
+      { "label": "Informativa Newsletter", "href": "/privacy-newsletter" },
+      { "label": "Cookie Policy", "href": "/cookie" },
+      { "label": "Accessibilità (EAA)", "href": "/accessibilita" }
+    ]
+  },
+  "seo": {
+    "defaultTitle": "LeanMe | Aziende Ibride",
+    "titleTemplate": "%s | LeanMe",
+    "defaultDescription": "LeanMe Srls progetta Aziende Ibride attraverso Intelligenza Artificiale, automazione e trasformazione digitale. Powered by Human Intelligence. Amplified by AI.",
+    "keywords": [
+      "LeanMe",
+      "Azienda Ibrida",
+      "Intelligenza Artificiale",
+      "Automazione",
+      "Trasformazione Digitale",
+      "Healthcare",
+      "Lean.Agent",
+      "Innovazione"
+    ]
+  }
+}

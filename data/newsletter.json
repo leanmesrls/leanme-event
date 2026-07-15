@@ -1,0 +1,15 @@
+{
+  "intro": {
+    "title": "Newsletter",
+    "subtitle": "Resta aggiornato dal LeanLab"
+  },
+  "introBlocks": [
+    "Iscriviti alla newsletter LeanMe per ricevere articoli dal LeanLab, approfondimenti su innovazione e Intelligenza Artificiale, novità sui progetti e inviti agli eventi del nostro ecosistema."
+  ],
+  "form": {
+    "iframeId": "JotFormIFrame-202364298209357",
+    "title": "Newsletter",
+    "src": "https://form.jotform.com/202364298209357",
+    "embedHandlerOrigin": "https://form.jotform.com/"
+  }
+}
