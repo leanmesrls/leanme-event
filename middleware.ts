@@ -165,7 +165,10 @@ function mapLegacyLeanEventLeonardoPath(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/api/lean-event/auth/login")) {
+  if (
+    pathname.startsWith("/api/lean-event/auth/login") ||
+    pathname.startsWith("/api/lean-event/cron/")
+  ) {
     return NextResponse.next();
   }
 

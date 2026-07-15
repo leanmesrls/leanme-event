@@ -9,6 +9,10 @@ import {
   listDeletedSuppliers,
   restoreSupplier,
 } from "@/lib/lean-event/suppliers";
+import {
+  listDeletedVenues,
+  restoreVenue,
+} from "@/lib/lean-event/venues";
 import type { LeanEventSession } from "@/types/lean-event";
 import type { LeanEventTrashItem } from "@/types/lean-event-trash";
 
@@ -19,6 +23,7 @@ export function isTrashEntityType(
     value === "event" ||
     value === "contact" ||
     value === "supplier" ||
+    value === "venue" ||
     value === "assignment"
   );
 }
@@ -26,10 +31,11 @@ export function isTrashEntityType(
 export async function listTrashItems(
   tenantId: string
 ): Promise<LeanEventTrashItem[]> {
-  const [events, contacts, suppliers] = await Promise.all([
+  const [events, contacts, suppliers, venues] = await Promise.all([
     listDeletedEvents(tenantId),
     listDeletedContacts(tenantId),
     listDeletedSuppliers(tenantId),
+    listDeletedVenues(tenantId),
   ]);
 
   const items: LeanEventTrashItem[] = [
@@ -66,6 +72,17 @@ export async function listTrashItems(
       purgeAfter: supplier.purgeAfter,
       revision: supplier.revision ?? 1,
     })),
+    ...venues.map((venue) => ({
+      entityType: "venue" as const,
+      id: venue.id,
+      tenantId: venue.tenantId,
+      title: venue.name,
+      subtitle: `${venue.city} (${venue.province})`,
+      deletedAt: venue.deletedAt!,
+      deletedBy: venue.deletedBy ?? undefined,
+      purgeAfter: venue.purgeAfter,
+      revision: venue.revision ?? 1,
+    })),
   ];
 
   return items.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
@@ -85,6 +102,8 @@ export async function restoreTrashItem(
       return Boolean(await restoreContact(session.tenantId, entityId, userId));
     case "supplier":
       return Boolean(await restoreSupplier(session.tenantId, entityId, userId));
+    case "venue":
+      return Boolean(await restoreVenue(session.tenantId, entityId, userId));
     default:
       return false;
   }

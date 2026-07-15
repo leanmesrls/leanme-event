@@ -4,6 +4,7 @@ import {
   tenantHasLeonardoCapability,
   tenantHasModule,
 } from "@/lib/lean-event/auth";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
 import { normalizeVenue, clampInternalRating } from "@/lib/lean-event/venue-normalize";
 import {
   deleteVenue,
@@ -59,7 +60,9 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Sede non trovata." }, { status: 404 });
     }
 
-    const body = (await request.json()) as Partial<LeonardoVenue>;
+    const body = (await request.json()) as Partial<LeonardoVenue> & {
+      expectedRevision?: number;
+    };
 
     const next = normalizeVenue({
       ...venue,
@@ -92,11 +95,13 @@ export async function PATCH(request: Request, context: RouteContext) {
           ? body.internalReview.trim()
           : venue.internalReview ?? "",
       notes: body.notes !== undefined ? body.notes.trim() : venue.notes,
-      updatedAt: new Date().toISOString(),
     });
 
-    await saveVenue(next);
-    return NextResponse.json({ venue: next });
+    const saved = await saveVenue(next, {
+      expectedRevision: body.expectedRevision,
+      userId: sessionUserId(session),
+    });
+    return NextResponse.json({ venue: saved });
   } catch (error) {
     return handleLeanEventRouteError(error, "Aggiornamento sede non riuscito.");
   }
@@ -113,7 +118,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
 
     const { id } = await context.params;
-    await deleteVenue(session.tenantId, id);
+    await deleteVenue(session.tenantId, id, sessionUserId(session));
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleLeanEventRouteError(error, "Eliminazione sede non riuscita.");

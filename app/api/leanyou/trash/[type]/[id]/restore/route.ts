@@ -36,6 +36,9 @@ export async function POST(_request: Request, context: RouteContext) {
     if (type === "supplier" && !tenantHasLeonardoCapability(session, "fornitori")) {
       return forbiddenResponse();
     }
+    if (type === "venue" && !tenantHasLeonardoCapability(session, "eventi")) {
+      return forbiddenResponse();
+    }
 
     const restored = await restoreTrashItem(session, type, id);
     if (!restored) {

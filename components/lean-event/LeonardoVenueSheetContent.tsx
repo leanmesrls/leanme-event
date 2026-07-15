@@ -48,7 +48,10 @@ export function LeonardoVenueSheetContent({
       method: "PATCH",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        expectedRevision: venue.revision ?? 1,
+      }),
     });
 
     const payload = (await response.json()) as {

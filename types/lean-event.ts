@@ -535,6 +535,11 @@ export interface LeonardoVenue {
   /** Recensione / note interne agenzia */
   internalReview: string;
   notes: string;
+  revision?: number;
+  updatedBy?: string;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  purgeAfter?: string | null;
   createdAt: string;
   updatedAt: string;
 }

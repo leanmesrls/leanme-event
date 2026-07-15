@@ -9,6 +9,7 @@ import {
   handleLeanEventRouteError,
   requireSession,
 } from "@/lib/lean-event/server-auth";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
 import { saveVenueCoverFile } from "@/lib/lean-event/venue-cover-storage";
 import { getVenue, saveVenue } from "@/lib/lean-event/venues";
 
@@ -50,14 +51,18 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const next = {
-      ...venue,
-      coverImageUrl,
-      updatedAt: new Date().toISOString(),
-    };
-    await saveVenue(next);
+    const saved = await saveVenue(
+      {
+        ...venue,
+        coverImageUrl,
+      },
+      {
+        expectedRevision: venue.revision ?? 1,
+        userId: sessionUserId(session),
+      }
+    );
 
-    return NextResponse.json({ venue: next, coverImageUrl });
+    return NextResponse.json({ venue: saved, coverImageUrl: saved.coverImageUrl });
   } catch (error) {
     return handleLeanEventRouteError(error, "Upload immagine non riuscito.");
   }

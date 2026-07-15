@@ -77,8 +77,8 @@ export async function POST(request: Request) {
       notes: body.notes,
     });
 
-    await saveVenue(venue);
-    return NextResponse.json({ venue });
+    const saved = await saveVenue(venue);
+    return NextResponse.json({ venue: saved });
   } catch (error) {
     return handleLeanEventRouteError(error, "Creazione sede non riuscita.");
   }

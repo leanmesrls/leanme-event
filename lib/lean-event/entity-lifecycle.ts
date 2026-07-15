@@ -9,6 +9,7 @@ export type LeanEventManagedEntityType =
   | "event"
   | "contact"
   | "supplier"
+  | "venue"
   | "assignment";
 
 export interface LeanEventEntityLifecycleFields {

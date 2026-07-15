@@ -20,6 +20,7 @@ const TYPE_LABELS: Record<LeanEventTrashItem["entityType"], string> = {
   event: "Evento",
   contact: "Contatto",
   supplier: "Fornitore",
+  venue: "Sede",
   assignment: "Ospite evento",
 };
 

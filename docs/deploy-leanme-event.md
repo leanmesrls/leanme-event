@@ -32,9 +32,13 @@ git push -u origin master
 
 1. [Vercel Dashboard](https://vercel.com) → **Add New… → Project**
 2. Import **leanmesrls/leanme-event** (GitHub collegato)
-3. Framework: **Next.js** (auto-detect)
+3. Framework: **Next.js** (auto-detect) — **obbligatorio**
 4. Nome progetto consigliato: `leanme-event`
 5. **Non** collegare lo stesso Blob Store di `leanme-site`
+
+> **Importante:** se il Framework Preset è **Other**, il middleware Edge va in errore (`__dirname is not defined`) e le route restituiscono 404/500.  
+> Vercel → Project Settings → General → **Framework Preset: Next.js**.  
+> CLI: `npx vercel project update leanme-event --framework nextjs --auto-detect output-directory --auto-detect build-command`
 
 ### Blob Store dedicato
 
