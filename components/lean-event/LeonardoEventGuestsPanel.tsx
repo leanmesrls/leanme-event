@@ -106,16 +106,16 @@ export function LeonardoEventGuestsPanel({
     null
   );
 
-  async function refreshAssignmentsFromServer() {
+  async function refreshAssignmentsFromServer(): Promise<AssignmentRow[] | null> {
     const response = await fetch(`/api/lean-event/events/${eventId}/assignments`, {
       credentials: "same-origin",
     });
     const payload = (await response.json()) as { assignments?: AssignmentRow[] };
-    if (response.ok && payload.assignments) {
+    if (response.ok && Array.isArray(payload.assignments)) {
       updateAssignments(payload.assignments);
       return payload.assignments;
     }
-    return assignments;
+    return null;
   }
 
   function openGuestSheet(assignmentId: string) {
@@ -283,9 +283,16 @@ export function LeonardoEventGuestsPanel({
     }
 
     const refreshed = await refreshAssignmentsFromServer();
-    if (refreshed.some((item) => item.id === assignmentId)) {
+    if (!refreshed) {
       setError(
-        "L'ospite risulta ancora sull'evento. Ricarica la pagina e riprova, oppure contatta il supporto."
+        "Ospite rimosso, ma l'elenco non si è aggiornato. Ricarica la pagina (F5)."
+      );
+      return;
+    }
+    if (refreshed.some((item) => item.id === assignmentId)) {
+      updateAssignments(refreshed);
+      setError(
+        "L'ospite risulta ancora sull'evento. Ricarica la pagina e riprova."
       );
     }
   }

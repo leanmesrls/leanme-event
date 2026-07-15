@@ -251,10 +251,17 @@ export async function deleteEventContactAssignment(
   const deleted = markEntityDeleted(assignment, userId);
   await persistAssignment(deleted, assignment);
 
-  const verified = await getStoredAssignment(tenantId, assignmentId);
-  if (!verified?.deletedAt) {
-    throw new Error("ASSIGNMENT_DELETE_FAILED");
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const stillActive = await getAssignment(tenantId, assignmentId);
+    if (!stillActive) {
+      return;
+    }
+    if (attempt < 4) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
   }
+
+  throw new Error("ASSIGNMENT_DELETE_FAILED");
 }
 
 export async function reconcileEventAssignmentsWithHotelBlocks(
