@@ -258,6 +258,11 @@ export function LeonardoEventGuestsPanel({
 
     setError(null);
     setRemovingAssignmentId(assignmentId);
+    const previousAssignments = assignments;
+    updateAssignments(
+      assignments.filter((item) => item.id !== assignmentId)
+    );
+
     const response = await fetch(
       `/api/lean-event/events/${eventId}/assignments/${assignmentId}`,
       {
@@ -268,6 +273,7 @@ export function LeonardoEventGuestsPanel({
     setRemovingAssignmentId(null);
 
     if (!response.ok) {
+      updateAssignments(previousAssignments);
       const payload = (await response.json()) as { error?: string };
       setError(payload.error ?? "Rimozione non riuscita.");
       return;
@@ -275,7 +281,13 @@ export function LeonardoEventGuestsPanel({
     if (sheetAssignmentId === assignmentId) {
       closeGuestSheet();
     }
-    await refreshAssignmentsFromServer();
+
+    const refreshed = await refreshAssignmentsFromServer();
+    if (refreshed.some((item) => item.id === assignmentId)) {
+      setError(
+        "L'ospite risulta ancora sull'evento. Ricarica la pagina e riprova, oppure contatta il supporto."
+      );
+    }
   }
 
   async function saveAssignmentSheet(

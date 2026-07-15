@@ -484,6 +484,18 @@ export function LeonardoEventDetail({
           venues={venues}
           assignments={assignments}
           onEventSaved={setEvent}
+          onAssignmentsRefresh={async () => {
+            const response = await fetch(
+              `/api/lean-event/events/${event.id}/assignments`,
+              { credentials: "same-origin" }
+            );
+            const payload = (await response.json()) as {
+              assignments?: EventAssignmentWithContact[];
+            };
+            if (response.ok && payload.assignments) {
+              setAssignments(payload.assignments);
+            }
+          }}
         />
       ) : null}
 

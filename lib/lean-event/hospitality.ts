@@ -291,6 +291,31 @@ export function roomTypeRequiresRoommate(
   );
 }
 
+export function listGuestNamesOnRoomAllotment(
+  assignments: Array<{
+    contactName?: string;
+    hospitality?: LeonardoAssignmentHospitality | null;
+  }>,
+  hotelBlockId: string,
+  nightAllotmentId: string,
+  roomAllotmentId: string
+): string[] {
+  return assignments
+    .filter((assignment) => {
+      const stays = listHospitalityNightStays(
+        normalizeAssignmentHospitality(assignment.hospitality)
+      );
+      return stays.some(
+        (stay) =>
+          stay.hotelBlockId === hotelBlockId &&
+          stay.nightAllotmentId === nightAllotmentId &&
+          stay.roomAllotmentId === roomAllotmentId
+      );
+    })
+    .map((assignment) => assignment.contactName?.trim() || "Ospite")
+    .filter(Boolean);
+}
+
 export function countAllotmentAssignments(
   assignments: Array<{
     id?: string;

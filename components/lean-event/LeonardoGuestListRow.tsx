@@ -102,7 +102,10 @@ export function LeonardoGuestListRow({
           <button
             type="button"
             disabled={removing}
-            onClick={() => onRemove(assignment.id)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove(assignment.id);
+            }}
             aria-label={`Rimuovi ${assignment.contactName} dall'evento`}
             className="rounded-full border border-white/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/45 transition hover:border-red-400/40 hover:text-red-300 disabled:opacity-40"
           >

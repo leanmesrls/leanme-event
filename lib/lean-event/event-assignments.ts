@@ -6,6 +6,7 @@ import type {
   LeanEventSession,
   LeonardoAssignmentHospitality,
   LeonardoEventContactAssignment,
+  LeonardoEventHotelBlock,
   LeonardoEventRoleCategory,
   LeonardoRelatedEventParticipation,
 } from "@/types/lean-event";
@@ -24,6 +25,10 @@ import {
 } from "./entity-lifecycle";
 import { getEvent } from "./events";
 import { normalizeAssignmentHospitality } from "./hospitality";
+import {
+  hospitalityRoomAllotmentsChanged,
+  reconcileHospitalityWithHotelBlocks,
+} from "./assignment-hotel-reconcile";
 import { normalizeRelatedParticipations } from "./related-events";
 import {
   getStoredAssignment,
@@ -236,11 +241,56 @@ export async function deleteEventContactAssignment(
   const assignment = await getAssignment(tenantId, assignmentId, {
     includeDeleted: true,
   });
-  if (!assignment || !isEntityActive(assignment)) {
-    return;
+  if (!assignment) {
+    throw new Error("ASSIGNMENT_NOT_FOUND");
   }
+  if (!isEntityActive(assignment)) {
+    throw new Error("ASSIGNMENT_ALREADY_DELETED");
+  }
+
   const deleted = markEntityDeleted(assignment, userId);
   await persistAssignment(deleted, assignment);
+
+  const verified = await getStoredAssignment(tenantId, assignmentId);
+  if (!verified?.deletedAt) {
+    throw new Error("ASSIGNMENT_DELETE_FAILED");
+  }
+}
+
+export async function reconcileEventAssignmentsWithHotelBlocks(
+  tenantId: string,
+  eventId: string,
+  hotelBlocks: LeonardoEventHotelBlock[],
+  userId: string
+): Promise<number> {
+  const assignments = await listAssignmentsForEvent(tenantId, eventId);
+  let updatedCount = 0;
+
+  for (const assignment of assignments) {
+    const reconciled = reconcileHospitalityWithHotelBlocks(
+      assignment.hospitality,
+      hotelBlocks
+    );
+    if (!hospitalityRoomAllotmentsChanged(assignment.hospitality, reconciled)) {
+      continue;
+    }
+
+    const merged: LeonardoEventContactAssignment = {
+      ...assignment,
+      hospitality: reconciled,
+    };
+    const next = prepareEntityUpdate(merged, userId);
+    const updated: LeonardoEventContactAssignment = {
+      ...merged,
+      revision: next.revision,
+      updatedAt: next.updatedAt!,
+      updatedBy: next.updatedBy,
+    };
+    await persistAssignment(updated, assignment);
+    updatedCount += 1;
+  }
+
+  return updatedCount;
 }
 
 export async function restoreEventContactAssignment(

@@ -127,12 +127,39 @@ export async function DELETE(_request: Request, context: RouteContext) {
       );
     }
 
-    await deleteEventContactAssignment(
-      session.tenantId,
-      assignmentId,
-      sessionUserId(session)
-    );
-    return NextResponse.json({ ok: true });
+    try {
+      await deleteEventContactAssignment(
+        session.tenantId,
+        assignmentId,
+        sessionUserId(session)
+      );
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "ASSIGNMENT_NOT_FOUND") {
+          return NextResponse.json(
+            { error: "Assegnazione non trovata." },
+            { status: 404 }
+          );
+        }
+        if (error.message === "ASSIGNMENT_ALREADY_DELETED") {
+          return NextResponse.json(
+            { error: "Assegnazione già rimossa." },
+            { status: 409 }
+          );
+        }
+        if (error.message === "ASSIGNMENT_DELETE_FAILED") {
+          return NextResponse.json(
+            {
+              error:
+                "Rimozione non confermata dal server. Ricarica la pagina e riprova.",
+            },
+            { status: 500 }
+          );
+        }
+      }
+      throw error;
+    }
   } catch (error) {
     return handleLeanEventRouteError(
       error,

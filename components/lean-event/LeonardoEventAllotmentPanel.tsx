@@ -24,6 +24,7 @@ import {
 import {
   countAllotmentAssignments,
   formatRoommateSummary,
+  listGuestNamesOnRoomAllotment,
   listHospitalityNightStays,
   normalizeAssignmentHospitality,
   roomTypeRequiresRoommate,
@@ -48,6 +49,7 @@ interface LeonardoEventAllotmentPanelProps {
   venues: LeonardoVenue[];
   assignments: EventAssignmentWithContact[];
   onEventSaved: (event: LeonardoEvent) => void;
+  onAssignmentsRefresh?: () => void | Promise<void>;
 }
 
 export function LeonardoEventAllotmentPanel({
@@ -56,6 +58,7 @@ export function LeonardoEventAllotmentPanel({
   venues,
   assignments,
   onEventSaved,
+  onAssignmentsRefresh,
 }: LeonardoEventAllotmentPanelProps) {
   const [hotelBlocks, setHotelBlocks] = useState<LeonardoEventHotelBlock[]>(() =>
     normalizeHotelBlocks(event)
@@ -133,6 +136,7 @@ export function LeonardoEventAllotmentPanel({
     const payload = (await response.json()) as {
       error?: string;
       event?: LeonardoEvent;
+      reconciledAssignments?: number;
     };
     setSavingHotel(false);
 
@@ -144,7 +148,12 @@ export function LeonardoEventAllotmentPanel({
     const nextBlocks = normalizeHotelBlocks(payload.event);
     setHotelBlocks(nextBlocks);
     onEventSaved(payload.event);
-    setHotelMessage("Allotment salvato.");
+    await onAssignmentsRefresh?.();
+    setHotelMessage(
+      (payload.reconciledAssignments ?? 0) > 0
+        ? `Allotment salvato. ${payload.reconciledAssignments} scheda/e ospite aggiornata/e (camere scollegate dalle tipologie rimosse).`
+        : "Allotment salvato."
+    );
   }
 
   function updateBlock(blockId: string, patch: Partial<LeonardoEventHotelBlock>) {
@@ -570,17 +579,34 @@ export function LeonardoEventAllotmentPanel({
                                     <td className="px-2 py-1.5">
                                       <button
                                         type="button"
-                                        onClick={() =>
+                                        onClick={() => {
+                                          const guests =
+                                            listGuestNamesOnRoomAllotment(
+                                              assignments,
+                                              block.id,
+                                              night.id,
+                                              allotment.id
+                                            );
+                                          if (guests.length > 0) {
+                                            const proceed = window.confirm(
+                                              `Tipologia ${allotment.code || allotment.label} assegnata a: ${guests.join(", ")}.\n\nRimuovere la tipologia scollega le camere dagli ospiti ma NON li toglie dall'evento.\nPer rimuovere un ospite usa la tab Ospiti → Rimuovi.\n\nContinuare?`
+                                            );
+                                            if (!proceed) {
+                                              return;
+                                            }
+                                          }
                                           updateNight(block.id, night.id, {
                                             roomAllotments:
                                               night.roomAllotments.filter(
                                                 (item) => item.id !== allotment.id
                                               ),
-                                          })
-                                        }
-                                        className="text-xs text-white/40 hover:text-red-300"
+                                          });
+                                        }}
+                                        title="Rimuovi tipologia camera"
+                                        aria-label={`Rimuovi tipologia ${allotment.code || allotment.label}`}
+                                        className="rounded border border-white/10 px-1.5 py-0.5 text-xs text-white/40 hover:border-red-400/40 hover:text-red-300"
                                       >
-                                        ×
+                                        Tip.
                                       </button>
                                     </td>
                                   </tr>

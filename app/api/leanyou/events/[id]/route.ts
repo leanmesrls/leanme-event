@@ -18,6 +18,7 @@ import {
 } from "@/lib/lean-event/event-taxonomy";
 import type { LeonardoEvent, LeonardoEventHotelBlock } from "@/types/lean-event";
 import { deleteEvent, getEvent, saveEvent } from "@/lib/lean-event/events";
+import { reconcileEventAssignmentsWithHotelBlocks } from "@/lib/lean-event/event-assignments";
 import { resolveEventVenueFields } from "@/lib/lean-event/event-venue";
 import { normalizeHotelBlocks } from "@/lib/lean-event/event-hotel";
 
@@ -127,7 +128,18 @@ export async function PATCH(request: Request, context: RouteContext) {
       expectedRevision: body.expectedRevision,
       userId: sessionUserId(session),
     });
-    return NextResponse.json({ event: saved });
+
+    let reconciledAssignments = 0;
+    if (body.hotelBlocks !== undefined) {
+      reconciledAssignments = await reconcileEventAssignmentsWithHotelBlocks(
+        session.tenantId,
+        id,
+        normalizeHotelBlocks(saved),
+        sessionUserId(session)
+      );
+    }
+
+    return NextResponse.json({ event: saved, reconciledAssignments });
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_MEETING_DATE") {
       return NextResponse.json(
