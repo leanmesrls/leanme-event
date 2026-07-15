@@ -2,8 +2,6 @@ import { SignJWT, jwtVerify } from "jose";
 
 import type { LeanEventSession } from "@/types/lean-event";
 
-import { readLeanEventSessionSecret } from "@/lib/lean-event/env";
-
 export const SESSION_COOKIE = "lean_event_session";
 const SESSION_TTL = "12h";
 const LEGACY_SESSION_COOKIE = "leanyou_session";
@@ -11,7 +9,13 @@ const LEGACY_SESSION_COOKIE = "leanyou_session";
 export const SESSION_COOKIE_NAMES = [SESSION_COOKIE, LEGACY_SESSION_COOKIE] as const;
 
 function getSessionSecret(): Uint8Array {
-  return new TextEncoder().encode(readLeanEventSessionSecret());
+  const secret =
+    process.env.LEAN_EVENT_SESSION_SECRET?.trim() ||
+    process.env.LEANYOU_SESSION_SECRET?.trim() ||
+    process.env.NEXTAUTH_SECRET?.trim() ||
+    "dev-only-change-me-before-production";
+
+  return new TextEncoder().encode(secret);
 }
 
 export async function createSessionToken(
