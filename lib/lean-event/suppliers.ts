@@ -23,6 +23,7 @@ import {
   saveStoredSupplier,
 } from "./supplier-storage";
 import { saveEntityVersionSnapshot } from "./version-storage";
+import { upsertManagedEntityToNeon } from "./entity-db";
 
 function normalizeStoredSupplier(supplier: LeanEventSupplier): LeanEventSupplier {
   return normalizeSupplier(withLifecycleDefaults(supplier) as LeanEventSupplier);
@@ -78,6 +79,7 @@ async function persistSupplier(
     );
   }
   await saveStoredSupplier(supplier);
+  await upsertManagedEntityToNeon("supplier", supplier);
 }
 
 export async function saveSupplier(
@@ -108,7 +110,7 @@ export async function saveSupplier(
     return merged;
   }
 
-  await saveStoredSupplier(normalized);
+  await persistSupplier(normalized, null);
   return normalized;
 }
 

@@ -10,7 +10,8 @@ export type LeanEventManagedEntityType =
   | "contact"
   | "supplier"
   | "venue"
-  | "assignment";
+  | "assignment"
+  | "workspace";
 
 export interface LeanEventEntityLifecycleFields {
   revision?: number;

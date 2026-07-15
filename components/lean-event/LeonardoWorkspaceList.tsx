@@ -16,6 +16,7 @@ import {
   leanEventLeonardoWorkspacePath,
 } from "@/lib/lean-event/paths";
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
+import { LEONYOU_TRASH_RETENTION_DAYS } from "@/lib/lean-event/entity-lifecycle";
 import type { LeonardoWorkspace } from "@/types/lean-event";
 
 const statusLabels: Record<LeonardoWorkspace["status"], string> = {
@@ -184,7 +185,8 @@ export function LeonardoWorkspaceList({
                     {pendingDeleteId === workspace.id ? (
                       <>
                         <span className="text-xs text-white/60">
-                          Sei sicuro di voler eliminare?
+                          Il verbale andrà nel cestino per {LEONYOU_TRASH_RETENTION_DAYS}{" "}
+                          giorni.
                         </span>
                         <button
                           type="button"

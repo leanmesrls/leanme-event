@@ -30,12 +30,14 @@ import {
   reconcileHospitalityWithHotelBlocks,
 } from "./assignment-hotel-reconcile";
 import { normalizeRelatedParticipations } from "./related-events";
+import { ensureRoommateParticipantOnEvent } from "./roommate-participant";
 import {
   getStoredAssignment,
   listStoredAssignments,
   saveStoredAssignment,
 } from "./event-assignment-storage";
 import { saveEntityVersionSnapshot } from "./version-storage";
+import { upsertManagedEntityToNeon } from "./entity-db";
 
 const roleCategories = eventsConfig.roleCategories as Array<{
   id: LeonardoEventRoleCategory;
@@ -160,6 +162,7 @@ async function persistAssignment(
     );
   }
   await saveStoredAssignment(assignment);
+  await upsertManagedEntityToNeon("assignment", assignment);
 }
 
 export async function createEventContactAssignment(
@@ -347,6 +350,7 @@ export async function updateEventContactAssignment(
     relatedParticipations?: LeonardoRelatedEventParticipation[];
     expectedRevision?: number;
     userId?: string;
+    session?: LeanEventSession;
   }
 ): Promise<LeonardoEventContactAssignment> {
   const assignment = await getAssignment(tenantId, assignmentId);
@@ -377,6 +381,14 @@ export async function updateEventContactAssignment(
             assignment.relatedParticipations
           ),
   };
+
+  if (input.hospitality !== undefined && input.session) {
+    merged.hospitality = await ensureRoommateParticipantOnEvent(
+      input.session,
+      assignment.eventId,
+      normalizeAssignmentHospitality(merged.hospitality)
+    );
+  }
 
   const userId = input.userId ?? assignment.updatedBy ?? "system";
   const next = prepareEntityUpdate(merged, userId);

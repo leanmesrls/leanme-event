@@ -74,6 +74,7 @@ export function LeonardoWorkspaceDetail({
               body: JSON.stringify({
                 status: fresh.transcript.trim() ? "content_ready" : "draft",
                 errorMessage: null,
+                expectedRevision: fresh.revision ?? 1,
               }),
             }
           );
@@ -152,6 +153,7 @@ export function LeonardoWorkspaceDetail({
         body: JSON.stringify({
           transcript,
           status: "content_ready",
+          expectedRevision: workspace.revision ?? 1,
         }),
       }
     );

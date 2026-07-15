@@ -19,6 +19,7 @@ import {
   listStoredVenues,
   saveStoredVenue,
 } from "./venue-storage";
+import { upsertManagedEntityToNeon } from "./entity-db";
 import { saveEntityVersionSnapshot } from "./version-storage";
 
 function normalizeStoredVenue(venue: LeonardoVenue): LeonardoVenue {
@@ -75,6 +76,7 @@ async function persistVenue(
     );
   }
   await saveStoredVenue(venue);
+  await upsertManagedEntityToNeon("venue", venue);
 }
 
 export async function saveVenue(
@@ -105,7 +107,7 @@ export async function saveVenue(
     return merged;
   }
 
-  await saveStoredVenue(normalized);
+  await persistVenue(normalized, null);
   return normalized;
 }
 

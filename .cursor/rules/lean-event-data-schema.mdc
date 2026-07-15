@@ -1,0 +1,37 @@
+---
+description: Regole obbligatorie per modifiche allo schema dati Lean Event (tipi, storage JSON/Blob, migrazioni). Evita perdita dati silenziosa su deploy.
+globs: types/lean-event.ts,lib/lean-event/**/*.ts,docs/leanyou-data-resilience.md,docs/sql/**
+alwaysApply: false
+---
+
+# Lean Event · Safe schema change
+
+Fonte di verità: `docs/leanyou-data-resilience.md` §14.
+
+## Prima di modificare campi su entità gestite
+
+Entità: `event`, `contact`, `venue`, `supplier`, `assignment`, `workspace` (verbale).
+
+1. **Aggiungere campo** → opzionale + default in `normalize*` / `withLifecycleDefaults`. Mai required senza migrazione.
+2. **Rinominare campo** → shim che legge nome vecchio **e** nuovo per ≥1 release; poi script di backfill Blob; solo dopo rimuovere lo shim.
+3. **Rimuovere campo** → smettere di usarlo in UI/API; **non** strippare dal JSON al save finché non c’è decisione esplicita + retention versioni.
+4. **Cambiare tipo/semantica** → trattare come rename + migrazione; vietato deploy “breaking” senza script.
+
+## Vietato
+
+- Assumere che un deploy riscriva o cancelli i JSON su Vercel Blob.
+- Hard-delete di entità gestite (solo soft delete → cestino 30 gg → purge cron).
+- Cambiare `tenantId` in `LEAN_EVENT_TENANTS_JSON` senza piano migrazione path Blob.
+- Toccare lo Blob Store di `leanme-site` da questo repo.
+
+## Checklist PR / commit dati
+
+- [ ] Aggiornato `normalize*` / lifecycle defaults
+- [ ] Se rename/breaking: script migrazione o shim documentato
+- [ ] Snapshot versioni restano validi (non rompere lettura rev precedenti)
+- [ ] Nota in `docs/leanyou-data-resilience.md` se cambia contratto Fase B (Neon)
+
+## Persistenza produzione
+
+- Blob `lean-event/{collection}/{tenantId}/…` + `BLOB_READ_WRITE_TOKEN`
+- Deploy codice ≠ wipe dati (vedi règle deploy Vercel)

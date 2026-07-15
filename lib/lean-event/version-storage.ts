@@ -4,6 +4,7 @@ import { put } from "@vercel/blob";
 
 import type { LeanEventManagedEntityType } from "@/lib/lean-event/entity-lifecycle";
 import { isEntityBlobStorageEnabled } from "@/lib/lean-event/entity-blob-storage";
+import { insertManagedEntityVersionToNeon } from "@/lib/lean-event/entity-db";
 import { getDataRoot, writeJsonFile } from "@/lib/lean-event/storage";
 
 const BLOB_ROOT = "lean-event/versions";
@@ -34,7 +35,7 @@ function versionFilePath(
   );
 }
 
-/** Snapshot immutabile prima di ogni overwrite (bridge fino a Postgres). */
+/** Snapshot immutabile prima di ogni overwrite (Blob/FS + Neon). */
 export async function saveEntityVersionSnapshot(
   tenantId: string,
   entityType: LeanEventManagedEntityType,
@@ -51,11 +52,18 @@ export async function saveEntityVersionSnapshot(
       addRandomSuffix: false,
       allowOverwrite: false,
     });
-    return;
+  } else {
+    await writeJsonFile(
+      versionFilePath(tenantId, entityType, entityId, revision),
+      snapshot
+    );
   }
 
-  await writeJsonFile(
-    versionFilePath(tenantId, entityType, entityId, revision),
+  await insertManagedEntityVersionToNeon(
+    tenantId,
+    entityType,
+    entityId,
+    revision,
     snapshot
   );
 }

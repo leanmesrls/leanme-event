@@ -314,8 +314,31 @@ export function LeonardoGuestHospitalityCard({
           className="min-w-0 space-y-4 overflow-hidden px-4 py-4"
           onSubmit={(event) => {
             event.preventDefault();
+            setHotelHint(null);
+            const normalized = normalizeAssignmentHospitality(form);
+            if (
+              needsRoommate &&
+              normalized.roommateRole === "participant" &&
+              !normalized.roommateContactId
+            ) {
+              if (
+                !normalized.roommateFirstName.trim() ||
+                !normalized.roommateLastName.trim()
+              ) {
+                setHotelHint(
+                  "Compagno di camera partecipante: nome e cognome obbligatori."
+                );
+                return;
+              }
+              if (!normalized.roommateEmail.trim()) {
+                setHotelHint(
+                  "Email obbligatoria per iscrivere il compagno di camera come ospite nell'evento."
+                );
+                return;
+              }
+            }
             onSave({
-              hospitality: normalizeAssignmentHospitality(form),
+              hospitality: normalized,
               relatedParticipations,
             });
           }}
@@ -398,6 +421,9 @@ export function LeonardoGuestHospitalityCard({
               <LeonardoCompanionFields
                 title="Compagno di camera"
                 participantOptions={participantOptions}
+                emailRequired={
+                  form.roommateRole === "participant" && !form.roommateContactId
+                }
                 value={{
                   contactId: form.roommateContactId,
                   firstName: form.roommateFirstName,

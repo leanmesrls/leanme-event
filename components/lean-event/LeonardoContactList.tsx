@@ -18,11 +18,27 @@ import {
   contactMatchesFilters,
   downloadContactsCsv,
 } from "@/lib/lean-event/contact-export";
-import { formatContactName } from "@/lib/lean-event/contact-display";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
 import { sortContacts, type ListSortMode } from "@/lib/lean-event/list-sort";
 import { useLeonardoListKeyboard } from "@/lib/lean-event/use-leonardo-list-keyboard";
 import type { LeanEventContact } from "@/types/lean-event";
+
+function emptyDraftContact(): LeanEventContact {
+  return {
+    id: "new",
+    tenantId: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    fiscalCode: "",
+    phones: [],
+    organization: "",
+    tags: [],
+    notes: "",
+    createdAt: "",
+    updatedAt: "",
+  };
+}
 
 interface LeonardoContactListProps {
   tenantSlug: string;
@@ -59,15 +75,7 @@ export function LeonardoContactList({
     LEONARDO_DEFAULT_PAGE_SIZE
   );
   const [error, setError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    organization: "",
-    tags: "",
-  });
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   useEffect(() => {
     setContacts(
@@ -130,65 +138,21 @@ export function LeonardoContactList({
     onSelect: syncContactSheet,
   });
 
-  async function handleCreate(event: React.FormEvent) {
-    event.preventDefault();
-    if (creating) {
-      return;
-    }
+  function handleContactCreated(contact: LeanEventContact) {
+    setContacts((current) => {
+      const withoutDupes = contact.email.trim()
+        ? current.filter(
+            (item) =>
+              item.email.trim().toLowerCase() !== contact.email.trim().toLowerCase()
+          )
+        : current;
+      return [...withoutDupes, { ...contact, tags: contact.tags ?? [] }].sort(
+        (a, b) =>
+          `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, "it")
+      );
+    });
+    setCreateModalOpen(false);
     setError(null);
-    setCreating(true);
-
-    try {
-      const response = await fetch("/api/lean-event/contacts", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const payload = (await response.json()) as {
-        error?: string;
-        duplicate?: boolean;
-        contact?: LeanEventContact;
-      };
-
-      if (response.status === 409 && payload.contact) {
-        setError(
-          `Email già presente (${formatContactName(payload.contact)}). Usa l'import per gestire i duplicati.`
-        );
-        return;
-      }
-
-      if (!response.ok || !payload.contact) {
-        setError(payload.error ?? "Creazione contatto non riuscita.");
-        return;
-      }
-
-      setContacts((current) => {
-        const withoutDupes = payload.contact!.email.trim()
-          ? current.filter(
-              (item) =>
-                item.email.trim().toLowerCase() !==
-                payload.contact!.email.trim().toLowerCase()
-            )
-          : current;
-        return [...withoutDupes, { ...payload.contact!, tags: payload.contact!.tags ?? [] }].sort(
-          (a, b) =>
-            `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, "it")
-        );
-      });
-      setForm({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        organization: "",
-        tags: "",
-      });
-      syncContactSheet(payload.contact.id);
-    } finally {
-      setCreating(false);
-    }
   }
 
   async function reloadContacts() {
@@ -332,58 +296,32 @@ export function LeonardoContactList({
         summary="Nuovo contatto o import massivo"
       >
         <div className="space-y-4 pt-2">
-          <form onSubmit={handleCreate} className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <input
-              required
-              placeholder="Nome *"
-              value={form.firstName}
-              onChange={(event) => setForm({ ...form, firstName: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              required
-              placeholder="Cognome *"
-              value={form.lastName}
-              onChange={(event) => setForm({ ...form, lastName: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="Email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="Telefono"
-              value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="Organizzazione"
-              value={form.organization}
-              onChange={(event) =>
-                setForm({ ...form, organization: event.target.value })
-              }
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="Tag (virgola)"
-              value={form.tags}
-              onChange={(event) => setForm({ ...form, tags: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2 xl:col-span-3"
-            />
-            <button
-              type="submit"
-              disabled={creating}
-              className="rounded-full bg-leanme-fuchsia px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:cursor-not-allowed disabled:opacity-50 md:col-span-2 xl:col-span-3 xl:justify-self-start"
-            >
-              {creating ? "Salvataggio…" : "Salva contatto"}
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={() => setCreateModalOpen(true)}
+            className="rounded-full bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
+          >
+            Nuovo contatto
+          </button>
+          <p className="text-sm text-white/55">
+            Apre la scheda completa in popup: compili tutti i campi e salvi una sola
+            volta.
+          </p>
           <LeonardoContactImport compact onImported={reloadContacts} />
         </div>
       </LeonardoCollapsiblePanel>
+
+      {createModalOpen ? (
+        <LeonardoContactSheetModal
+          tenantSlug={tenantSlug}
+          contact={emptyDraftContact()}
+          mode="create"
+          closeOnSuccess
+          onContactChange={handleContactCreated}
+          onCreated={handleContactCreated}
+          onClose={() => setCreateModalOpen(false)}
+        />
+      ) : null}
 
       {sheetContact ? (
         <LeonardoContactSheetModal

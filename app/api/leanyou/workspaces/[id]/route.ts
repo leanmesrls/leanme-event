@@ -9,8 +9,9 @@ import {
   handleLeanEventRouteError,
   requireSession,
 } from "@/lib/lean-event/server-auth";
-import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
 import { tenantHasModule } from "@/lib/lean-event/auth";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
+import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
 import type { LeonardoWorkspace } from "@/types/lean-event";
 import {
   deleteWorkspace,
@@ -60,7 +61,9 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Workspace non trovato." }, { status: 404 });
     }
 
-    const body = (await request.json()) as Partial<LeonardoWorkspace>;
+    const body = (await request.json()) as Partial<LeonardoWorkspace> & {
+      expectedRevision?: number;
+    };
     const allowed: Partial<LeonardoWorkspace> = {
       title: body.title,
       client: body.client,
@@ -89,18 +92,20 @@ export async function PATCH(request: Request, context: RouteContext) {
       tenantId: workspace.tenantId,
       createdBy: workspace.createdBy,
       createdAt: workspace.createdAt,
-      updatedAt: new Date().toISOString(),
     };
 
-    await saveWorkspace(next);
+    const saved = await saveWorkspace(next as LeonardoWorkspace, {
+      expectedRevision: body.expectedRevision,
+      userId: sessionUserId(session),
+    });
     await writeLeanEventAuditEvent({
       action: "workspace_update",
       resourceType: "leonardo_workspace",
-      resourceId: next.id,
-      detail: next.title,
+      resourceId: saved.id,
+      detail: saved.title,
       ...auditContextFromSession(session),
     });
-    return NextResponse.json({ workspace: next });
+    return NextResponse.json({ workspace: saved });
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_MEETING_DATE") {
       return NextResponse.json(
@@ -125,7 +130,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Workspace non trovato." }, { status: 404 });
     }
 
-    await deleteWorkspace(session.tenantId, id);
+    await deleteWorkspace(session.tenantId, id, sessionUserId(session));
     await writeLeanEventAuditEvent({
       action: "workspace_delete",
       resourceType: "leonardo_workspace",

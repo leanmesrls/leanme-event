@@ -10,6 +10,7 @@ import {
 } from "@/lib/lean-event/leonardo-processor";
 import { cleanFullTranscript, transcriptValidationMessage } from "@/lib/lean-event/transcription-cleanup";
 import { tenantHasModule } from "@/lib/lean-event/auth";
+import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
 import {
   forbiddenResponse,
   requireSession,
@@ -47,9 +48,11 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Workspace non trovato." }, { status: 404 });
     }
 
+    const userId = sessionUserId(session);
+
     await updateWorkspaceStatus(session.tenantId, id, "processing", {
       errorMessage: null,
-    });
+    }, userId);
     await writeLeanEventAuditEvent({
       action: "workspace_process_start",
       resourceType: "leonardo_workspace",
@@ -71,7 +74,7 @@ export async function POST(request: Request, context: RouteContext) {
       await updateWorkspaceStatus(session.tenantId, id, "processing", {
         transcript,
         errorMessage: null,
-      });
+      }, userId);
     }
 
     if (body.file) {
@@ -95,7 +98,7 @@ export async function POST(request: Request, context: RouteContext) {
     if (!transcript) {
       await updateWorkspaceStatus(session.tenantId, id, "failed", {
         errorMessage: "Nessuna trascrizione disponibile.",
-      });
+      }, userId);
       await writeLeanEventAuditEvent({
         action: "workspace_process_failed",
         resourceType: "leonardo_workspace",
@@ -119,7 +122,7 @@ export async function POST(request: Request, context: RouteContext) {
       await updateWorkspaceStatus(session.tenantId, id, "failed", {
         transcript: rawTranscript,
         errorMessage: transcriptError,
-      });
+      }, userId);
       await writeLeanEventAuditEvent({
         action: "workspace_process_failed",
         resourceType: "leonardo_workspace",
@@ -162,10 +165,9 @@ export async function POST(request: Request, context: RouteContext) {
       documents: result.documents,
       status: "completed" as const,
       errorMessage: null,
-      updatedAt: new Date().toISOString(),
     };
 
-    await saveWorkspace(completed);
+    await saveWorkspace(completed, { userId });
     await writeLeanEventAuditEvent({
       action: "workspace_process_complete",
       resourceType: "leonardo_workspace",
@@ -183,7 +185,7 @@ export async function POST(request: Request, context: RouteContext) {
     if (session) {
       await updateWorkspaceStatus(session.tenantId, id, "failed", {
         errorMessage: message,
-      });
+      }, sessionUserId(session));
       await writeLeanEventAuditEvent({
         action: "workspace_process_failed",
         resourceType: "leonardo_workspace",

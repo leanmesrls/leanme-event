@@ -21,6 +21,7 @@ import {
   listStoredContacts,
   saveStoredContact,
 } from "./contact-storage";
+import { upsertManagedEntityToNeon } from "./entity-db";
 import { saveEntityVersionSnapshot } from "./version-storage";
 
 function normalizeContact(contact: LeanEventContact): LeanEventContact {
@@ -120,6 +121,7 @@ async function persistContact(
     );
   }
   await saveStoredContact(contact);
+  await upsertManagedEntityToNeon("contact", contact);
 }
 
 export async function saveContact(
@@ -150,7 +152,7 @@ export async function saveContact(
     return merged;
   }
 
-  await saveStoredContact(normalized);
+  await persistContact(normalized, null);
   return normalized;
 }
 

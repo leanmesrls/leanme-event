@@ -1,0 +1,34 @@
+---
+description: Lean Event — target storage solidità produzione multi-tenant. Tutto il dominio persistente va su Postgres (Neon); Blob solo per file binari.
+alwaysApply: true
+---
+
+# Lean Event · Target storage produzione
+
+## Requisito prodotto (non negoziabile)
+
+Tutto il dominio Lean Event deve essere salvato su **database Postgres (Neon)** in produzione:
+
+- anagrafiche (contatti, fornitori, sedi, clienti)
+- eventi, assignment/ospiti, allotment/logistica metadati
+- verbali (workspace): metadati + trascrizione + documenti HTML/testo
+- preventivi, stampati, archivi email (quando introdotti)
+- revisioni, cestino, audit strutturato
+
+**Vercel Blob** resta solo per **file binari grandi** (PDF upload, audio/video, cover, allegati chat, export ZIP) — non come source of truth per dati strutturati.
+
+## Scala attesa
+
+- Molti tenant
+- Molti utenti concorrenti per tenant
+- Migliaia di persone/eventi, documenti e verbali
+
+Schema e indici devono rispettare multi-tenant (`tenant_id` in PK / indici), optimistic locking (`revision`), soft delete, versioni.
+
+Fonte: `docs/leanyou-data-resilience.md`, `docs/sql/001_lean_event_schema.sql`.
+
+## Stato implementazione
+
+- Fase A: Blob + lifecycle (ponte)
+- Fase B: Neon schema + dual-write → poi Neon source of truth
+- Non dichiarare “su DB” finché le write path non passano da Postgres

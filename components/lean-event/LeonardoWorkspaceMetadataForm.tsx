@@ -67,6 +67,7 @@ export function LeonardoWorkspaceMetadataForm({
           .map((tag) => tag.trim())
           .filter(Boolean),
         linkedEventId: form.linkedEventId.trim() || null,
+        expectedRevision: workspace.revision ?? 1,
       }),
     });
 

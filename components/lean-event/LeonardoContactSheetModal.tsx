@@ -14,6 +14,9 @@ interface LeonardoContactSheetModalProps {
   assignments?: ContactAssignmentWithEvent[];
   onDelete?: () => void;
   deleting?: boolean;
+  mode?: "create" | "edit";
+  onCreated?: (contact: LeanEventContact) => void;
+  closeOnSuccess?: boolean;
 }
 
 export function LeonardoContactSheetModal({
@@ -24,11 +27,19 @@ export function LeonardoContactSheetModal({
   assignments,
   onDelete,
   deleting,
+  mode = "edit",
+  onCreated,
+  closeOnSuccess = false,
 }: LeonardoContactSheetModalProps) {
+  const isCreate = mode === "create";
   return (
     <LeonardoSheetModal
-      title={formatContactName(contact)}
-      subtitle="Scheda contatto · j/k per navigare l'elenco"
+      title={isCreate ? "Nuovo contatto" : formatContactName(contact)}
+      subtitle={
+        isCreate
+          ? "Inserimento singolo · un solo salvataggio"
+          : "Scheda contatto · j/k per navigare l'elenco"
+      }
       busy={deleting}
       onClose={onClose}
     >
@@ -39,6 +50,10 @@ export function LeonardoContactSheetModal({
         assignments={assignments}
         onDelete={onDelete}
         deleting={deleting}
+        mode={mode}
+        onCreated={onCreated}
+        closeOnSuccess={closeOnSuccess}
+        onClose={onClose}
       />
     </LeonardoSheetModal>
   );

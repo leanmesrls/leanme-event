@@ -7,7 +7,18 @@ import type {
 } from "@/types/lean-event";
 
 import {
-  deleteStoredWorkspace,
+  assertRevisionMatch,
+  isEntityActive,
+  markEntityDeleted,
+  markEntityRestored,
+  prepareEntityCreate,
+  prepareEntityUpdate,
+  sessionUserId,
+  withLifecycleDefaults,
+} from "./entity-lifecycle";
+import { saveEntityVersionSnapshot } from "./version-storage";
+import { upsertManagedEntityToNeon } from "./entity-db";
+import {
   getStoredWorkspace,
   listStoredWorkspaces,
   saveStoredWorkspace,
@@ -15,9 +26,9 @@ import {
 
 function normalizeWorkspace(workspace: LeonardoWorkspace): LeonardoWorkspace {
   return {
-    ...workspace,
+    ...withLifecycleDefaults(workspace),
     linkedEventId: workspace.linkedEventId ?? null,
-  };
+  } as LeonardoWorkspace;
 }
 
 export async function listWorkspaces(
@@ -25,31 +36,119 @@ export async function listWorkspaces(
 ): Promise<LeonardoWorkspace[]> {
   const workspaces = await listStoredWorkspaces(tenantId);
 
-  return workspaces.map(normalizeWorkspace).sort(
-    (a, b) =>
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
+  return workspaces
+    .map((workspace) => normalizeWorkspace(workspace))
+    .filter(isEntityActive)
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+}
+
+export async function listDeletedWorkspaces(
+  tenantId: string
+): Promise<LeonardoWorkspace[]> {
+  const workspaces = await listStoredWorkspaces(tenantId);
+  return workspaces
+    .map((workspace) => normalizeWorkspace(workspace))
+    .filter((workspace) => !isEntityActive(workspace))
+    .sort((a, b) => (b.deletedAt ?? "").localeCompare(a.deletedAt ?? ""));
 }
 
 export async function getWorkspace(
   tenantId: string,
-  workspaceId: string
+  workspaceId: string,
+  options?: { includeDeleted?: boolean }
 ): Promise<LeonardoWorkspace | null> {
   const workspace = await getStoredWorkspace(tenantId, workspaceId);
-  return workspace ? normalizeWorkspace(workspace) : null;
+  if (!workspace) {
+    return null;
+  }
+  const normalized = normalizeWorkspace(workspace);
+  if (!options?.includeDeleted && !isEntityActive(normalized)) {
+    return null;
+  }
+  return normalized;
+}
+
+async function persistWorkspace(
+  workspace: LeonardoWorkspace,
+  previous: LeonardoWorkspace | null
+): Promise<void> {
+  if (previous) {
+    await saveEntityVersionSnapshot(
+      workspace.tenantId,
+      "workspace",
+      workspace.id,
+      previous.revision ?? 1,
+      previous
+    );
+  }
+  await saveStoredWorkspace(workspace);
+  await upsertManagedEntityToNeon("workspace", workspace);
 }
 
 export async function saveWorkspace(
-  workspace: LeonardoWorkspace
-): Promise<void> {
-  await saveStoredWorkspace(workspace);
+  workspace: LeonardoWorkspace,
+  options?: {
+    expectedRevision?: number;
+    userId?: string;
+    previous?: LeonardoWorkspace | null;
+  }
+): Promise<LeonardoWorkspace> {
+  const normalized = normalizeWorkspace(workspace);
+  const previous =
+    options?.previous ??
+    (await getStoredWorkspace(normalized.tenantId, normalized.id));
+
+  if (previous) {
+    const prevNorm = normalizeWorkspace(previous);
+    assertRevisionMatch(prevNorm, options?.expectedRevision);
+    const userId = options?.userId ?? normalized.updatedBy ?? "system";
+    const next = prepareEntityUpdate(prevNorm, userId);
+    const merged = normalizeWorkspace({
+      ...normalized,
+      revision: next.revision,
+      updatedAt: next.updatedAt!,
+      updatedBy: next.updatedBy,
+    });
+    await persistWorkspace(merged, prevNorm);
+    return merged;
+  }
+
+  await persistWorkspace(normalized, null);
+  return normalized;
 }
 
 export async function deleteWorkspace(
   tenantId: string,
-  workspaceId: string
+  workspaceId: string,
+  userId: string
 ): Promise<void> {
-  await deleteStoredWorkspace(tenantId, workspaceId);
+  const workspace = await getWorkspace(tenantId, workspaceId, {
+    includeDeleted: true,
+  });
+  if (!workspace) {
+    return;
+  }
+  const deleted = markEntityDeleted(workspace, userId);
+  await persistWorkspace(deleted, workspace);
+}
+
+export async function restoreWorkspace(
+  tenantId: string,
+  workspaceId: string,
+  userId: string
+): Promise<LeonardoWorkspace | null> {
+  const workspace = await getWorkspace(tenantId, workspaceId, {
+    includeDeleted: true,
+  });
+  if (!workspace || isEntityActive(workspace)) {
+    return null;
+  }
+  const restored = markEntityRestored(workspace, userId);
+  await persistWorkspace(restored, workspace);
+  return restored;
 }
 
 export function createWorkspace(
@@ -70,8 +169,9 @@ export function createWorkspace(
   }
 ): LeonardoWorkspace {
   const now = new Date().toISOString();
+  const userId = sessionUserId(session);
 
-  return {
+  const draft: LeonardoWorkspace = {
     id: randomUUID(),
     tenantId: session.tenantId,
     createdBy: session.userId,
@@ -94,13 +194,16 @@ export function createWorkspace(
     createdAt: now,
     updatedAt: now,
   };
+
+  return normalizeWorkspace(prepareEntityCreate(draft, userId));
 }
 
 export async function updateWorkspaceStatus(
   tenantId: string,
   workspaceId: string,
   status: LeonardoWorkspaceStatus,
-  patch: Partial<LeonardoWorkspace> = {}
+  patch: Partial<LeonardoWorkspace> = {},
+  userId = "system"
 ): Promise<LeonardoWorkspace | null> {
   const workspace = await getWorkspace(tenantId, workspaceId);
   if (!workspace) {
@@ -111,11 +214,9 @@ export async function updateWorkspaceStatus(
     ...workspace,
     ...patch,
     status,
-    updatedAt: new Date().toISOString(),
   };
 
-  await saveWorkspace(next);
-  return next;
+  return saveWorkspace(next, { userId });
 }
 
 export async function listWorkspacesForEvent(

@@ -40,8 +40,9 @@ export async function GET(request: Request) {
         suppliers: acc.suppliers + item.purged.suppliers,
         venues: acc.venues + item.purged.venues,
         assignments: acc.assignments + item.purged.assignments,
+        workspaces: acc.workspaces + item.purged.workspaces,
       }),
-      { events: 0, contacts: 0, suppliers: 0, venues: 0, assignments: 0 }
+      { events: 0, contacts: 0, suppliers: 0, venues: 0, assignments: 0, workspaces: 0 }
     );
 
     console.info(

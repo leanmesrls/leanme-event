@@ -78,6 +78,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         {
           ...body,
           userId: sessionUserId(session),
+          session,
         }
       );
       const assignments = await listAssignmentsForEventWithContacts(
@@ -87,11 +88,31 @@ export async function PATCH(request: Request, context: RouteContext) {
       const enriched = assignments.find((item) => item.id === updated.id);
       return NextResponse.json({ assignment: enriched ?? updated });
     } catch (error) {
-      if (error instanceof Error && error.message === "ASSIGNMENT_NOT_FOUND") {
-        return NextResponse.json(
-          { error: "Assegnazione non trovata." },
-          { status: 404 }
-        );
+      if (error instanceof Error) {
+        if (error.message === "ASSIGNMENT_NOT_FOUND") {
+          return NextResponse.json(
+            { error: "Assegnazione non trovata." },
+            { status: 404 }
+          );
+        }
+        if (error.message === "ROOMMATE_PARTICIPANT_EMAIL_REQUIRED") {
+          return NextResponse.json(
+            {
+              error:
+                "Email obbligatoria per iscrivere il compagno di camera come partecipante ospite.",
+            },
+            { status: 400 }
+          );
+        }
+        if (error.message === "ROOMMATE_PARTICIPANT_NAME_REQUIRED") {
+          return NextResponse.json(
+            {
+              error:
+                "Nome e cognome obbligatori per il compagno di camera partecipante.",
+            },
+            { status: 400 }
+          );
+        }
       }
       throw error;
     }

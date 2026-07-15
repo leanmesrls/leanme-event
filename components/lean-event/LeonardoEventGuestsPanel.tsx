@@ -14,6 +14,7 @@ import { downloadGuestsCsv } from "@/lib/lean-event/guest-export";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { sortByContactName, type ListSortMode } from "@/lib/lean-event/list-sort";
 import { isHospitalitySheetIncomplete } from "@/lib/lean-event/hospitality";
+import { buildGuestRemovalConfirmation } from "@/lib/lean-event/guest-removal";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type {
   LeanEventContact,
@@ -247,12 +248,10 @@ export function LeonardoEventGuestsPanel({
 
   async function handleRemove(assignmentId: string) {
     const row = assignments.find((item) => item.id === assignmentId);
-    const label = row?.contactName ?? "questo ospite";
-    if (
-      !window.confirm(
-        `Rimuovere ${label} dall'evento? L'assegnazione va nel cestino (recuperabile per 30 giorni). Allotment, report e eventi correlati si aggiornano subito.`
-      )
-    ) {
+    if (!row) {
+      return;
+    }
+    if (!window.confirm(buildGuestRemovalConfirmation(row, assignments))) {
       return;
     }
 
@@ -340,13 +339,18 @@ export function LeonardoEventGuestsPanel({
       return;
     }
 
-    const nextAssignments = assignments.map((item) =>
-      item.id === assignmentId ? result.assignment! : item
-    );
-    updateAssignments(nextAssignments);
+    const refreshed = await refreshAssignmentsFromServer();
+    const list =
+      refreshed ??
+      assignments.map((item) =>
+        item.id === assignmentId ? result.assignment! : item
+      );
+    if (!refreshed) {
+      updateAssignments(list);
+    }
 
     if (queueMode) {
-      const incomplete = nextAssignments.filter((item) =>
+      const incomplete = list.filter((item) =>
         isHospitalitySheetIncomplete(item.hospitality, hotelBlocks)
       );
       const currentIndex = incomplete.findIndex((item) => item.id === assignmentId);

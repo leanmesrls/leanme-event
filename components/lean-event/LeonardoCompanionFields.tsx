@@ -23,6 +23,7 @@ interface LeonardoCompanionFieldsProps {
   participantOptions?: ParticipantOption[];
   onChange: (value: CompanionFieldValue) => void;
   disabled?: boolean;
+  emailRequired?: boolean;
 }
 
 export function emptyCompanionFieldValue(
@@ -41,6 +42,7 @@ export function LeonardoCompanionFields({
   participantOptions = [],
   onChange,
   disabled = false,
+  emailRequired = false,
 }: LeonardoCompanionFieldsProps) {
   const linkedParticipant = participantOptions.find(
     (option) => option.id === value.contactId
@@ -125,9 +127,12 @@ export function LeonardoCompanionFields({
         />
       </label>
       <label className="block text-sm">
-        <span className="mb-1 block text-white/60">Email (facoltativa)</span>
+        <span className="mb-1 block text-white/60">
+          Email{emailRequired ? " *" : " (facoltativa)"}
+        </span>
         <input
           type="email"
+          required={emailRequired}
           value={value.email}
           disabled={disabled || Boolean(value.contactId)}
           onChange={(event) => updatePerson({ email: event.target.value })}

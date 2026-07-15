@@ -30,6 +30,7 @@ import {
   listStoredEvents,
   saveStoredEvent,
 } from "./event-storage";
+import { upsertManagedEntityToNeon } from "./entity-db";
 import { saveEntityVersionSnapshot } from "./version-storage";
 
 function normalizeStoredEvent(event: LeonardoEvent): LeonardoEvent {
@@ -86,6 +87,7 @@ async function persistEvent(
     );
   }
   await saveStoredEvent(event);
+  await upsertManagedEntityToNeon("event", event);
 }
 
 export async function saveEvent(
@@ -116,7 +118,7 @@ export async function saveEvent(
     return merged;
   }
 
-  await saveStoredEvent(normalized);
+  await persistEvent(normalized, null);
   return normalized;
 }
 

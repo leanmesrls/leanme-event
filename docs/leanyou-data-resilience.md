@@ -1,8 +1,8 @@
 # Lean Event · Resilienza dati, concorrenza, versioning e cestino
 
-**Versione documento:** 2026-07-14  
+**Versione documento:** 2026-07-15  
 **Stato:** architettura approvata — implementazione per fasi  
-**Scope:** multi-utente simultaneo, storico versioni, backup/recovery, cestino 30 giorni
+**Scope:** multi-utente simultaneo, storico versioni, backup/recovery, cestino 30 giorni — **inclusi workspace verbali** (trascrizione + documenti generati)
 
 ---
 
@@ -10,14 +10,15 @@
 
 | Aspetto | Stato oggi | Rischio |
 |---------|------------|---------|
-| Persistenza | JSON per entità (filesystem locale / Vercel Blob) | Last-write-wins, nessun merge |
-| Concorrenza | PATCH read → merge → write | Sovrascrittura silenziosa |
-| Versioni | Solo `updatedAt` | Nessun ripristino punto-in-tempo |
-| Eliminazione | `delete` fisico del file | Irrecuperabile |
-| Backup | Nessuno sistematico su entità evento/rubrica | Perdita dati su crash o errore umano |
-| Audit | JSONL login/workspace (non su Vercel FS) | Non traccia ogni modifica entità |
+| Persistenza | JSON su Blob (prod) / `.lean-event-data` (locale) — **Fase A attiva** | Last-write-wins senza Neon; merge in Fase B+ |
+| Concorrenza | Optimistic locking (`revision`) su entità gestite | Solo Events/assignment/workspace + PATCH API; UI merge in Fase C/D |
+| Versioni | Snapshot Blob `lean-event/versions/…` | Non ancora UI cronologia (Fase B) |
+| Eliminazione | Soft delete + cestino 30 gg + cron purge | Purge definitivo solo dopo retention |
+| Backup | Nessuno sistematico giornaliero | **Fase C** (cron snapshot Blob) |
+| **Verbali (workspace)** | Lifecycle Fase A OK (soft delete, revision, cestino) | Backup + Neon metadati in Fase B/C |
+| Audit | JSONL / Vercel Logs parziale | Estensione mutazioni in Fase C |
 
-**Obiettivo:** lavoro contemporaneo sicuro su un evento, ripristino versioni, recupero post-crash, cestino 30 giorni.
+**Obiettivo:** lavoro contemporaneo sicuro su un evento **e sui verbali**, ripristino versioni, recupero post-crash, cestino 30 giorni.
 
 ---
 
@@ -89,6 +90,7 @@ CREATE INDEX idx_versions_lookup ON entity_versions (tenant_id, entity_type, ent
 | `supplier` | Sì | Link evento → storico |
 | `event_assignment` | Sì | — |
 | `event_supplier_link` | Sì | Documenti link → cestino |
+| **`workspace` (verbale)** | **Sì — obbligatorio** | `linkedEventId` resta storico; tab evento nasconde verbali in cestino |
 | `document` | Sì | File Blob spostato in `trash/` prefix, non eliminato |
 
 **Regole cestino:**
@@ -166,7 +168,7 @@ Cron Vercel (`0 3 * * *` UTC):
 leanyou-backups/{YYYY-MM-DD}/{tenantId}/{entityType}/*.json.gz
 ```
 
-- Copia incrementale prefissi: `leanyou/events/`, `leanyou/contacts/`, `leanyou/event-assignments/`, documenti.
+- Copia incrementale prefissi: `lean-event/events/`, `lean-event/contacts/`, `lean-event/event-assignments/`, **`lean-event/workspaces/`** (JSON con transcript + HTML documenti), allegati evento.
 - Retention snapshot: **90 giorni** (poi lifecycle delete su prefix backup).
 
 ### Livello 3 — Export tenant settimanale
@@ -223,32 +225,37 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 
 ## 8. Piano di implementazione
 
-### Fase A — Fondamenta (1–2 sprint) ⚡ priorità
+### Fase A — Fondamenta ✅ chiusa (2026-07-15)
 
 - [x] Aggiungere `revision`, `deletedAt`, `deletedBy`, `purgeAfter` ai tipi TypeScript
 - [x] Wrapper save con versioning + soft delete in `entity-lifecycle.ts` / domain layer
-- [x] Optimistic locking su **evento** e **assignment ospite** (409 + UI conflitto)
-- [x] Soft delete al posto di delete fisico per eventi, contatti, fornitori
-- [x] Snapshot versione su Blob/filesystem: `leanyou/versions/{tenantId}/...`
-- [x] API + UI cestino base (`/leonardo/cestino`)
-- [ ] Job purge automatico 30 giorni (Fase B)
+- [x] Optimistic locking su **evento**, **assignment**, **contact/venue/supplier**, **workspace**
+- [x] Soft delete per eventi, contatti, fornitori, sedi, assignment, **workspace (verbali)**
+- [x] Snapshot versione su Blob/filesystem: `lean-event/versions/{tenantId}/...`
+- [x] API + UI cestino base (`/leonardo/cestino`) incluso tipo Verbale
+- [x] Cron purge 30 giorni: `vercel.json` → `/api/lean-event/cron/purge-trash` (`0 3 * * *`)
+- [x] Regole **safe schema change** (§14) + Cursor rule `.cursor/rules/lean-event-data-schema.mdc`
 
-### Fase B — Postgres + Cestino UI (2–3 sprint)
+### Fase B — Postgres + Cronologia (in corso)
 
-- [ ] Schema Neon + migrazione entità da JSON
-- [ ] UI Cestino Leonardo + Cron purge 30 giorni
-- [ ] UI Cronologia versioni in scheda popup (confronto diff base)
+- [x] Schema SQL Neon: `docs/sql/001_lean_event_schema.sql`
+- [x] Provisioning Neon + `LEAN_EVENT_DATABASE_URL` (locale + Vercel)
+- [x] Client Postgres (`@neondatabase/serverless`) + **dual-write** su mutazioni
+- [x] Script migrazione FS → Neon: `npm run lean-event:migrate-neon`
+- [ ] Migrazione Blob produzione → Neon (se dati solo su Blob, non in locale)
+- [ ] UI Cronologia versioni in scheda (confronto revisioni)
+- [ ] Cutover letture: Neon source of truth (Blob resta file binari + backup JSON bridge)
 
 ### Fase C — Resilienza produzione (1 sprint)
 
-- [ ] Cron backup Blob giornaliero
+- [ ] Cron backup Blob giornaliero (inclusi `lean-event/workspaces/`)
 - [ ] Export settimanale tenant
 - [ ] Estensione audit su tutte le mutazioni
 - [ ] Polling revision + banner conflitto
 
 ### Fase D — Presenza & merge avanzato (opzionale)
 
-- [ ] Heartbeat presenza
+- [ ] Heartbeat presenza (`lean_event_entity_presence`)
 - [ ] Merge campo-per-campo su conflitto
 - [ ] SSE live updates
 
@@ -280,9 +287,12 @@ ROI: elimina rischio perdita eventi/ospiti multi-giorno — accettabile per piat
 ## 11. Riferimenti codice attuale
 
 - Storage entità: `lib/lean-event/*-storage.ts`, `entity-blob-storage.ts`
-- Delete hard: `deleteJsonFile` / `entityBlob.delete`
+- **Verbali:** `lib/lean-event/workspaces.ts`, soft delete + versioni + cestino
+- Purge: `lib/lean-event/purge-trash.ts` + cron Vercel
+- Schema Neon: `docs/sql/001_lean_event_schema.sql`
+- Regole schema: §14 + `.cursor/rules/lean-event-data-schema.mdc`
 - Audit parziale: `lib/lean-event/audit-log.ts`
-- UI liste resilienti: `components/lean-event/leonardo-ui.ts` (`LEONARDO_LIST_UX_STANDARD`)
+- UI liste: `components/lean-event/leonardo-ui.ts` (`LEONARDO_LIST_UX_STANDARD`)
 
 ---
 
@@ -291,4 +301,102 @@ ROI: elimina rischio perdita eventi/ospiti multi-giorno — accettabile per piat
 **Soluzione migliore per Lean Event Leonardo:**  
 **Neon Postgres (metadati + versioni + cestino + concorrenza) + Vercel Blob (file + snapshot backup) + Cron backup + soft delete 30 giorni.**
 
-Implementazione incrementale: Fase A subito (senza migrazione DB) per locking e soft delete; Fase B migrazione Postgres per cestino e versioning queryable.
+## Requisito prodotto — tutto su DB (produzione multi-tenant)
+
+**Target non negoziabile:** anagrafiche, eventi, ospiti, verbali (testo/HTML), preventivi, stampati metadati, archivi email metadati → **Neon Postgres**.  
+**Blob:** solo file binari (PDF, audio/video, cover, allegati).  
+
+Scala attesa: molti tenant, molti utenti concorrenti, migliaia di persone/eventi/documenti.  
+Schema base: `docs/sql/001_lean_event_schema.sql` (`tenant_id` in PK, `revision`, soft delete, versioni).  
+Cursor rule: `.cursor/rules/lean-event-db-target.mdc`.
+
+**Stato 2026-07-15:** Neon provisionato + schema + migrazione demo (11 entità) + **dual-write attivo**.  
+Letture UI ancora da Blob/FS. Prossimo: migrazione Blob prod (se diversa) + cutover letture Neon.
+
+---
+
+## 13. Verbali (workspace Leonardo) — requisito non negoziabile
+
+I verbali contengono **ore di lavoro** (upload audio/video, Whisper, generazione OpenAI). Non possono essere trattati come dati secondari.
+
+### Cosa proteggere
+
+| Contenuto | Dove oggi | In Neon (Fase B) |
+|-----------|-----------|------------------|
+| Metadati (titolo, data, partecipanti, `linkedEventId`) | Campi root JSON | Riga `workspaces` + indici |
+| Trascrizione Whisper | `transcript` nel JSON | Colonna `TEXT` o Blob ref se > 1 MB |
+| Documenti generati (7 HTML) | `documents` nel JSON | JSONB + opz. Blob per export PDF futuro |
+| Stato pipeline | `status`, `errorMessage` | Colonne |
+
+**Source of truth:** resta un JSON per workspace su Blob (`lean-event/workspaces/...`); Postgres tiene metadati, revisioni e cestino queryable. Non duplicare il verbale dentro l’evento.
+
+### Gap attuale (lean-event)
+
+- ~~`LeonardoWorkspace` **senza** `revision`, `deletedAt`, `purgeAfter`~~ → **Fase A applicata (2026-07-15)**
+- ~~`DELETE /api/lean-event/workspaces/{id}` → **elimina il file Blob**~~ → soft delete + cestino 30 gg
+- Snapshot in `lean-event/versions/.../workspace/` ad ogni salvataggio
+- Cestino UI: tipo `workspace` con ripristino
+- Cron purge: hard delete dopo 30 giorni in cestino
+- Cron backup: prefisso workspaces **da includere** (Fase C)
+
+### Separazione leanme.site ↔ lean-event
+
+| Ambiente | Repo / deploy | Prefisso Blob verbali |
+|----------|---------------|------------------------|
+| demo.leanme.it (site) | `leanme-site` | `leanyou/workspaces/` (legacy) |
+| event.leanme.it | `leanme-event` | `lean-event/workspaces/` |
+
+I verbali creati su **leanme.site non compaiono automaticamente** su event.leanme.it: store e prefissi Blob distinti. Perdita su site (es. dev locale senza Blob, redeploy senza `BLOB_READ_WRITE_TOKEN`, cancellazione `.lean-event-data` / data dir) **non si propaga** a lean-event, ma i dati site vanno recuperati dal Blob site o da backup.
+
+**Prima del go-live IEC su event.leanme.it:** script one-shot di migrazione `leanyou/workspaces/` → `lean-event/workspaces/` per tenant IEC (se i verbali devono essere visibili sulla nuova piattaforma).
+
+### Ordine implementazione verbali
+
+1. ~~**Fase A:** lifecycle + soft delete + version snapshot + cestino `workspace`~~ ✅
+2. **Fase B:** riga Neon `entity_type = workspace` + migrazione JSON esistenti
+3. **Fase C:** backup giornaliero prefisso `lean-event/workspaces/` incluso nell’export tenant settimanale
+
+---
+
+## 14. Safe schema change (regole fisse)
+
+I dati in produzione **non** vengono riscritti dal deploy. Un deploy aggiorna solo il codice. Ogni modifica a `types/lean-event.ts` o allo storage deve rispettare queste regole.
+
+### 14.1 Deploy ≠ wipe
+
+| Operazione | Effetto su Blob / tenant |
+|------------|--------------------------|
+| Push + redeploy Vercel | Nessuna cancellazione JSON |
+| Aggiunta campo nel tipo TS | Record vecchi ok se c’è default in `normalize*` |
+| Rename / remove / type change | Rischio dati “invisibili” se **non** segui §14.2–14.4 |
+| Rimozione `BLOB_READ_WRITE_TOKEN` | App usa `/tmp` — **non** toccare in prod |
+| Cambio `tenantId` in env | Path orfani — richiede migrazione esplicita |
+
+### 14.2 Tipi di change consentiti
+
+| Tipo | Procedura obbligatoria |
+|------|------------------------|
+| **Aggiungi campo** | Opzionale + default in `normalize*` / `withLifecycleDefaults`. Mai `required` senza backfill. |
+| **Rinomina campo** | Shim dual-read (vecchio + nuovo) ≥ 1 release → script backfill Blob → rimuovi shim. |
+| **Rimuovi campo** | Smetti di esporre in UI/API; **non** strippare al save finché non deciso esplicitamente. Le versioni restano leggibili. |
+| **Cambia tipo/semantica** | Come rename + migrazione; vietato deploy breaking senza script. |
+| **Nuova entità gestita** | Lifecycle completo (revision, soft delete, versioni, cestino, purge) **prima** del go-live feature. |
+
+### 14.3 Checklist prima del merge
+
+1. Aggiornare `normalize*` / lifecycle defaults.
+2. Se rename/breaking: shim **o** script migrazione documentato (tenant / prefisso Blob).
+3. Snapshot in `lean-event/versions/` restano deserializzabili (non rompere letture revisioni vecchie).
+4. Aggiornare questa sezione o `docs/sql/` se cambia lo schema Neon.
+5. Verificare su locale con copia dati (o tenant demo) che elenco + dettaglio + save non perdono campi.
+
+### 14.4 Cosa non fare mai
+
+- Hard-delete di entità gestite fuori dal flusso soft delete → cestino → purge.
+- Assumere che TypeScript “ripulisca” i JSON su Blob.
+- Sincronizzare o cancellare Blob di `leanme-site` da questo repo.
+- Lanciare migrazioni Neon in produzione senza dry-run su branch / DB staging.
+
+### 14.5 Cursor rule
+
+Implementazione agent: `.cursor/rules/lean-event-data-schema.mdc` (globs su tipi e `lib/lean-event`).

@@ -19,6 +19,10 @@ interface LeonardoContactSheetContentProps {
   assignments?: ContactAssignmentWithEvent[];
   onDelete?: () => void;
   deleting?: boolean;
+  mode?: "create" | "edit";
+  onCreated?: (contact: LeanEventContact) => void;
+  closeOnSuccess?: boolean;
+  onClose?: () => void;
 }
 
 export function LeonardoContactSheetContent({
@@ -28,7 +32,12 @@ export function LeonardoContactSheetContent({
   assignments = [],
   onDelete,
   deleting = false,
+  mode = "edit",
+  onCreated,
+  closeOnSuccess = false,
+  onClose,
 }: LeonardoContactSheetContentProps) {
+  const isCreate = mode === "create";
   const [form, setForm] = useState({
     firstName: contact.firstName,
     lastName: contact.lastName,
@@ -47,6 +56,9 @@ export function LeonardoContactSheetContent({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isCreate) {
+      return;
+    }
     setForm({
       firstName: contact.firstName,
       lastName: contact.lastName,
@@ -60,7 +72,7 @@ export function LeonardoContactSheetContent({
       tags: formatTagsDisplay(contact.tags),
       notes: contact.notes,
     });
-  }, [contact]);
+  }, [contact, isCreate]);
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
@@ -82,37 +94,65 @@ export function LeonardoContactSheetContent({
       });
     }
 
-    const response = await fetch(`/api/lean-event/contacts/${contact.id}`, {
-      method: "PATCH",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        fiscalCode: form.fiscalCode,
-        phones,
-        organization: form.organization,
-        tags: form.tags,
-        notes: form.notes,
-        expectedRevision: contact.revision ?? 1,
-      }),
-    });
+    const payload = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      fiscalCode: form.fiscalCode,
+      phones,
+      organization: form.organization,
+      tags: form.tags,
+      notes: form.notes,
+    };
 
-    const payload = (await response.json()) as {
+    const response = await fetch(
+      isCreate
+        ? "/api/lean-event/contacts"
+        : `/api/lean-event/contacts/${contact.id}`,
+      {
+        method: isCreate ? "POST" : "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          isCreate
+            ? payload
+            : { ...payload, expectedRevision: contact.revision ?? 1 }
+        ),
+      }
+    );
+
+    const result = (await response.json()) as {
       error?: string;
+      duplicate?: boolean;
       contact?: LeanEventContact;
     };
 
     setSaving(false);
 
-    if (!response.ok || !payload.contact) {
-      setError(payload.error ?? "Salvataggio non riuscito.");
+    if (response.status === 409 && result.contact) {
+      setError(
+        isCreate
+          ? `Email già presente (${result.contact.firstName} ${result.contact.lastName}).`
+          : (result.error ?? "Email già in uso.")
+      );
       return;
     }
 
-    onContactChange({ ...payload.contact, tags: payload.contact.tags ?? [] });
-    setMessage("Contatto aggiornato.");
+    if (!response.ok || !result.contact) {
+      setError(result.error ?? "Salvataggio non riuscito.");
+      return;
+    }
+
+    const saved = { ...result.contact, tags: result.contact.tags ?? [] };
+    if (isCreate) {
+      onCreated?.(saved);
+      if (closeOnSuccess) {
+        onClose?.();
+        return;
+      }
+    }
+    onContactChange(saved);
+    setMessage(isCreate ? "Contatto creato." : "Contatto aggiornato.");
   }
 
   return (
@@ -129,12 +169,16 @@ export function LeonardoContactSheetContent({
       ) : null}
 
       <LeonardoCollapsiblePanel
-        title="Anagrafica"
-        summary={`${contact.email || "—"} · ${contact.organization || "—"}`}
+        title={isCreate ? "Nuovo contatto" : "Anagrafica"}
+        summary={
+          isCreate
+            ? "Compila e salva una sola volta"
+            : `${contact.email || "—"} · ${contact.organization || "—"}`
+        }
         defaultOpen
       >
         <form
-          id={`contact-form-${contact.id}`}
+          id={`contact-form-${contact.id || "new"}`}
           onSubmit={handleSave}
           className="grid gap-3 pt-2 md:grid-cols-2"
         >
@@ -220,6 +264,7 @@ export function LeonardoContactSheetContent({
         </form>
       </LeonardoCollapsiblePanel>
 
+      {!isCreate ? (
       <LeonardoCollapsiblePanel
         title="Eventi collegati"
         summary={`${assignments.length} eventi`}
@@ -254,16 +299,31 @@ export function LeonardoContactSheetContent({
           </Link>
         </div>
       </LeonardoCollapsiblePanel>
+      ) : null}
 
       <div className="flex flex-wrap gap-3 border-t border-white/10 pt-4">
         <button
           type="submit"
-          form={`contact-form-${contact.id}`}
+          form={`contact-form-${contact.id || "new"}`}
           disabled={saving || deleting}
           className="rounded-full bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:opacity-60"
         >
-          {saving ? "Salvataggio…" : "Salva contatto"}
+          {saving
+            ? "Salvataggio…"
+            : isCreate
+              ? "Crea contatto"
+              : "Salva contatto"}
         </button>
+        {isCreate ? (
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-full border border-white/20 px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white/70 transition hover:border-leanme-fuchsia"
+          >
+            Annulla
+          </button>
+        ) : null}
         {onDelete ? (
           <button
             type="button"

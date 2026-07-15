@@ -20,6 +20,10 @@ import {
   listDeletedVenues,
   restoreVenue,
 } from "@/lib/lean-event/venues";
+import {
+  listDeletedWorkspaces,
+  restoreWorkspace,
+} from "@/lib/lean-event/workspaces";
 import type { LeanEventSession } from "@/types/lean-event";
 import type { LeanEventTrashItem } from "@/types/lean-event-trash";
 
@@ -31,19 +35,22 @@ export function isTrashEntityType(
     value === "contact" ||
     value === "supplier" ||
     value === "venue" ||
-    value === "assignment"
+    value === "assignment" ||
+    value === "workspace"
   );
 }
 
 export async function listTrashItems(
   tenantId: string
 ): Promise<LeanEventTrashItem[]> {
-  const [events, contacts, suppliers, venues, assignments] = await Promise.all([
+  const [events, contacts, suppliers, venues, assignments, workspaces] =
+    await Promise.all([
     listDeletedEvents(tenantId),
     listDeletedContacts(tenantId),
     listDeletedSuppliers(tenantId),
     listDeletedVenues(tenantId),
     listDeletedAssignments(tenantId),
+    listDeletedWorkspaces(tenantId),
   ]);
 
   const items: LeanEventTrashItem[] = [
@@ -114,6 +121,17 @@ export async function listTrashItems(
         };
       })
     )),
+    ...workspaces.map((workspace) => ({
+      entityType: "workspace" as const,
+      id: workspace.id,
+      tenantId: workspace.tenantId,
+      title: workspace.title,
+      subtitle: workspace.client || undefined,
+      deletedAt: workspace.deletedAt!,
+      deletedBy: workspace.deletedBy ?? undefined,
+      purgeAfter: workspace.purgeAfter,
+      revision: workspace.revision ?? 1,
+    })),
   ];
 
   return items.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
@@ -138,6 +156,10 @@ export async function restoreTrashItem(
     case "assignment":
       return Boolean(
         await restoreEventContactAssignment(session.tenantId, entityId, userId)
+      );
+    case "workspace":
+      return Boolean(
+        await restoreWorkspace(session.tenantId, entityId, userId)
       );
     default:
       return false;
