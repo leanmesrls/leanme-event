@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { DEFAULT_PUBLIC_TENANT_SLUG } from "@/lib/lean-event/constants";
+import { DEFAULT_PUBLIC_TENANT_SLUG } from "./lib/lean-event/constants";
 import {
   isLegacyLeanEventLeonardoPath,
   isTenantLoginPath,
@@ -8,8 +8,8 @@ import {
   leanEventLoginPath,
   mapLegacyLeanEventLeonardoPath,
   parseTenantSlugFromPath,
-} from "@/lib/lean-event/paths";
-import { SESSION_COOKIE_NAMES, readSessionToken } from "@/lib/lean-event/session-token";
+} from "./lib/lean-event/paths";
+import { SESSION_COOKIE_NAMES, readSessionToken } from "./lib/lean-event/session-token";
 
 async function readSessionFromRequest(request: NextRequest) {
   for (const name of SESSION_COOKIE_NAMES) {
@@ -135,5 +135,4 @@ export const config = {
     "/leanyou/:path*",
     "/api/leanyou/:path*",
   ],
-  runtime: "nodejs",
 };
