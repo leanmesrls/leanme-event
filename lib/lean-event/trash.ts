@@ -10,7 +10,6 @@ import {
   listDeletedContacts,
   restoreContact,
 } from "@/lib/lean-event/contacts";
-import type { LeanEventManagedEntityType } from "@/lib/lean-event/entity-lifecycle";
 import { listDeletedEvents, restoreEvent } from "@/lib/lean-event/events";
 import {
   listDeletedSuppliers,
@@ -24,33 +23,50 @@ import {
   listDeletedWorkspaces,
   restoreWorkspace,
 } from "@/lib/lean-event/workspaces";
+import {
+  listDeletedEventSupplierLinks,
+  restoreEventSupplierLink,
+} from "@/lib/lean-event/event-suppliers";
+import { getSupplier } from "@/lib/lean-event/suppliers";
 import type { LeanEventSession } from "@/types/lean-event";
-import type { LeanEventTrashItem } from "@/types/lean-event-trash";
+import type {
+  LeanEventTrashEntityType,
+  LeanEventTrashItem,
+} from "@/types/lean-event-trash";
 
 export function isTrashEntityType(
   value: string
-): value is LeanEventManagedEntityType {
+): value is LeanEventTrashEntityType {
   return (
     value === "event" ||
     value === "contact" ||
     value === "supplier" ||
     value === "venue" ||
     value === "assignment" ||
-    value === "workspace"
+    value === "workspace" ||
+    value === "event_supplier_link"
   );
 }
 
 export async function listTrashItems(
   tenantId: string
 ): Promise<LeanEventTrashItem[]> {
-  const [events, contacts, suppliers, venues, assignments, workspaces] =
-    await Promise.all([
+  const [
+    events,
+    contacts,
+    suppliers,
+    venues,
+    assignments,
+    workspaces,
+    supplierLinks,
+  ] = await Promise.all([
     listDeletedEvents(tenantId),
     listDeletedContacts(tenantId),
     listDeletedSuppliers(tenantId),
     listDeletedVenues(tenantId),
     listDeletedAssignments(tenantId),
     listDeletedWorkspaces(tenantId),
+    listDeletedEventSupplierLinks(tenantId),
   ]);
 
   const items: LeanEventTrashItem[] = [
@@ -108,9 +124,7 @@ export async function listTrashItems(
           entityType: "assignment" as const,
           id: assignment.id,
           tenantId: assignment.tenantId,
-          title: contact
-            ? formatContactName(contact)
-            : "Ospite evento",
+          title: contact ? formatContactName(contact) : "Ospite evento",
           subtitle: event
             ? `${event.title} · ${getEventRoleCategoryLabel(assignment.roleCategory)}`
             : getEventRoleCategoryLabel(assignment.roleCategory),
@@ -132,6 +146,25 @@ export async function listTrashItems(
       purgeAfter: workspace.purgeAfter,
       revision: workspace.revision ?? 1,
     })),
+    ...(await Promise.all(
+      supplierLinks.map(async (link) => {
+        const [event, supplier] = await Promise.all([
+          getEvent(tenantId, link.eventId),
+          getSupplier(tenantId, link.supplierId),
+        ]);
+        return {
+          entityType: "event_supplier_link" as const,
+          id: link.id,
+          tenantId: link.tenantId,
+          title: supplier?.name ?? "Fornitore evento",
+          subtitle: event?.title,
+          deletedAt: link.deletedAt!,
+          deletedBy: link.deletedBy ?? undefined,
+          purgeAfter: link.purgeAfter,
+          revision: link.revision ?? 1,
+        };
+      })
+    )),
   ];
 
   return items.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
@@ -139,7 +172,7 @@ export async function listTrashItems(
 
 export async function restoreTrashItem(
   session: LeanEventSession,
-  entityType: LeanEventManagedEntityType,
+  entityType: LeanEventTrashEntityType,
   entityId: string
 ): Promise<boolean> {
   const userId = session.userId || session.userEmail;
@@ -160,6 +193,10 @@ export async function restoreTrashItem(
     case "workspace":
       return Boolean(
         await restoreWorkspace(session.tenantId, entityId, userId)
+      );
+    case "event_supplier_link":
+      return Boolean(
+        await restoreEventSupplierLink(session.tenantId, entityId, userId)
       );
     default:
       return false;

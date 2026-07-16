@@ -52,16 +52,23 @@ export async function saveSupplierDocumentFile(input: {
   const buffer = Buffer.from(await input.file.arrayBuffer());
   const safeName = sanitizeFileName(input.file.name);
   const filename = `${input.documentId}-${safeName}`;
+  const apiUrl =
+    input.scope === "rubrica"
+      ? `/api/lean-event/suppliers/${input.scopeId}/documents/file?id=${input.documentId}&name=${encodeURIComponent(safeName)}`
+      : (() => {
+          const [eventId, linkId] = input.scopeId.split("__");
+          return `/api/lean-event/events/${eventId}/suppliers/${linkId}/documents/file?id=${input.documentId}&name=${encodeURIComponent(safeName)}`;
+        })();
 
   if (isBlobEnabled()) {
     const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.scope}/${input.scopeId}/${filename}`;
-    const blob = await put(pathname, buffer, {
-      access: "public",
+    await put(pathname, buffer, {
+      access: "private",
       contentType: input.file.type || "application/octet-stream",
       addRandomSuffix: false,
       allowOverwrite: true,
     });
-    return blob.url;
+    return apiUrl;
   }
 
   const dir = path.join(
@@ -73,11 +80,5 @@ export async function saveSupplierDocumentFile(input: {
   );
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, filename), buffer);
-
-  if (input.scope === "rubrica") {
-    return `/api/lean-event/suppliers/${input.scopeId}/documents/file?id=${input.documentId}&name=${encodeURIComponent(safeName)}`;
-  }
-
-  const [eventId, linkId] = input.scopeId.split("__");
-  return `/api/lean-event/events/${eventId}/suppliers/${linkId}/documents/file?id=${input.documentId}&name=${encodeURIComponent(safeName)}`;
+  return apiUrl;
 }

@@ -3,6 +3,7 @@ import path from "node:path";
 import type { LeonardoEventSupplierLink } from "@/types/lean-event";
 
 import { createEntityBlobStore, isEntityBlobStorageEnabled } from "./entity-blob-storage";
+import { readManagedEntity, readManagedEntityList } from "./entity-read";
 import {
   deleteJsonFile,
   getDataRoot,
@@ -25,7 +26,7 @@ export function getEventSupplierFilePath(
   return path.join(getEventSupplierDir(tenantId), `${linkId}.json`);
 }
 
-export async function listStoredEventSupplierLinks(
+async function listLinksFromBlobOrFs(
   tenantId: string
 ): Promise<LeonardoEventSupplierLink[]> {
   if (isEntityBlobStorageEnabled()) {
@@ -42,7 +43,7 @@ export async function listStoredEventSupplierLinks(
   return links.filter((link): link is LeonardoEventSupplierLink => Boolean(link));
 }
 
-export async function getStoredEventSupplierLink(
+async function getLinkFromBlobOrFs(
   tenantId: string,
   linkId: string
 ): Promise<LeonardoEventSupplierLink | null> {
@@ -51,6 +52,23 @@ export async function getStoredEventSupplierLink(
   }
   return readJsonFile<LeonardoEventSupplierLink>(
     getEventSupplierFilePath(tenantId, linkId)
+  );
+}
+
+export async function listStoredEventSupplierLinks(
+  tenantId: string
+): Promise<LeonardoEventSupplierLink[]> {
+  return readManagedEntityList(tenantId, "event_supplier_link", () =>
+    listLinksFromBlobOrFs(tenantId)
+  );
+}
+
+export async function getStoredEventSupplierLink(
+  tenantId: string,
+  linkId: string
+): Promise<LeonardoEventSupplierLink | null> {
+  return readManagedEntity(tenantId, "event_supplier_link", linkId, () =>
+    getLinkFromBlobOrFs(tenantId, linkId)
   );
 }
 

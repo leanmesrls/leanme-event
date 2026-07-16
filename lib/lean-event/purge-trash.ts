@@ -23,8 +23,17 @@ import {
 } from "@/lib/lean-event/workspaces";
 import { deleteStoredWorkspace } from "@/lib/lean-event/workspace-storage";
 import {
+  listDeletedEventSupplierLinks,
+} from "@/lib/lean-event/event-suppliers";
+import { deleteStoredEventSupplierLink } from "@/lib/lean-event/event-supplier-storage";
+import {
+  listDocumentsDueForPurge,
+  purgeDocument,
+} from "@/lib/lean-event/documents";
+import {
   deleteManagedEntityFromNeon,
 } from "@/lib/lean-event/entity-db";
+import { writeLeanEventAuditEvent } from "@/lib/lean-event/audit-log";
 import { loadTenantsFile } from "@/lib/lean-event/storage";
 
 export interface PurgeTrashResult {
@@ -36,6 +45,8 @@ export interface PurgeTrashResult {
     venues: number;
     assignments: number;
     workspaces: number;
+    eventSupplierLinks: number;
+    documents: number;
   };
 }
 
@@ -47,18 +58,41 @@ function isPurgeDue(purgeAfter: string | null | undefined): boolean {
   return Number.isFinite(timestamp) && timestamp <= Date.now();
 }
 
+async function auditPurge(
+  tenantId: string,
+  resourceType: string,
+  resourceId: string
+): Promise<void> {
+  await writeLeanEventAuditEvent({
+    action: "entity_purge",
+    tenantId,
+    resourceType,
+    resourceId,
+  });
+}
+
 export async function purgeExpiredTrashForTenant(
   tenantId: string
 ): Promise<PurgeTrashResult> {
   const result: PurgeTrashResult = {
     tenantId,
-    purged: { events: 0, contacts: 0, suppliers: 0, venues: 0, assignments: 0, workspaces: 0 },
+    purged: {
+      events: 0,
+      contacts: 0,
+      suppliers: 0,
+      venues: 0,
+      assignments: 0,
+      workspaces: 0,
+      eventSupplierLinks: 0,
+      documents: 0,
+    },
   };
 
   for (const event of await listDeletedEvents(tenantId)) {
     if (isPurgeDue(event.purgeAfter)) {
       await deleteStoredEvent(tenantId, event.id);
       await deleteManagedEntityFromNeon(tenantId, "event", event.id);
+      await auditPurge(tenantId, "event", event.id);
       result.purged.events += 1;
     }
   }
@@ -67,6 +101,7 @@ export async function purgeExpiredTrashForTenant(
     if (isPurgeDue(contact.purgeAfter)) {
       await deleteStoredContact(tenantId, contact.id);
       await deleteManagedEntityFromNeon(tenantId, "contact", contact.id);
+      await auditPurge(tenantId, "contact", contact.id);
       result.purged.contacts += 1;
     }
   }
@@ -75,6 +110,7 @@ export async function purgeExpiredTrashForTenant(
     if (isPurgeDue(supplier.purgeAfter)) {
       await deleteStoredSupplier(tenantId, supplier.id);
       await deleteManagedEntityFromNeon(tenantId, "supplier", supplier.id);
+      await auditPurge(tenantId, "supplier", supplier.id);
       result.purged.suppliers += 1;
     }
   }
@@ -83,6 +119,7 @@ export async function purgeExpiredTrashForTenant(
     if (isPurgeDue(venue.purgeAfter)) {
       await deleteStoredVenue(tenantId, venue.id);
       await deleteManagedEntityFromNeon(tenantId, "venue", venue.id);
+      await auditPurge(tenantId, "venue", venue.id);
       result.purged.venues += 1;
     }
   }
@@ -91,6 +128,7 @@ export async function purgeExpiredTrashForTenant(
     if (isPurgeDue(assignment.purgeAfter)) {
       await deleteStoredAssignment(tenantId, assignment.id);
       await deleteManagedEntityFromNeon(tenantId, "assignment", assignment.id);
+      await auditPurge(tenantId, "assignment", assignment.id);
       result.purged.assignments += 1;
     }
   }
@@ -99,7 +137,28 @@ export async function purgeExpiredTrashForTenant(
     if (isPurgeDue(workspace.purgeAfter)) {
       await deleteStoredWorkspace(tenantId, workspace.id);
       await deleteManagedEntityFromNeon(tenantId, "workspace", workspace.id);
+      await auditPurge(tenantId, "workspace", workspace.id);
       result.purged.workspaces += 1;
+    }
+  }
+
+  for (const link of await listDeletedEventSupplierLinks(tenantId)) {
+    if (isPurgeDue(link.purgeAfter)) {
+      await deleteStoredEventSupplierLink(tenantId, link.id);
+      await deleteManagedEntityFromNeon(
+        tenantId,
+        "event_supplier_link",
+        link.id
+      );
+      await auditPurge(tenantId, "event_supplier_link", link.id);
+      result.purged.eventSupplierLinks += 1;
+    }
+  }
+
+  for (const document of await listDocumentsDueForPurge(tenantId)) {
+    const ok = await purgeDocument(tenantId, document.id);
+    if (ok) {
+      result.purged.documents += 1;
     }
   }
 

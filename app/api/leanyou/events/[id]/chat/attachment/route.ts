@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { get } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 import { tenantHasLeonardoCapability, tenantHasModule } from "@/lib/lean-event/auth";
@@ -16,6 +17,39 @@ import { getDataRoot } from "@/lib/lean-event/storage";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
+}
+
+async function readAttachmentBuffer(input: {
+  tenantId: string;
+  eventId: string;
+  filename: string;
+}): Promise<Buffer | null> {
+  try {
+    const dir = path.join(
+      getDataRoot(),
+      "event-chat",
+      input.tenantId,
+      input.eventId
+    );
+    return await readFile(path.join(dir, input.filename));
+  } catch {
+    // fallback Blob
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
+    return null;
+  }
+
+  try {
+    const pathname = `lean-event/event-chat/${input.tenantId}/${input.eventId}/${input.filename}`;
+    const result = await get(pathname, { access: "private", useCache: false });
+    if (!result?.stream) {
+      return null;
+    }
+    return Buffer.from(await new Response(result.stream).arrayBuffer());
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(request: Request, context: RouteContext) {
@@ -37,9 +71,15 @@ export async function GET(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Allegato non trovato." }, { status: 404 });
     }
 
-    const dir = path.join(getDataRoot(), "event-chat", session.tenantId, eventId);
     const filename = `${attachmentId}-${name}`;
-    const buffer = await readFile(path.join(dir, filename));
+    const buffer = await readAttachmentBuffer({
+      tenantId: session.tenantId,
+      eventId,
+      filename,
+    });
+    if (!buffer) {
+      return NextResponse.json({ error: "Allegato non trovato." }, { status: 404 });
+    }
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

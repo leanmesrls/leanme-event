@@ -10,11 +10,16 @@ import {
   saveEventSupplierLink,
 } from "@/lib/lean-event/event-suppliers";
 import {
+  isRevisionConflictError,
+  sessionUserId,
+} from "@/lib/lean-event/entity-lifecycle";
+import {
   forbiddenResponse,
   handleLeanEventRouteError,
   requireSession,
 } from "@/lib/lean-event/server-auth";
 import { isValidSupplierCategory } from "@/lib/lean-event/supplier-categories";
+import { revisionConflictResponse } from "@/lib/lean-event/revision-conflict";
 
 interface RouteContext {
   params: Promise<{ id: string; linkId: string }>;
@@ -61,6 +66,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const body = (await request.json()) as {
       categoryId?: string;
       roleNotes?: string;
+      expectedRevision?: number;
     };
 
     const next = {
@@ -71,11 +77,21 @@ export async function PATCH(request: Request, context: RouteContext) {
           : link.categoryId,
       roleNotes:
         body.roleNotes !== undefined ? body.roleNotes.trim() : link.roleNotes,
-      updatedAt: new Date().toISOString(),
     };
 
-    await saveEventSupplierLink(next);
-    return NextResponse.json({ link: next });
+    try {
+      const saved = await saveEventSupplierLink(next, {
+        expectedRevision: body.expectedRevision,
+        userId: sessionUserId(session),
+        previous: link,
+      });
+      return NextResponse.json({ link: saved });
+    } catch (error) {
+      if (isRevisionConflictError(error)) {
+        return revisionConflictResponse(error);
+      }
+      throw error;
+    }
   } catch (error) {
     return handleLeanEventRouteError(error, "Aggiornamento fornitore evento non riuscito.");
   }
@@ -97,7 +113,11 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Fornitore evento non trovato." }, { status: 404 });
     }
 
-    await deleteEventSupplierLink(session.tenantId, linkId);
+    await deleteEventSupplierLink(
+      session.tenantId,
+      linkId,
+      sessionUserId(session)
+    );
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleLeanEventRouteError(error, "Rimozione fornitore evento non riuscita.");

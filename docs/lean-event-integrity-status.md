@@ -27,15 +27,17 @@
 ## 2. Cosa è già “solido”
 
 1. **Source of truth strutturata su Neon** (con fallback Blob in lettura se miss/errore)
-2. **Dual-write** su eventi, contatti, sedi, fornitori, assignment, workspace
+2. **Dual-write** su eventi, contatti, sedi, fornitori, assignment, workspace, **event_supplier_link**, **event_chat**
 3. **Optimistic locking** (`revision`) + dialog conflitto + banner stale (polling)
-4. **Soft delete + cestino 30g** + purge cron
+4. **Soft delete + cestino 30g** + purge cron (incluso documenti Neon + link fornitori evento)
 5. **Cronologia/ripristino** revisioni + audit `version_restore`
-6. **Backup Blob** giornaliero + **export tenant** settimanale
-7. **Audit append-only** su Neon per mutazioni dominio
-8. **Registry documenti** API + tabella Neon
+6. **Backup Blob** giornaliero (prefissi corretti: event-assignments, event-suppliers, travel-docs, chat…) + **export tenant** settimanale
+7. **Audit append-only** su Neon per mutazioni dominio + purge
+8. **Registry documenti** API list/upload/delete/restore/**download file** + tabella Neon
 9. **Import massivo** contatti/sedi/fornitori/eventi
-10. **Criteri retention** (`docs/lean-event-retention-criteria.md`)
+10. **Upload binari privati** (travel, chat, supplier docs) con stream autenticato
+11. **Criteri retention** (`docs/lean-event-retention-criteria.md`)
+12. Schema indici scala: `docs/sql/003_lean_event_indexes_solidity.sql`
 
 ---
 
@@ -44,10 +46,12 @@
 | # | Lacuna | Rischio | Priorità |
 |---|--------|---------|----------|
 | 1 | ~~Smoke prod formale~~ | firmato 2026-07-16 | ✅ chiuso |
-| 2 | UI liste documenti dedicata | API ok; moduli faculty/attestati ancora senza shell UI | C+ |
-| 3 | Import async > migliaia di righe | timeout HTTP su file enormi | C+ |
-| 4 | Verbali HTML ancora payload workspace | OK oggi; a volume alto versionare come document | C+ |
-| 5 | Verifica recovery da manifest backup | procedure da esercitare in drill | ops |
+| 2 | ~~event_supplier_link / chat fuori Neon~~ | dual-write + soft delete + backup prefix | ✅ chiuso 2026-07-16 |
+| 3 | ~~Blob pubblici travel/chat/supplier docs~~ | upload `private` + download auth | ✅ chiuso |
+| 4 | UI liste documenti dedicata | API + download file ok | C+ prodotto |
+| 5 | Import async > migliaia di righe | timeout HTTP su file enormi | C+ |
+| 6 | Verbali HTML ancora payload workspace | OK oggi; a volume alto versionare come document | C+ |
+| 7 | Drill recovery da manifest backup | procedure ops | ops |
 
 ---
 

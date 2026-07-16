@@ -8,6 +8,21 @@ import type {
   LeonardoSupplierEmailRecord,
 } from "@/types/lean-event";
 
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
+import { upsertManagedEntityToNeon } from "./entity-db";
+import {
+  assertRevisionMatch,
+  isEntityActive,
+  markEntityDeleted,
+  markEntityRestored,
+  prepareEntityCreate,
+  prepareEntityUpdate,
+  sessionUserId,
+  withLifecycleDefaults,
+} from "./entity-lifecycle";
 import { getSupplier } from "./suppliers";
 import { isValidSupplierCategory } from "./supplier-categories";
 import {
@@ -16,9 +31,18 @@ import {
   listStoredEventSupplierLinks,
   saveStoredEventSupplierLink,
 } from "./event-supplier-storage";
+import { saveEntityVersionSnapshot } from "./version-storage";
 
 export interface EventSupplierWithSupplier extends LeonardoEventSupplierLink {
   supplier: LeanEventSupplier | null;
+}
+
+function normalizeStoredLink(
+  link: LeonardoEventSupplierLink
+): LeonardoEventSupplierLink {
+  return normalizeEventSupplierLink(
+    withLifecycleDefaults(link) as LeonardoEventSupplierLink
+  );
 }
 
 export async function listEventSupplierLinks(
@@ -27,8 +51,20 @@ export async function listEventSupplierLinks(
 ): Promise<LeonardoEventSupplierLink[]> {
   const links = await listStoredEventSupplierLinks(tenantId);
   return links
+    .map(normalizeStoredLink)
+    .filter(isEntityActive)
     .filter((link) => link.eventId === eventId)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+export async function listDeletedEventSupplierLinks(
+  tenantId: string
+): Promise<LeonardoEventSupplierLink[]> {
+  const links = await listStoredEventSupplierLinks(tenantId);
+  return links
+    .map(normalizeStoredLink)
+    .filter((link) => !isEntityActive(link))
+    .sort((a, b) => (b.deletedAt ?? "").localeCompare(a.deletedAt ?? ""));
 }
 
 export async function listEventSuppliersWithSupplier(
@@ -46,22 +82,107 @@ export async function listEventSuppliersWithSupplier(
 
 export async function getEventSupplierLink(
   tenantId: string,
-  linkId: string
+  linkId: string,
+  options?: { includeDeleted?: boolean }
 ): Promise<LeonardoEventSupplierLink | null> {
-  return getStoredEventSupplierLink(tenantId, linkId);
+  const link = await getStoredEventSupplierLink(tenantId, linkId);
+  if (!link) {
+    return null;
+  }
+  const normalized = normalizeStoredLink(link);
+  if (!options?.includeDeleted && !isEntityActive(normalized)) {
+    return null;
+  }
+  return normalized;
+}
+
+async function persistLink(
+  link: LeonardoEventSupplierLink,
+  previous: LeonardoEventSupplierLink | null
+): Promise<void> {
+  if (previous) {
+    await saveEntityVersionSnapshot(
+      link.tenantId,
+      "event_supplier_link",
+      link.id,
+      previous.revision ?? 1,
+      previous
+    );
+  }
+  await saveStoredEventSupplierLink(link);
+  await upsertManagedEntityToNeon("event_supplier_link", link);
+  await auditManagedEntityMutation({
+    tenantId: link.tenantId,
+    entityType: "event_supplier_link",
+    entityId: link.id,
+    action: resolveEntityAuditAction(previous, link),
+    userId: link.updatedBy,
+  });
 }
 
 export async function saveEventSupplierLink(
-  link: LeonardoEventSupplierLink
-): Promise<void> {
-  await saveStoredEventSupplierLink(normalizeEventSupplierLink(link));
+  link: LeonardoEventSupplierLink,
+  options?: {
+    expectedRevision?: number;
+    userId?: string;
+    previous?: LeonardoEventSupplierLink | null;
+  }
+): Promise<LeonardoEventSupplierLink> {
+  const normalized = normalizeStoredLink(link);
+  const previous =
+    options?.previous ??
+    (await getStoredEventSupplierLink(normalized.tenantId, normalized.id));
+
+  if (previous) {
+    const prevNorm = normalizeStoredLink(previous);
+    assertRevisionMatch(prevNorm, options?.expectedRevision);
+    const userId = options?.userId ?? normalized.updatedBy ?? "system";
+    const next = prepareEntityUpdate(prevNorm, userId);
+    const merged = normalizeStoredLink({
+      ...normalized,
+      revision: next.revision,
+      updatedAt: next.updatedAt!,
+      updatedBy: next.updatedBy,
+    });
+    await persistLink(merged, prevNorm);
+    return merged;
+  }
+
+  const userId = options?.userId ?? normalized.updatedBy ?? "system";
+  const created = normalizeStoredLink(prepareEntityCreate(normalized, userId));
+  await persistLink(created, null);
+  return created;
 }
 
 export async function deleteEventSupplierLink(
   tenantId: string,
-  linkId: string
+  linkId: string,
+  userId: string
 ): Promise<void> {
-  await deleteStoredEventSupplierLink(tenantId, linkId);
+  const link = await getEventSupplierLink(tenantId, linkId, {
+    includeDeleted: true,
+  });
+  if (!link) {
+    return;
+  }
+  const deleted = markEntityDeleted(link, userId);
+  await persistLink(deleted, link);
+}
+
+export async function restoreEventSupplierLink(
+  tenantId: string,
+  linkId: string,
+  userId: string
+): Promise<LeonardoEventSupplierLink | null> {
+  const link = await getEventSupplierLink(tenantId, linkId, {
+    includeDeleted: true,
+  });
+  if (!link || isEntityActive(link)) {
+    return null;
+  }
+  const restored = markEntityRestored(link, userId);
+  await persistLink(restored, link);
+  return restored;
 }
 
 export function normalizeEventSupplierLink(
@@ -94,7 +215,7 @@ export async function createEventSupplierLink(
       ? input.categoryId
       : supplier.categoryId;
 
-  return {
+  const draft: LeonardoEventSupplierLink = {
     id: randomUUID(),
     tenantId: session.tenantId,
     eventId,
@@ -106,6 +227,7 @@ export async function createEventSupplierLink(
     createdAt: now,
     updatedAt: now,
   };
+  return prepareEntityCreate(draft, sessionUserId(session));
 }
 
 export function appendEventSupplierDocument(

@@ -88,8 +88,10 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    await saveEventSupplierLink(link);
-    return NextResponse.json({ link });
+    const saved = await saveEventSupplierLink(link, {
+      userId: session.userId || session.userEmail,
+    });
+    return NextResponse.json({ link: saved });
   } catch (error) {
     return handleLeanEventRouteError(
       error,

@@ -23,6 +23,7 @@ const TYPE_LABELS: Record<LeanEventTrashItem["entityType"], string> = {
   venue: "Sede",
   assignment: "Ospite evento",
   workspace: "Verbale",
+  event_supplier_link: "Fornitore evento",
 };
 
 export function LeonardoTrashList({ tenantSlug }: LeonardoTrashListProps) {

@@ -28,7 +28,9 @@ export type LeanEventManagedEntityType =
   | "supplier"
   | "venue"
   | "assignment"
-  | "workspace";
+  | "workspace"
+  | "event_supplier_link"
+  | "event_chat";
 
 export interface LeanEventEntityLifecycleFields {
   revision?: number;

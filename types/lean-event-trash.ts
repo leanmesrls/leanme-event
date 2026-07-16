@@ -1,8 +1,17 @@
 import type { LeanEventSession } from "@/types/lean-event";
-import type { LeanEventManagedEntityType } from "@/lib/lean-event/entity-lifecycle";
+
+/** Tipi mostrati nel cestino UI (subset del dominio gestito). */
+export type LeanEventTrashEntityType =
+  | "event"
+  | "contact"
+  | "supplier"
+  | "venue"
+  | "assignment"
+  | "workspace"
+  | "event_supplier_link";
 
 export interface LeanEventTrashItem {
-  entityType: LeanEventManagedEntityType;
+  entityType: LeanEventTrashEntityType;
   id: string;
   tenantId: string;
   title: string;

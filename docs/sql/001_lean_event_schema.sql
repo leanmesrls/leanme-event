@@ -6,9 +6,10 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ---------------------------------------------------------------------------
--- Tipi entità allineati a LeanEventManagedEntityType (+ link fornitore evento)
+-- Tipi entità allineati a LeanEventManagedEntityType
 -- ---------------------------------------------------------------------------
--- event | contact | supplier | venue | assignment | workspace | event_supplier_link
+-- event | contact | supplier | venue | assignment | workspace
+-- | event_supplier_link | event_chat  (TEXT: nessun DDL per nuovi tipi)
 
 CREATE TABLE IF NOT EXISTS lean_event_entities (
   id            TEXT NOT NULL,

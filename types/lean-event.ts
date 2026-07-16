@@ -514,6 +514,26 @@ export interface LeonardoEventSupplierLink {
   emails: LeonardoSupplierEmailRecord[];
   createdAt: string;
   updatedAt: string;
+  revision?: number;
+  updatedBy?: string;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  purgeAfter?: string | null;
+}
+
+/** Thread chat evento (messaggi in payload; SoT Neon + Blob). */
+export interface LeonardoEventChatThread {
+  id: string;
+  tenantId: string;
+  eventId: string;
+  messages: LeonardoEventChatMessage[];
+  createdAt: string;
+  updatedAt: string;
+  revision?: number;
+  updatedBy?: string;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  purgeAfter?: string | null;
 }
 
 /** Sede / location in rubrica tenant (riutilizzabile tra eventi). */

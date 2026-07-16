@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 
 import { getDataRoot } from "./storage";
 
@@ -31,6 +31,13 @@ function extensionForMime(mime: string): string {
   return "jpg";
 }
 
+function contentTypeForExt(ext: string): string {
+  if (ext === "pdf") return "application/pdf";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  return "image/jpeg";
+}
+
 export function isTravelBlobStorageEnabled(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
 }
@@ -43,6 +50,15 @@ export function validateTravelDocumentFile(file: File): string | null {
     return "File troppo grande (max 8 MB).";
   }
   return null;
+}
+
+function apiUrl(
+  eventId: string,
+  assignmentId: string,
+  segmentId: string,
+  side: string
+): string {
+  return `/api/lean-event/events/${eventId}/assignments/${assignmentId}/travel-document?segmentId=${segmentId}&side=${side}`;
 }
 
 export async function saveTravelDocumentFile(input: {
@@ -64,19 +80,19 @@ export async function saveTravelDocumentFile(input: {
 
   if (isTravelBlobStorageEnabled()) {
     const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${input.assignmentId}/${filename}`;
-    const blob = await put(pathname, buffer, {
-      access: "public",
+    await put(pathname, buffer, {
+      access: "private",
       contentType: input.file.type,
       addRandomSuffix: false,
       allowOverwrite: true,
     });
-    return blob.url;
+    return apiUrl(input.eventId, input.assignmentId, input.segmentId, input.side);
   }
 
   const dir = docsDir(input.tenantId, input.eventId, input.assignmentId);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, filename), buffer);
-  return `/api/lean-event/events/${input.eventId}/assignments/${input.assignmentId}/travel-document?segmentId=${input.segmentId}&side=${input.side}`;
+  return apiUrl(input.eventId, input.assignmentId, input.segmentId, input.side);
 }
 
 export async function readTravelDocumentFile(input: {
@@ -86,7 +102,9 @@ export async function readTravelDocumentFile(input: {
   segmentId: string;
   side: string;
 }): Promise<{ buffer: Buffer; contentType: string } | null> {
-  for (const ext of ["jpg", "jpeg", "png", "webp", "pdf"]) {
+  const extensions = ["jpg", "jpeg", "png", "webp", "pdf"];
+
+  for (const ext of extensions) {
     try {
       const buffer = await readFile(
         path.join(
@@ -94,18 +112,32 @@ export async function readTravelDocumentFile(input: {
           `${input.segmentId}-${input.side}.${ext}`
         )
       );
-      const contentType =
-        ext === "pdf"
-          ? "application/pdf"
-          : ext === "png"
-            ? "image/png"
-            : ext === "webp"
-              ? "image/webp"
-              : "image/jpeg";
-      return { buffer, contentType };
+      return { buffer, contentType: contentTypeForExt(ext === "jpeg" ? "jpg" : ext) };
     } catch {
       // try next
     }
   }
+
+  if (!isTravelBlobStorageEnabled()) {
+    return null;
+  }
+
+  for (const ext of extensions) {
+    const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${input.assignmentId}/${input.segmentId}-${input.side}.${ext}`;
+    try {
+      const result = await get(pathname, { access: "private", useCache: false });
+      if (!result?.stream) {
+        continue;
+      }
+      const buffer = Buffer.from(await new Response(result.stream).arrayBuffer());
+      return {
+        buffer,
+        contentType: contentTypeForExt(ext === "jpeg" ? "jpg" : ext),
+      };
+    } catch {
+      // try next
+    }
+  }
+
   return null;
 }

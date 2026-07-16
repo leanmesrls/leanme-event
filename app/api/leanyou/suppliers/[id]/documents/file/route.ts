@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { get } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 import {
@@ -15,6 +16,41 @@ import { getDataRoot } from "@/lib/lean-event/storage";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
+}
+
+async function readSupplierDocBuffer(input: {
+  tenantId: string;
+  scope: "rubrica" | "event";
+  scopeId: string;
+  filename: string;
+}): Promise<Buffer | null> {
+  try {
+    const dir = path.join(
+      getDataRoot(),
+      "supplier-documents",
+      input.tenantId,
+      input.scope,
+      input.scopeId
+    );
+    return await readFile(path.join(dir, input.filename));
+  } catch {
+    // Blob fallback
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
+    return null;
+  }
+
+  try {
+    const pathname = `lean-event/supplier-documents/${input.tenantId}/${input.scope}/${input.scopeId}/${input.filename}`;
+    const result = await get(pathname, { access: "private", useCache: false });
+    if (!result?.stream) {
+      return null;
+    }
+    return Buffer.from(await new Response(result.stream).arrayBuffer());
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(request: Request, context: RouteContext) {
@@ -36,15 +72,16 @@ export async function GET(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Documento non trovato." }, { status: 404 });
     }
 
-    const dir = path.join(
-      getDataRoot(),
-      "supplier-documents",
-      session.tenantId,
-      "rubrica",
-      supplierId
-    );
     const filename = `${documentId}-${name}`;
-    const buffer = await readFile(path.join(dir, filename));
+    const buffer = await readSupplierDocBuffer({
+      tenantId: session.tenantId,
+      scope: "rubrica",
+      scopeId: supplierId,
+      filename,
+    });
+    if (!buffer) {
+      return NextResponse.json({ error: "Documento non trovato." }, { status: 404 });
+    }
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

@@ -17,7 +17,12 @@ const CRITICAL_PREFIXES = [
   "lean-event/contacts/",
   "lean-event/venues/",
   "lean-event/suppliers/",
-  "lean-event/assignments/",
+  "lean-event/event-assignments/",
+  "lean-event/event-suppliers/",
+  "lean-event/event-chats/",
+  "lean-event/event-chat/",
+  "lean-event/travel-docs/",
+  "lean-event/venue-covers/",
   "lean-event/supplier-documents/",
   "lean-event/documents/",
 ] as const;

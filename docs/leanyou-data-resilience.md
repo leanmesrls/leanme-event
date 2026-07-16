@@ -263,7 +263,12 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 - [x] Import massivo fornitori + eventi (`POST .../suppliers/import`, `POST .../events/import`) + UI + modelli Excel
 - [x] Polling revision + banner/dialog conflitto su contatto, sede, fornitore, evento
 - [x] Smoke test produzione formale (`docs/lean-event-smoke-checklist.md` — firmata 2026-07-16, Luana Martuzzi)
-- [ ] UI liste documenti dedicate (C+)
+- [x] `event_supplier_link` + `event_chat` su Neon (dual-write, soft delete, migrate collections)
+- [x] Blob privati + download auth (travel / chat / supplier docs / documents registry)
+- [x] Document download API + purge documenti nel cron cestino
+- [x] Indici scala 003 + script `lean-event:apply-neon-001/003`
+- [x] Backup Blob: prefissi event-assignments / event-suppliers / travel / chat
+- [ ] UI liste documenti dedicate (C+ prodotto)
 
 Patto: `docs/lean-event-commercial-pact.md`  
 Integrità: `docs/lean-event-integrity-status.md`  

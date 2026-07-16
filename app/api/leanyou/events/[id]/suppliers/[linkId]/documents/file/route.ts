@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { get } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 import {
@@ -15,6 +16,42 @@ import { getDataRoot } from "@/lib/lean-event/storage";
 
 interface RouteContext {
   params: Promise<{ id: string; linkId: string }>;
+}
+
+async function readEventSupplierDocBuffer(input: {
+  tenantId: string;
+  eventId: string;
+  linkId: string;
+  filename: string;
+}): Promise<Buffer | null> {
+  const scopeId = `${input.eventId}__${input.linkId}`;
+  try {
+    const dir = path.join(
+      getDataRoot(),
+      "supplier-documents",
+      input.tenantId,
+      "event",
+      scopeId
+    );
+    return await readFile(path.join(dir, input.filename));
+  } catch {
+    // Blob fallback
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
+    return null;
+  }
+
+  try {
+    const pathname = `lean-event/supplier-documents/${input.tenantId}/event/${scopeId}/${input.filename}`;
+    const result = await get(pathname, { access: "private", useCache: false });
+    if (!result?.stream) {
+      return null;
+    }
+    return Buffer.from(await new Response(result.stream).arrayBuffer());
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(request: Request, context: RouteContext) {
@@ -36,15 +73,16 @@ export async function GET(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Documento non trovato." }, { status: 404 });
     }
 
-    const dir = path.join(
-      getDataRoot(),
-      "supplier-documents",
-      session.tenantId,
-      "event",
-      `${eventId}__${linkId}`
-    );
     const filename = `${documentId}-${name}`;
-    const buffer = await readFile(path.join(dir, filename));
+    const buffer = await readEventSupplierDocBuffer({
+      tenantId: session.tenantId,
+      eventId,
+      linkId,
+      filename,
+    });
+    if (!buffer) {
+      return NextResponse.json({ error: "Documento non trovato." }, { status: 404 });
+    }
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

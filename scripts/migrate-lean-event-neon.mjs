@@ -51,6 +51,16 @@ const COLLECTIONS = [
     fsDir: "workspaces",
     blobRoot: "lean-event/workspaces",
   },
+  {
+    entityType: "event_supplier_link",
+    fsDir: "event-suppliers",
+    blobRoot: "lean-event/event-suppliers",
+  },
+  {
+    entityType: "event_chat",
+    fsDir: "event-chats",
+    blobRoot: "lean-event/event-chats",
+  },
 ];
 
 const dryRun = process.argv.includes("--dry-run");

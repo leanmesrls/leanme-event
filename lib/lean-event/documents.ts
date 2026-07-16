@@ -418,3 +418,27 @@ export async function purgeDocument(
   });
   return true;
 }
+
+/** Documenti soft-deleted con purge_after scaduto. */
+export async function listDocumentsDueForPurge(
+  tenantId: string
+): Promise<LeanEventDocument[]> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return [];
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return [];
+  }
+  const rows = await sql`
+    SELECT *
+    FROM lean_event_documents
+    WHERE tenant_id = ${tenantId}
+      AND deleted_at IS NOT NULL
+      AND purge_after IS NOT NULL
+      AND purge_after <= now()
+    ORDER BY purge_after ASC
+    LIMIT 500
+  `;
+  return rows.map((row) => rowToDocument(row as Record<string, unknown>));
+}

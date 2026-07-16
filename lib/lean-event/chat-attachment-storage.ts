@@ -45,20 +45,21 @@ export async function saveChatAttachmentFile(input: {
   const buffer = Buffer.from(await input.file.arrayBuffer());
   const safeName = input.file.name.replace(/[^\w.\-() ]+/g, "_").slice(0, 80);
   const filename = `${input.attachmentId}-${safeName}`;
+  const apiUrl = `/api/lean-event/events/${input.eventId}/chat/attachment?id=${input.attachmentId}&name=${encodeURIComponent(safeName)}`;
 
   if (isBlobEnabled()) {
     const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${filename}`;
-    const blob = await put(pathname, buffer, {
-      access: "public",
+    await put(pathname, buffer, {
+      access: "private",
       contentType: input.file.type || "application/octet-stream",
       addRandomSuffix: false,
       allowOverwrite: true,
     });
-    return blob.url;
+    return apiUrl;
   }
 
   const dir = attachmentDir(input.tenantId, input.eventId);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, filename), buffer);
-  return `/api/lean-event/events/${input.eventId}/chat/attachment?id=${input.attachmentId}&name=${encodeURIComponent(safeName)}`;
+  return apiUrl;
 }

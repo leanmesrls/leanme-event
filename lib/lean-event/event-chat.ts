@@ -1,28 +1,72 @@
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 
 import type {
   LeanEventSession,
   LeonardoEventChatMessage,
+  LeonardoEventChatThread,
 } from "@/types/lean-event";
 
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
+import { upsertManagedEntityToNeon } from "./entity-db";
+import {
+  isEntityActive,
+  prepareEntityCreate,
+  prepareEntityUpdate,
+  sessionUserId,
+  withLifecycleDefaults,
+} from "./entity-lifecycle";
 import { getEvent } from "./events";
-import { readJsonFile, writeJsonFile, getDataRoot } from "./storage";
+import {
+  getStoredEventChatThread,
+  saveStoredEventChatThread,
+} from "./event-chat-storage";
+import { saveEntityVersionSnapshot } from "./version-storage";
 
-function getChatFilePath(tenantId: string, eventId: string): string {
-  return path.join(getDataRoot(), "events", tenantId, `${eventId}-chat.json`);
+function normalizeThread(
+  thread: LeonardoEventChatThread
+): LeonardoEventChatThread {
+  return withLifecycleDefaults({
+    ...thread,
+    messages: thread.messages ?? [],
+  }) as LeonardoEventChatThread;
+}
+
+async function persistThread(
+  thread: LeonardoEventChatThread,
+  previous: LeonardoEventChatThread | null
+): Promise<void> {
+  if (previous) {
+    await saveEntityVersionSnapshot(
+      thread.tenantId,
+      "event_chat",
+      thread.id,
+      previous.revision ?? 1,
+      previous
+    );
+  }
+  await saveStoredEventChatThread(thread);
+  await upsertManagedEntityToNeon("event_chat", thread);
+  await auditManagedEntityMutation({
+    tenantId: thread.tenantId,
+    entityType: "event_chat",
+    entityId: thread.id,
+    action: resolveEntityAuditAction(previous, thread),
+    userId: thread.updatedBy,
+  });
 }
 
 export async function listEventChatMessages(
   tenantId: string,
   eventId: string
 ): Promise<LeonardoEventChatMessage[]> {
-  const filePath = getChatFilePath(tenantId, eventId);
-  const stored = await readJsonFile<LeonardoEventChatMessage[]>(filePath);
-  if (!stored?.length) {
+  const thread = await getStoredEventChatThread(tenantId, eventId);
+  if (!thread || !isEntityActive(normalizeThread(thread))) {
     return [];
   }
-  return stored.sort(
+  return [...normalizeThread(thread).messages].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 }
@@ -61,13 +105,40 @@ export async function appendEventChatMessage(
     createdAt: new Date().toISOString(),
   };
 
-  const existing = await listEventChatMessages(session.tenantId, eventId);
-  const filePath = getChatFilePath(session.tenantId, eventId);
-  await writeJsonFile(filePath, [...existing, message]);
+  const userId = sessionUserId(session);
+  const existing = await getStoredEventChatThread(session.tenantId, eventId);
+  const previous = existing ? normalizeThread(existing) : null;
+
+  if (previous && isEntityActive(previous)) {
+    const nextMeta = prepareEntityUpdate(previous, userId);
+    const next = normalizeThread({
+      ...previous,
+      messages: [...previous.messages, message],
+      revision: nextMeta.revision,
+      updatedAt: nextMeta.updatedAt!,
+      updatedBy: nextMeta.updatedBy,
+    });
+    await persistThread(next, previous);
+    return message;
+  }
+
+  const now = message.createdAt;
+  const draft: LeonardoEventChatThread = {
+    id: eventId,
+    tenantId: session.tenantId,
+    eventId,
+    messages: [message],
+    createdAt: now,
+    updatedAt: now,
+  };
+  const created = normalizeThread(prepareEntityCreate(draft, userId));
+  await persistThread(created, null);
   return message;
 }
 
 export function extractMentions(text: string): string[] {
   const matches = text.match(/@[\w.+-]+@[\w.-]+\.\w+|@[\w.-]+/g) ?? [];
-  return [...new Set(matches.map((item) => item.slice(1).trim()).filter(Boolean))];
+  return [
+    ...new Set(matches.map((item) => item.slice(1).trim()).filter(Boolean)),
+  ];
 }
