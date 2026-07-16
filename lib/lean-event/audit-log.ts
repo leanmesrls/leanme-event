@@ -3,6 +3,11 @@ import path from "node:path";
 
 import type { LeanEventSession } from "@/types/lean-event";
 
+import {
+  getLeanEventSql,
+  isLeanEventDatabaseEnabled,
+} from "@/lib/lean-event/db";
+import type { LeanEventManagedEntityType } from "@/lib/lean-event/entity-lifecycle";
 import { getDataRoot } from "@/lib/lean-event/storage";
 
 export type LeanEventAuditAction =
@@ -15,7 +20,20 @@ export type LeanEventAuditAction =
   | "workspace_process_start"
   | "workspace_process_complete"
   | "workspace_process_failed"
-  | "workspace_transcribe";
+  | "workspace_transcribe"
+  | "entity_create"
+  | "entity_update"
+  | "entity_soft_delete"
+  | "entity_restore"
+  | "entity_purge"
+  | "document_create"
+  | "document_update"
+  | "document_soft_delete"
+  | "document_restore"
+  | "import_apply"
+  | "tenant_export"
+  | "version_restore"
+  | "backup_blob";
 
 export interface LeanEventAuditEvent {
   ts: string;
@@ -31,6 +49,7 @@ export interface LeanEventAuditEvent {
   resourceId?: string;
   detail?: string;
   ip?: string;
+  payload?: Record<string, unknown>;
 }
 
 function auditDir(tenantId: string): string {
@@ -73,11 +92,49 @@ function shouldPersistAuditToFile(): boolean {
   if (process.env.LEANYOU_AUDIT_FILE === "false") {
     return false;
   }
-  // Vercel serverless has a read-only filesystem outside /tmp.
   if (process.env.VERCEL === "1") {
     return false;
   }
   return true;
+}
+
+async function writeAuditToNeon(record: LeanEventAuditEvent): Promise<void> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return;
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return;
+  }
+
+  try {
+    await sql`
+      INSERT INTO lean_event_audit_events (
+        ts, tenant_id, action, user_id, user_email,
+        resource_type, resource_id, detail, ip, payload
+      ) VALUES (
+        ${record.ts}::timestamptz,
+        ${record.tenantId ?? null},
+        ${record.action},
+        ${record.userId ?? null},
+        ${record.userEmail ?? null},
+        ${record.resourceType ?? null},
+        ${record.resourceId ?? null},
+        ${record.detail ?? null},
+        ${record.ip ?? null},
+        ${JSON.stringify(record.payload ?? {})}::jsonb
+      )
+    `;
+  } catch (error) {
+    console.warn(
+      JSON.stringify({
+        lean_event_audit_neon_failed: {
+          message: error instanceof Error ? error.message : String(error),
+          action: record.action,
+        },
+      })
+    );
+  }
 }
 
 export async function writeLeanEventAuditEvent(
@@ -89,6 +146,8 @@ export async function writeLeanEventAuditEvent(
   };
 
   console.info(JSON.stringify({ leanyou_audit: record }));
+
+  await writeAuditToNeon(record);
 
   if (!shouldPersistAuditToFile()) {
     return;
@@ -113,4 +172,45 @@ export async function writeLeanEventAuditEvent(
       })
     );
   }
+}
+
+/** Audit mutazione entità gestita (create/update/soft-delete/restore). */
+export async function auditManagedEntityMutation(input: {
+  tenantId: string;
+  entityType: LeanEventManagedEntityType;
+  entityId: string;
+  action:
+    | "entity_create"
+    | "entity_update"
+    | "entity_soft_delete"
+    | "entity_restore";
+  userId?: string;
+  detail?: string;
+}): Promise<void> {
+  await writeLeanEventAuditEvent({
+    action: input.action,
+    tenantId: input.tenantId,
+    userId: input.userId,
+    resourceType: input.entityType,
+    resourceId: input.entityId,
+    detail: input.detail,
+  });
+}
+
+export function resolveEntityAuditAction(
+  previous: { deletedAt?: string | null } | null,
+  next: { deletedAt?: string | null }
+): "entity_create" | "entity_update" | "entity_soft_delete" | "entity_restore" {
+  if (!previous) {
+    return "entity_create";
+  }
+  const wasDeleted = Boolean(previous.deletedAt);
+  const isDeleted = Boolean(next.deletedAt);
+  if (!wasDeleted && isDeleted) {
+    return "entity_soft_delete";
+  }
+  if (wasDeleted && !isDeleted) {
+    return "entity_restore";
+  }
+  return "entity_update";
 }

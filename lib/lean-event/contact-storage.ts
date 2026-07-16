@@ -3,6 +3,7 @@ import path from "node:path";
 import type { LeanEventContact } from "@/types/lean-event";
 
 import { createEntityBlobStore, isEntityBlobStorageEnabled } from "./entity-blob-storage";
+import { readManagedEntity, readManagedEntityList } from "./entity-read";
 import {
   deleteJsonFile,
   getDataRoot,
@@ -22,7 +23,7 @@ export function getContactFilePath(tenantId: string, contactId: string): string 
   return path.join(getContactDir(tenantId), `${contactId}.json`);
 }
 
-export async function listStoredContacts(
+async function listContactsFromBlobOrFs(
   tenantId: string
 ): Promise<LeanEventContact[]> {
   if (isEntityBlobStorageEnabled()) {
@@ -37,7 +38,7 @@ export async function listStoredContacts(
   return contacts.filter((contact): contact is LeanEventContact => Boolean(contact));
 }
 
-export async function getStoredContact(
+async function getContactFromBlobOrFs(
   tenantId: string,
   contactId: string
 ): Promise<LeanEventContact | null> {
@@ -45,6 +46,23 @@ export async function getStoredContact(
     return contactBlob.get<LeanEventContact>(tenantId, contactId);
   }
   return readJsonFile<LeanEventContact>(getContactFilePath(tenantId, contactId));
+}
+
+export async function listStoredContacts(
+  tenantId: string
+): Promise<LeanEventContact[]> {
+  return readManagedEntityList(tenantId, "contact", () =>
+    listContactsFromBlobOrFs(tenantId)
+  );
+}
+
+export async function getStoredContact(
+  tenantId: string,
+  contactId: string
+): Promise<LeanEventContact | null> {
+  return readManagedEntity(tenantId, "contact", contactId, () =>
+    getContactFromBlobOrFs(tenantId, contactId)
+  );
 }
 
 export async function saveStoredContact(contact: LeanEventContact): Promise<void> {

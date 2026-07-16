@@ -2,14 +2,30 @@
  * Migrazione one-shot: JSON (filesystem locale e/o Vercel Blob) → Neon.
  * Idempotente (UPSERT). Non cancella Blob/FS.
  *
- * Usage: npm run lean-event:migrate-neon
- * Flags: --dry-run  --blob-only  --fs-only
+ * Usage:
+ *   node scripts/migrate-lean-event-neon.mjs --blob-only
+ *   node scripts/migrate-lean-event-neon.mjs --env-file=.env.vercel.pull --blob-only
+ * Flags: --dry-run  --blob-only  --fs-only  --env-file=PATH
  */
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { list, get } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
+
+import { loadEnvFileIntoProcess } from "./load-env-file.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.join(__dirname, "..");
+
+const envFileArg = process.argv.find((a) => a.startsWith("--env-file="));
+const envFile = envFileArg
+  ? envFileArg.slice("--env-file=".length)
+  : path.join(root, ".env.vercel.pull");
+
+loadEnvFileIntoProcess(path.join(root, ".env.local"), { override: false });
+loadEnvFileIntoProcess(envFile, { override: true });
 
 const DATA_ROOT =
   process.env.LEAN_EVENT_DATA_DIR?.trim() ||
@@ -203,6 +219,11 @@ async function main() {
 
   console.log(`Data root: ${DATA_ROOT}`);
   console.log(`Blob token: ${blobEnabled ? "presente" : "assente"}`);
+  if (!blobEnabled && !fsOnly) {
+    console.warn(
+      "Attenzione: senza BLOB_READ_WRITE_TOKEN la migrazione Blob è saltata."
+    );
+  }
   console.log(dryRun ? "Mode: DRY-RUN\n" : "Mode: WRITE\n");
 
   const sql = dryRun ? null : neon(url);

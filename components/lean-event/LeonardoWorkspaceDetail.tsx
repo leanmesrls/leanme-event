@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import configData from "@/data/lean-event/config.json";
+import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
 import { LeonardoWorkspaceMetadataForm } from "@/components/lean-event/LeonardoWorkspaceMetadataForm";
 import {
   prepareMediaForTranscription,
@@ -384,6 +385,15 @@ export function LeonardoWorkspaceDetail({
         workspace={workspace}
         events={events}
         onUpdated={setWorkspace}
+      />
+
+      <LeonardoEntityVersionsPanel
+        entityType="workspace"
+        entityId={workspace.id}
+        currentRevision={workspace.revision}
+        onRestored={(entity) => {
+          setWorkspace(entity as LeonardoWorkspace);
+        }}
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">

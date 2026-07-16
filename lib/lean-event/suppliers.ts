@@ -24,6 +24,10 @@ import {
 } from "./supplier-storage";
 import { saveEntityVersionSnapshot } from "./version-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
 
 function normalizeStoredSupplier(supplier: LeanEventSupplier): LeanEventSupplier {
   return normalizeSupplier(withLifecycleDefaults(supplier) as LeanEventSupplier);
@@ -80,6 +84,13 @@ async function persistSupplier(
   }
   await saveStoredSupplier(supplier);
   await upsertManagedEntityToNeon("supplier", supplier);
+  await auditManagedEntityMutation({
+    tenantId: supplier.tenantId,
+    entityType: "supplier",
+    entityId: supplier.id,
+    action: resolveEntityAuditAction(previous, supplier),
+    userId: supplier.updatedBy,
+  });
 }
 
 export async function saveSupplier(

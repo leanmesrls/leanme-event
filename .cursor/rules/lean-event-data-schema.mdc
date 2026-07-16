@@ -29,6 +29,7 @@ Entità: `event`, `contact`, `venue`, `supplier`, `assignment`, `workspace` (ver
 - [ ] Aggiornato `normalize*` / lifecycle defaults
 - [ ] Se rename/breaking: script migrazione o shim documentato
 - [ ] Snapshot versioni restano validi (non rompere lettura rev precedenti)
+- [ ] Retention: non cambiare 50/90 senza aggiornare `docs/lean-event-retention-criteria.md`
 - [ ] Nota in `docs/leanyou-data-resilience.md` se cambia contratto Fase B (Neon)
 
 ## Persistenza produzione

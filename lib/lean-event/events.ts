@@ -32,6 +32,10 @@ import {
 } from "./event-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
 import { saveEntityVersionSnapshot } from "./version-storage";
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
 
 function normalizeStoredEvent(event: LeonardoEvent): LeonardoEvent {
   return normalizeLeonardoEvent(withLifecycleDefaults(event) as LeonardoEvent);
@@ -88,6 +92,13 @@ async function persistEvent(
   }
   await saveStoredEvent(event);
   await upsertManagedEntityToNeon("event", event);
+  await auditManagedEntityMutation({
+    tenantId: event.tenantId,
+    entityType: "event",
+    entityId: event.id,
+    action: resolveEntityAuditAction(previous, event),
+    userId: event.updatedBy,
+  });
 }
 
 export async function saveEvent(

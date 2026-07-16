@@ -6,7 +6,7 @@ import { LEAN_EVENT_IMPORT_TEMPLATE_PATHS } from "@/lib/lean-event/import-schema
 import type { LeanEventImportResult } from "@/types/lean-event";
 
 interface LeonardoBulkImportProps {
-  kind: "contacts" | "venues";
+  kind: "contacts" | "venues" | "suppliers" | "events";
   onImported?: () => void;
 }
 
@@ -20,6 +20,16 @@ const labels = {
     title: "Importazione massiva sedi",
     template: "Scarica modello Excel sedi",
     endpoint: "/api/lean-event/venues/import",
+  },
+  suppliers: {
+    title: "Importazione massiva fornitori",
+    template: "Scarica modello Excel fornitori",
+    endpoint: "/api/lean-event/suppliers/import",
+  },
+  events: {
+    title: "Importazione massiva eventi",
+    template: "Scarica modello Excel eventi",
+    endpoint: "/api/lean-event/events/import",
   },
 } as const;
 

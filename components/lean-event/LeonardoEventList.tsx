@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
 import { LEONARDO_LIST_NAME_CELL, LEONARDO_LIST_NAME_LINK, LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
@@ -47,6 +48,16 @@ export function LeonardoEventList({
     return sortEvents(rows, sortMode);
   }, [events, query, sortMode]);
 
+  async function reloadEvents() {
+    const response = await fetch("/api/lean-event/events", {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as { events?: LeonardoEvent[] };
+    if (payload.events) {
+      setEvents(payload.events);
+    }
+  }
+
   async function handleDelete(id: string) {
     const response = await fetch(`/api/lean-event/events/${id}`, {
       method: "DELETE",
@@ -63,7 +74,7 @@ export function LeonardoEventList({
         <div>
           <h2 className={LEONARDO_PAGE_TITLE}>Eventi</h2>
           <p className="mt-1 text-sm text-white/60">
-            Gestione eventi, CDC, sedi e date. Import massivo in arrivo.
+            Gestione eventi, CDC, sedi e date. Import massivo da Excel disponibile.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -75,6 +86,8 @@ export function LeonardoEventList({
           </Link>
         </div>
       </div>
+
+      <LeonardoBulkImport kind="events" onImported={reloadEvents} />
 
       <div className="grid gap-3 md:grid-cols-[1fr_minmax(180px,240px)]">
         <input
@@ -93,7 +106,7 @@ export function LeonardoEventList({
 
       {filtered.length === 0 ? (
         <p className="rounded-xl border border-white/10 bg-[#111111] p-6 text-sm text-white/60">
-          Nessun evento. Crea il primo evento o attendi l&apos;import da Excel.
+          Nessun evento. Crea il primo evento o importa da Excel.
         </p>
       ) : (
         <div className="overflow-hidden rounded-xl border border-white/10">

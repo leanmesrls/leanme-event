@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
+import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
 import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
@@ -136,6 +137,18 @@ export function LeonardoSupplierList({
       filtered,
       hasFilters ? "leanyou-rubrica-fornitori-filtrato.csv" : "leanyou-rubrica-fornitori.csv"
     );
+  }
+
+  async function reloadSuppliers() {
+    const response = await fetch("/api/lean-event/suppliers", {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as {
+      suppliers?: LeanEventSupplier[];
+    };
+    if (payload.suppliers) {
+      setSuppliers(payload.suppliers);
+    }
   }
 
   async function handleCreate(event: React.FormEvent) {
@@ -365,6 +378,9 @@ export function LeonardoSupplierList({
               </button>
             </div>
           </form>
+          <div className="mt-6">
+            <LeonardoBulkImport kind="suppliers" onImported={reloadSuppliers} />
+          </div>
         </section>
       </LeonardoCollapsiblePanel>
 

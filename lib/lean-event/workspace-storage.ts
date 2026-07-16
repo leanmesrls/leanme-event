@@ -7,6 +7,7 @@ import {
   listWorkspacesFromBlob,
   saveWorkspaceToBlob,
 } from "./workspace-blob-storage";
+import { readManagedEntity, readManagedEntityList } from "./entity-read";
 import {
   deleteJsonFile,
   getWorkspaceDir,
@@ -20,7 +21,7 @@ export function getWorkspaceStorageMode(): "blob" | "filesystem" {
   return isBlobWorkspaceStorageEnabled() ? "blob" : "filesystem";
 }
 
-export async function listStoredWorkspaces(
+async function listWorkspacesFromBlobOrFs(
   tenantId: string
 ): Promise<LeonardoWorkspace[]> {
   if (isBlobWorkspaceStorageEnabled()) {
@@ -38,7 +39,7 @@ export async function listStoredWorkspaces(
   );
 }
 
-export async function getStoredWorkspace(
+async function getWorkspaceFromBlobOrFs(
   tenantId: string,
   workspaceId: string
 ): Promise<LeonardoWorkspace | null> {
@@ -48,6 +49,23 @@ export async function getStoredWorkspace(
 
   return readJsonFile<LeonardoWorkspace>(
     getWorkspaceFilePath(tenantId, workspaceId)
+  );
+}
+
+export async function listStoredWorkspaces(
+  tenantId: string
+): Promise<LeonardoWorkspace[]> {
+  return readManagedEntityList(tenantId, "workspace", () =>
+    listWorkspacesFromBlobOrFs(tenantId)
+  );
+}
+
+export async function getStoredWorkspace(
+  tenantId: string,
+  workspaceId: string
+): Promise<LeonardoWorkspace | null> {
+  return readManagedEntity(tenantId, "workspace", workspaceId, () =>
+    getWorkspaceFromBlobOrFs(tenantId, workspaceId)
   );
 }
 

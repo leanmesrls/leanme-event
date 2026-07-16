@@ -3,6 +3,7 @@ import path from "node:path";
 import type { LeonardoEventContactAssignment } from "@/types/lean-event";
 
 import { createEntityBlobStore, isEntityBlobStorageEnabled } from "./entity-blob-storage";
+import { readManagedEntity, readManagedEntityList } from "./entity-read";
 import {
   deleteJsonFile,
   getDataRoot,
@@ -25,7 +26,7 @@ export function getAssignmentFilePath(
   return path.join(getAssignmentDir(tenantId), `${assignmentId}.json`);
 }
 
-export async function listStoredAssignments(
+async function listAssignmentsFromBlobOrFs(
   tenantId: string
 ): Promise<LeonardoEventContactAssignment[]> {
   if (isEntityBlobStorageEnabled()) {
@@ -45,7 +46,7 @@ export async function listStoredAssignments(
   );
 }
 
-export async function getStoredAssignment(
+async function getAssignmentFromBlobOrFs(
   tenantId: string,
   assignmentId: string
 ): Promise<LeonardoEventContactAssignment | null> {
@@ -57,6 +58,23 @@ export async function getStoredAssignment(
   }
   return readJsonFile<LeonardoEventContactAssignment>(
     getAssignmentFilePath(tenantId, assignmentId)
+  );
+}
+
+export async function listStoredAssignments(
+  tenantId: string
+): Promise<LeonardoEventContactAssignment[]> {
+  return readManagedEntityList(tenantId, "assignment", () =>
+    listAssignmentsFromBlobOrFs(tenantId)
+  );
+}
+
+export async function getStoredAssignment(
+  tenantId: string,
+  assignmentId: string
+): Promise<LeonardoEventContactAssignment | null> {
+  return readManagedEntity(tenantId, "assignment", assignmentId, () =>
+    getAssignmentFromBlobOrFs(tenantId, assignmentId)
   );
 }
 

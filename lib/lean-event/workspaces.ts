@@ -19,6 +19,10 @@ import {
 import { saveEntityVersionSnapshot } from "./version-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
 import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
+import {
   getStoredWorkspace,
   listStoredWorkspaces,
   saveStoredWorkspace,
@@ -86,6 +90,13 @@ async function persistWorkspace(
   }
   await saveStoredWorkspace(workspace);
   await upsertManagedEntityToNeon("workspace", workspace);
+  await auditManagedEntityMutation({
+    tenantId: workspace.tenantId,
+    entityType: "workspace",
+    entityId: workspace.id,
+    action: resolveEntityAuditAction(previous, workspace),
+    userId: workspace.updatedBy,
+  });
 }
 
 export async function saveWorkspace(

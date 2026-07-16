@@ -3,6 +3,7 @@ import path from "node:path";
 import type { LeanEventSupplier } from "@/types/lean-event";
 
 import { createEntityBlobStore, isEntityBlobStorageEnabled } from "./entity-blob-storage";
+import { readManagedEntity, readManagedEntityList } from "./entity-read";
 import {
   deleteJsonFile,
   getDataRoot,
@@ -25,7 +26,7 @@ export function getSupplierFilePath(
   return path.join(getSupplierDir(tenantId), `${supplierId}.json`);
 }
 
-export async function listStoredSuppliers(
+async function listSuppliersFromBlobOrFs(
   tenantId: string
 ): Promise<LeanEventSupplier[]> {
   if (isEntityBlobStorageEnabled()) {
@@ -42,7 +43,7 @@ export async function listStoredSuppliers(
   );
 }
 
-export async function getStoredSupplier(
+async function getSupplierFromBlobOrFs(
   tenantId: string,
   supplierId: string
 ): Promise<LeanEventSupplier | null> {
@@ -51,6 +52,23 @@ export async function getStoredSupplier(
   }
   return readJsonFile<LeanEventSupplier>(
     getSupplierFilePath(tenantId, supplierId)
+  );
+}
+
+export async function listStoredSuppliers(
+  tenantId: string
+): Promise<LeanEventSupplier[]> {
+  return readManagedEntityList(tenantId, "supplier", () =>
+    listSuppliersFromBlobOrFs(tenantId)
+  );
+}
+
+export async function getStoredSupplier(
+  tenantId: string,
+  supplierId: string
+): Promise<LeanEventSupplier | null> {
+  return readManagedEntity(tenantId, "supplier", supplierId, () =>
+    getSupplierFromBlobOrFs(tenantId, supplierId)
   );
 }
 

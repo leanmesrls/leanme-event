@@ -64,6 +64,52 @@ const VENUE_EXAMPLE = [
   "Riga di esempio — puoi eliminarla",
 ];
 
+const SUPPLIER_HEADERS = [
+  "Nome fornitore",
+  "Categoria",
+  "Email",
+  "Telefono",
+  "Indirizzo",
+  "Città",
+  "Provincia",
+  "Partita IVA",
+  "Referente",
+  "Note",
+];
+
+const SUPPLIER_EXAMPLE = [
+  "Audio Light Service",
+  "tecnici",
+  "info@audiolight.esempio.it",
+  "+39 02 1234567",
+  "Via Roma 1",
+  "Milano",
+  "MI",
+  "12345678901",
+  "Luca Bianchi",
+  "Riga di esempio — puoi eliminarla",
+];
+
+const EVENT_HEADERS = [
+  "Titolo",
+  "CDC",
+  "Data inizio",
+  "Data fine",
+  "Sede",
+  "Stato",
+  "Note",
+];
+
+const EVENT_EXAMPLE = [
+  "Congresso Nazionale 2026",
+  "CDC-2026-001",
+  "2026-09-10",
+  "2026-09-12",
+  "UNA Hotel Bologna",
+  "draft",
+  "Riga di esempio — puoi eliminarla",
+];
+
 function instructionLines(kind) {
   if (kind === "contacts") {
     return [
@@ -76,17 +122,35 @@ function instructionLines(kind) {
       ["Formati accettati: .xlsx, .csv (separatore ; o ,)"],
     ];
   }
-
+  if (kind === "venues") {
+    return [
+      ["Lean Event — Importazione rubrica sedi"],
+      [""],
+      ["Foglio «Dati»: una riga = una sede."],
+      ["Obbligatori: Nome sede, Indirizzo sede, Città, Provincia sede."],
+      ["Sede già presente (stesso nome+indirizzo+città): riga saltata."],
+      ["Formati accettati: .xlsx, .csv (separatore ; o ,)"],
+    ];
+  }
+  if (kind === "suppliers") {
+    return [
+      ["Lean Event — Importazione fornitori"],
+      [""],
+      ["Foglio «Dati»: una riga = un fornitore."],
+      ["Obbligatorio: Nome fornitore."],
+      ["Categoria: id categoria Lean Event (es. tecnici, hotel, collaboratori)."],
+      ["Duplicati (stesso nome+email): riga saltata."],
+      ["API: POST /api/lean-event/suppliers/import"],
+    ];
+  }
   return [
-    ["Lean Event — Importazione rubrica sedi"],
+    ["Lean Event — Importazione eventi"],
     [""],
-    ["Foglio «Dati»: una riga = una sede."],
-    ["Obbligatori: Nome sede, Indirizzo sede, Città, Provincia sede."],
-    ["Sede già presente (stesso nome+indirizzo+città): riga saltata."],
-    ["URL scheda esterna: link opzionale (es. MeetingeCongressi)."],
-    ["URL immagine: copertina sede (link diretto a JPG/PNG/WebP)."],
-    ["Salva come .xlsx e carica quando disponibile l'import sedi."],
-    ["Formati accettati: .xlsx, .csv (separatore ; o ,)"],
+    ["Foglio «Dati»: una riga = un evento."],
+    ["Obbligatori: Titolo, Data inizio (YYYY-MM-DD o formato IT)."],
+    ["Stato: draft | active | completed (default draft)."],
+    ["Duplicati (stesso titolo+date): riga saltata."],
+    ["API: POST /api/lean-event/events/import"],
   ];
 }
 
@@ -103,37 +167,42 @@ function buildWorkbook(kind, headers, exampleRow) {
   return wb;
 }
 
+async function writePair(basename, headers, example, kind) {
+  const wb = buildWorkbook(kind, headers, example);
+  const xlsxPath = path.join(outDir, `${basename}.xlsx`);
+  XLSX.writeFile(wb, xlsxPath);
+  const csv = [headers.join(";"), example.join(";")].join("\n");
+  await writeFile(path.join(outDir, `${basename}.csv`), `\uFEFF${csv}`, "utf8");
+  console.log(`  ${xlsxPath}`);
+}
+
 async function main() {
   await mkdir(outDir, { recursive: true });
-
-  const contactsWb = buildWorkbook("contacts", CONTACT_HEADERS, CONTACT_EXAMPLE);
-  const venuesWb = buildWorkbook("venues", VENUE_HEADERS, VENUE_EXAMPLE);
-
-  const contactsPath = path.join(outDir, "lean-event-rubrica-contatti.xlsx");
-  const venuesPath = path.join(outDir, "lean-event-rubrica-sedi.xlsx");
-
-  XLSX.writeFile(contactsWb, contactsPath);
-  XLSX.writeFile(venuesWb, venuesPath);
-
-  const contactsCsv = [CONTACT_HEADERS.join(";"), CONTACT_EXAMPLE.join(";")].join(
-    "\n"
-  );
-  const venuesCsv = [VENUE_HEADERS.join(";"), VENUE_EXAMPLE.join(";")].join("\n");
-
-  await writeFile(
-    path.join(outDir, "lean-event-rubrica-contatti.csv"),
-    `\uFEFF${contactsCsv}`,
-    "utf8"
-  );
-  await writeFile(
-    path.join(outDir, "lean-event-rubrica-sedi.csv"),
-    `\uFEFF${venuesCsv}`,
-    "utf8"
-  );
-
   console.log("Modelli import Lean Event generati:");
-  console.log(`  ${contactsPath}`);
-  console.log(`  ${venuesPath}`);
+  await writePair(
+    "lean-event-rubrica-contatti",
+    CONTACT_HEADERS,
+    CONTACT_EXAMPLE,
+    "contacts"
+  );
+  await writePair(
+    "lean-event-rubrica-sedi",
+    VENUE_HEADERS,
+    VENUE_EXAMPLE,
+    "venues"
+  );
+  await writePair(
+    "lean-event-rubrica-fornitori",
+    SUPPLIER_HEADERS,
+    SUPPLIER_EXAMPLE,
+    "suppliers"
+  );
+  await writePair(
+    "lean-event-elenco-eventi",
+    EVENT_HEADERS,
+    EVENT_EXAMPLE,
+    "events"
+  );
 }
 
 main().catch((error) => {

@@ -22,6 +22,8 @@ import {
   type EventTaxonomyFormState,
 } from "@/components/lean-event/LeonardoEventTaxonomyFields";
 import { LeonardoRevisionConflictDialog } from "@/components/lean-event/LeonardoRevisionConflictDialog";
+import { LeonardoRevisionStaleBanner } from "@/components/lean-event/LeonardoRevisionStaleBanner";
+import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
 import { LeonardoVenuePicker } from "@/components/lean-event/LeonardoVenuePicker";
 import { LeonardoDateInput } from "@/components/lean-event/LeonardoDateInput";
 import { buildAllotmentReport } from "@/lib/lean-event/allotment-report";
@@ -55,6 +57,7 @@ import type {
   LeonardoWorkspace,
 } from "@/types/lean-event";
 import { isRevisionConflictPayload } from "@/lib/lean-event/revision-conflict";
+import { useEntityRevisionWatch } from "@/lib/lean-event/use-entity-revision-watch";
 
 interface LeonardoEventDetailProps {
   tenantSlug: string;
@@ -120,6 +123,42 @@ export function LeonardoEventDetail({
     updatedBy?: string;
     updatedAt?: string;
   } | null>(null);
+  const [stale, setStale] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
+
+  useEntityRevisionWatch({
+    enabled: Boolean(event.id),
+    fetchUrl: `/api/lean-event/events/${event.id}`,
+    localRevision: event.revision ?? 1,
+    extract: (payload) => {
+      const next = (payload as { event?: LeonardoEvent }).event;
+      if (!next) {
+        return null;
+      }
+      return {
+        revision: next.revision ?? 1,
+        updatedAt: next.updatedAt,
+        updatedBy: next.updatedBy,
+      };
+    },
+    onRemoteNewer: (info) => {
+      setStale({ updatedBy: info.updatedBy, updatedAt: info.updatedAt });
+    },
+  });
+
+  async function reloadEventFromServer() {
+    const response = await fetch(`/api/lean-event/events/${event.id}`, {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as { event?: LeonardoEvent };
+    if (payload.event) {
+      setEvent(payload.event);
+      setStale(null);
+      setConflict(null);
+    }
+  }
 
   const activeTabDef =
     EVENT_NAV_TABS.find((tab) => tab.id === activeTab) ?? EVENT_NAV_TABS[0];
@@ -271,6 +310,14 @@ export function LeonardoEventDetail({
 
   return (
     <div className="space-y-6">
+      <LeonardoRevisionStaleBanner
+        open={Boolean(stale)}
+        updatedBy={stale?.updatedBy}
+        updatedAt={stale?.updatedAt}
+        onReload={() => {
+          void reloadEventFromServer();
+        }}
+      />
       <div>
         <Link
           href={leanEventLeonardoEventiPath(tenantSlug)}
@@ -453,6 +500,15 @@ export function LeonardoEventDetail({
           >
             {saving ? "Salvataggio..." : "Salva evento"}
           </button>
+          <LeonardoEntityVersionsPanel
+            entityType="event"
+            entityId={event.id}
+            currentRevision={event.revision}
+            onRestored={(entity) => {
+              setEvent(entity as LeonardoEvent);
+              router.refresh();
+            }}
+          />
         </section>
       ) : null}
 
@@ -610,8 +666,7 @@ export function LeonardoEventDetail({
         updatedBy={conflict?.updatedBy}
         updatedAt={conflict?.updatedAt}
         onReload={() => {
-          setConflict(null);
-          router.refresh();
+          void reloadEventFromServer();
         }}
         onDismiss={() => setConflict(null)}
       />

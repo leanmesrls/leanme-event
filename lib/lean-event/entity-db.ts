@@ -6,6 +6,10 @@
 
 import type { LeanEventManagedEntityType } from "@/lib/lean-event/entity-lifecycle";
 import {
+  LEAN_EVENT_VERSION_KEEP_DAYS,
+  LEAN_EVENT_VERSION_KEEP_LAST,
+} from "@/lib/lean-event/entity-lifecycle";
+import {
   getLeanEventSql,
   isLeanEventDatabaseEnabled,
   isLeanEventDatabaseStrict,
@@ -142,11 +146,68 @@ export async function insertManagedEntityVersionToNeon(
       )
       ON CONFLICT (tenant_id, entity_type, entity_id, revision) DO NOTHING
     `;
+
+    await pruneManagedEntityVersionsInNeon(tenantId, entityType, entityId);
   } catch (error) {
     await reportDbError(
       `version:${entityType}:${entityId}:r${revision}`,
       error
     );
+  }
+}
+
+/**
+ * Elimina revisioni oltre policy: non tra le ultime KEEP_LAST e più vecchie di KEEP_DAYS.
+ * Non fallisce la mutazione chiamante.
+ */
+export async function pruneManagedEntityVersionsInNeon(
+  tenantId: string,
+  entityType: LeanEventManagedEntityType,
+  entityId: string,
+  options?: { keepLast?: number; keepDays?: number }
+): Promise<number> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return 0;
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return 0;
+  }
+
+  const keepLast = options?.keepLast ?? LEAN_EVENT_VERSION_KEEP_LAST;
+  const keepDays = options?.keepDays ?? LEAN_EVENT_VERSION_KEEP_DAYS;
+  const cutoffIso = new Date(
+    Date.now() - keepDays * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  try {
+    const result = await sql`
+      WITH ranked AS (
+        SELECT
+          id,
+          revision,
+          changed_at,
+          ROW_NUMBER() OVER (ORDER BY revision DESC) AS rn
+        FROM lean_event_entity_versions
+        WHERE tenant_id = ${tenantId}
+          AND entity_type = ${entityType}
+          AND entity_id = ${entityId}
+      ),
+      doomed AS (
+        SELECT id
+        FROM ranked
+        WHERE rn > ${keepLast}
+          AND changed_at < ${cutoffIso}::timestamptz
+      )
+      DELETE FROM lean_event_entity_versions v
+      USING doomed
+      WHERE v.id = doomed.id
+      RETURNING v.id
+    `;
+    return result.length;
+  } catch (error) {
+    await reportDbError(`versions:prune:${entityType}:${entityId}`, error);
+    return 0;
   }
 }
 
@@ -173,5 +234,183 @@ export async function deleteManagedEntityFromNeon(
     `;
   } catch (error) {
     await reportDbError(`delete:${entityType}:${entityId}`, error);
+  }
+}
+
+type NeonReadResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; reason: "disabled" | "error" };
+
+/** Lista entità (inclusi record in cestino) dal payload JSONB. */
+export async function listManagedEntitiesFromNeon<T>(
+  tenantId: string,
+  entityType: LeanEventManagedEntityType
+): Promise<NeonReadResult<T[]>> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return { ok: false, reason: "disabled" };
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  try {
+    const rows = await sql`
+      SELECT payload
+      FROM lean_event_entities
+      WHERE tenant_id = ${tenantId}
+        AND entity_type = ${entityType}
+      ORDER BY updated_at DESC
+    `;
+    const data = rows
+      .map((row) => row.payload as T)
+      .filter((entity): entity is T => Boolean(entity));
+    return { ok: true, data };
+  } catch (error) {
+    await reportDbError(`list:${entityType}:${tenantId}`, error);
+    return { ok: false, reason: "error" };
+  }
+}
+
+/** Singola entità per id (null se assente). */
+export async function getManagedEntityFromNeon<T>(
+  tenantId: string,
+  entityType: LeanEventManagedEntityType,
+  entityId: string
+): Promise<NeonReadResult<T | null>> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return { ok: false, reason: "disabled" };
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  try {
+    const rows = await sql`
+      SELECT payload
+      FROM lean_event_entities
+      WHERE tenant_id = ${tenantId}
+        AND entity_type = ${entityType}
+        AND id = ${entityId}
+      LIMIT 1
+    `;
+    const payload = rows[0]?.payload as T | undefined;
+    return { ok: true, data: payload ?? null };
+  } catch (error) {
+    await reportDbError(`get:${entityType}:${entityId}`, error);
+    return { ok: false, reason: "error" };
+  }
+}
+
+export interface LeanEventNeonVersionRow {
+  revision: number;
+  changedBy: string;
+  changedAt: string;
+  changeSummary: string | null;
+  snapshot?: unknown;
+}
+
+/** Metadati versioni (senza snapshot completo). */
+export async function listManagedEntityVersionsFromNeon(
+  tenantId: string,
+  entityType: LeanEventManagedEntityType,
+  entityId: string
+): Promise<NeonReadResult<LeanEventNeonVersionRow[]>> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return { ok: false, reason: "disabled" };
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  try {
+    const rows = await sql`
+      SELECT
+        revision,
+        changed_by,
+        changed_at,
+        change_summary
+      FROM lean_event_entity_versions
+      WHERE tenant_id = ${tenantId}
+        AND entity_type = ${entityType}
+        AND entity_id = ${entityId}
+      ORDER BY revision DESC
+      LIMIT ${LEAN_EVENT_VERSION_KEEP_LAST}
+    `;
+    return {
+      ok: true,
+      data: rows.map((row) => ({
+        revision: Number(row.revision),
+        changedBy: String(row.changed_by ?? "system"),
+        changedAt:
+          row.changed_at instanceof Date
+            ? row.changed_at.toISOString()
+            : String(row.changed_at),
+        changeSummary:
+          typeof row.change_summary === "string" ? row.change_summary : null,
+      })),
+    };
+  } catch (error) {
+    await reportDbError(`versions:list:${entityType}:${entityId}`, error);
+    return { ok: false, reason: "error" };
+  }
+}
+
+/** Snapshot di una revisione specifica. */
+export async function getManagedEntityVersionFromNeon(
+  tenantId: string,
+  entityType: LeanEventManagedEntityType,
+  entityId: string,
+  revision: number
+): Promise<NeonReadResult<LeanEventNeonVersionRow | null>> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return { ok: false, reason: "disabled" };
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  try {
+    const rows = await sql`
+      SELECT
+        revision,
+        changed_by,
+        changed_at,
+        change_summary,
+        snapshot
+      FROM lean_event_entity_versions
+      WHERE tenant_id = ${tenantId}
+        AND entity_type = ${entityType}
+        AND entity_id = ${entityId}
+        AND revision = ${revision}
+      LIMIT 1
+    `;
+    const row = rows[0];
+    if (!row) {
+      return { ok: true, data: null };
+    }
+    return {
+      ok: true,
+      data: {
+        revision: Number(row.revision),
+        changedBy: String(row.changed_by ?? "system"),
+        changedAt:
+          row.changed_at instanceof Date
+            ? row.changed_at.toISOString()
+            : String(row.changed_at),
+        changeSummary:
+          typeof row.change_summary === "string" ? row.change_summary : null,
+        snapshot: row.snapshot,
+      },
+    };
+  } catch (error) {
+    await reportDbError(
+      `versions:get:${entityType}:${entityId}:r${revision}`,
+      error
+    );
+    return { ok: false, reason: "error" };
   }
 }

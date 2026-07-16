@@ -28,8 +28,33 @@ export const VENUE_IMPORT_COLUMNS = [
   "Note",
 ] as const;
 
+export const SUPPLIER_IMPORT_COLUMNS = [
+  "Nome fornitore",
+  "Categoria",
+  "Email",
+  "Telefono",
+  "Indirizzo",
+  "Città",
+  "Provincia",
+  "Partita IVA",
+  "Referente",
+  "Note",
+] as const;
+
+export const EVENT_IMPORT_COLUMNS = [
+  "Titolo",
+  "CDC",
+  "Data inizio",
+  "Data fine",
+  "Sede",
+  "Stato",
+  "Note",
+] as const;
+
 export type ContactImportColumn = (typeof CONTACT_IMPORT_COLUMNS)[number];
 export type VenueImportColumn = (typeof VENUE_IMPORT_COLUMNS)[number];
+export type SupplierImportColumn = (typeof SUPPLIER_IMPORT_COLUMNS)[number];
+export type EventImportColumn = (typeof EVENT_IMPORT_COLUMNS)[number];
 
 export const CONTACT_IMPORT_REQUIRED = ["Nome", "Cognome"] as const;
 export const VENUE_IMPORT_REQUIRED = [
@@ -38,6 +63,8 @@ export const VENUE_IMPORT_REQUIRED = [
   "Città",
   "Provincia sede",
 ] as const;
+export const SUPPLIER_IMPORT_REQUIRED = ["Nome fornitore"] as const;
+export const EVENT_IMPORT_REQUIRED = ["Titolo", "Data inizio"] as const;
 
 /** Alias header (case-insensitive) → canonical column name */
 export const CONTACT_HEADER_ALIASES: Record<string, ContactImportColumn> = {
@@ -85,7 +112,43 @@ export const VENUE_HEADER_ALIASES: Record<string, VenueImportColumn> = {
   note: "Note",
 };
 
+export const SUPPLIER_HEADER_ALIASES: Record<string, SupplierImportColumn> = {
+  "nome fornitore": "Nome fornitore",
+  nome: "Nome fornitore",
+  fornitore: "Nome fornitore",
+  categoria: "Categoria",
+  email: "Email",
+  telefono: "Telefono",
+  indirizzo: "Indirizzo",
+  città: "Città",
+  citta: "Città",
+  provincia: "Provincia",
+  "partita iva": "Partita IVA",
+  "p.iva": "Partita IVA",
+  piva: "Partita IVA",
+  referente: "Referente",
+  note: "Note",
+};
+
+export const EVENT_HEADER_ALIASES: Record<string, EventImportColumn> = {
+  titolo: "Titolo",
+  "nome evento": "Titolo",
+  evento: "Titolo",
+  cdc: "CDC",
+  "data inizio": "Data inizio",
+  inizio: "Data inizio",
+  "data fine": "Data fine",
+  fine: "Data fine",
+  sede: "Sede",
+  location: "Sede",
+  stato: "Stato",
+  status: "Stato",
+  note: "Note",
+};
+
 export const LEAN_EVENT_IMPORT_TEMPLATE_PATHS = {
   contacts: "/assets/lean-event/import/lean-event-rubrica-contatti.xlsx",
   venues: "/assets/lean-event/import/lean-event-rubrica-sedi.xlsx",
+  suppliers: "/assets/lean-event/import/lean-event-rubrica-fornitori.xlsx",
+  events: "/assets/lean-event/import/lean-event-elenco-eventi.xlsx",
 } as const;

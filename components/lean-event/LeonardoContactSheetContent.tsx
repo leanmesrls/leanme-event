@@ -4,11 +4,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
+import { LeonardoContactLinkedEvents } from "@/components/lean-event/LeonardoContactLinkedEvents";
+import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
+import { LeonardoRevisionConflictDialog } from "@/components/lean-event/LeonardoRevisionConflictDialog";
+import { LeonardoRevisionStaleBanner } from "@/components/lean-event/LeonardoRevisionStaleBanner";
 import { formatTagsDisplay } from "@/lib/lean-event/contact-tags";
 import {
   leanEventLeonardoContactPath,
-  leanEventLeonardoEventPath,
 } from "@/lib/lean-event/paths";
+import { isRevisionConflictPayload } from "@/lib/lean-event/revision-conflict";
+import { useEntityRevisionWatch } from "@/lib/lean-event/use-entity-revision-watch";
 import type { ContactAssignmentWithEvent } from "@/lib/lean-event/event-assignments";
 import type { LeanEventContact } from "@/types/lean-event";
 
@@ -29,7 +34,7 @@ export function LeonardoContactSheetContent({
   tenantSlug,
   contact,
   onContactChange,
-  assignments = [],
+  assignments: assignmentsProp,
   onDelete,
   deleting = false,
   mode = "edit",
@@ -54,6 +59,50 @@ export function LeonardoContactSheetContent({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
+  const [stale, setStale] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
+  const [assignments, setAssignments] = useState<ContactAssignmentWithEvent[]>(
+    assignmentsProp ?? []
+  );
+  const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+
+  useEntityRevisionWatch({
+    enabled: !isCreate && Boolean(contact.id),
+    fetchUrl: `/api/lean-event/contacts/${contact.id}`,
+    localRevision: contact.revision ?? 1,
+    extract: (payload) => {
+      const contactPayload = (payload as { contact?: LeanEventContact }).contact;
+      if (!contactPayload) {
+        return null;
+      }
+      return {
+        revision: contactPayload.revision ?? 1,
+        updatedAt: contactPayload.updatedAt,
+        updatedBy: contactPayload.updatedBy,
+      };
+    },
+    onRemoteNewer: (info) => {
+      setStale({ updatedBy: info.updatedBy, updatedAt: info.updatedAt });
+    },
+  });
+
+  async function reloadContact() {
+    const response = await fetch(`/api/lean-event/contacts/${contact.id}`, {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as { contact?: LeanEventContact };
+    if (payload.contact) {
+      onContactChange(payload.contact);
+      setStale(null);
+      setConflict(null);
+    }
+  }
 
   useEffect(() => {
     if (isCreate) {
@@ -72,7 +121,49 @@ export function LeonardoContactSheetContent({
       tags: formatTagsDisplay(contact.tags),
       notes: contact.notes,
     });
+    setStale(null);
   }, [contact, isCreate]);
+
+  useEffect(() => {
+    if (assignmentsProp) {
+      setAssignments(assignmentsProp);
+    }
+  }, [assignmentsProp]);
+
+  useEffect(() => {
+    if (isCreate || !contact.id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadAssignments() {
+      setAssignmentsLoading(true);
+      try {
+        const response = await fetch(
+          `/api/lean-event/contacts/${contact.id}/assignments`,
+          { credentials: "same-origin" }
+        );
+        const payload = (await response.json()) as {
+          assignments?: ContactAssignmentWithEvent[];
+        };
+        if (!cancelled && response.ok && Array.isArray(payload.assignments)) {
+          setAssignments(payload.assignments);
+        }
+      } catch {
+        // lascia l'elenco già presente (props / stato precedente)
+      } finally {
+        if (!cancelled) {
+          setAssignmentsLoading(false);
+        }
+      }
+    }
+
+    void loadAssignments();
+    return () => {
+      cancelled = true;
+    };
+  }, [contact.id, isCreate]);
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
@@ -125,9 +216,20 @@ export function LeonardoContactSheetContent({
       error?: string;
       duplicate?: boolean;
       contact?: LeanEventContact;
+      updatedBy?: string;
+      updatedAt?: string;
+      currentRevision?: number;
     };
 
     setSaving(false);
+
+    if (response.status === 409 && isRevisionConflictPayload(result)) {
+      setConflict({
+        updatedBy: result.updatedBy,
+        updatedAt: result.updatedAt,
+      });
+      return;
+    }
 
     if (response.status === 409 && result.contact) {
       setError(
@@ -157,6 +259,23 @@ export function LeonardoContactSheetContent({
 
   return (
     <div className="space-y-4">
+      <LeonardoRevisionStaleBanner
+        open={Boolean(stale)}
+        updatedBy={stale?.updatedBy}
+        updatedAt={stale?.updatedAt}
+        onReload={() => {
+          void reloadContact();
+        }}
+      />
+      <LeonardoRevisionConflictDialog
+        open={Boolean(conflict)}
+        updatedBy={conflict?.updatedBy}
+        updatedAt={conflict?.updatedAt}
+        onReload={() => {
+          void reloadContact();
+        }}
+        onDismiss={() => setConflict(null)}
+      />
       {message ? (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
           {message}
@@ -267,38 +386,40 @@ export function LeonardoContactSheetContent({
       {!isCreate ? (
       <LeonardoCollapsiblePanel
         title="Eventi collegati"
-        summary={`${assignments.length} eventi`}
+        summary={
+          assignmentsLoading
+            ? "Caricamento…"
+            : `${assignments.length} eventi`
+        }
         defaultOpen={assignments.length > 0}
       >
         <div className="space-y-2 pt-2">
-          {assignments.length === 0 ? (
-            <p className="text-sm text-white/50">
-              Nessun ruolo su eventi. Collega il contatto dal tab Ospiti.
-            </p>
-          ) : (
-            assignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-sm"
+          <LeonardoContactLinkedEvents
+            tenantSlug={tenantSlug}
+            assignments={assignments}
+            loading={assignmentsLoading}
+            footer={
+              <Link
+                href={leanEventLeonardoContactPath(tenantSlug, contact.id)}
+                className="inline-block text-xs font-semibold uppercase tracking-[0.08em] text-white/45 hover:text-leanme-fuchsia"
               >
-                <Link
-                  href={leanEventLeonardoEventPath(tenantSlug, assignment.eventId)}
-                  className="font-medium text-leanme-fuchsia hover:underline"
-                >
-                  {assignment.eventTitle}
-                </Link>
-                <p className="text-xs text-white/50">{assignment.roleLabel}</p>
-              </div>
-            ))
-          )}
-          <Link
-            href={leanEventLeonardoContactPath(tenantSlug, contact.id)}
-            className="inline-block text-xs font-semibold uppercase tracking-[0.08em] text-white/45 hover:text-leanme-fuchsia"
-          >
-            Scheda completa →
-          </Link>
+                Scheda completa →
+              </Link>
+            }
+          />
         </div>
       </LeonardoCollapsiblePanel>
+      ) : null}
+
+      {!isCreate && contact.id ? (
+        <LeonardoEntityVersionsPanel
+          entityType="contact"
+          entityId={contact.id}
+          currentRevision={contact.revision}
+          onRestored={(entity) => {
+            onContactChange(entity as LeanEventContact);
+          }}
+        />
       ) : null}
 
       <div className="flex flex-wrap gap-3 border-t border-white/10 pt-4">

@@ -4,6 +4,8 @@
 **Stato:** architettura approvata — implementazione per fasi  
 **Scope:** multi-utente simultaneo, storico versioni, backup/recovery, cestino 30 giorni — **inclusi workspace verbali** (trascrizione + documenti generati)
 
+**Ops rapido (PowerShell + SQL Neon):** `docs/lean-event-ops-cheatsheet.md`
+
 ---
 
 ## 1. Problema attuale
@@ -77,8 +79,11 @@ CREATE TABLE entity_versions (
 CREATE INDEX idx_versions_lookup ON entity_versions (tenant_id, entity_type, entity_id, revision DESC);
 ```
 
-- **Policy retention:** ultimi **50 revisioni** per entità + tutte le revisioni degli ultimi **90 giorni** (configurabile per tenant pack PLATINUM).
+- **Policy retention (attiva in codice):** ultimi **50** revisioni per entità **oppure** tutte quelle degli ultimi **90 giorni** (si conserva se soddisfa almeno uno dei due). Prune automatico su **Neon + Blob + FS** dopo ogni insert versione.
+- UI Cronologia: mostra **20** revisioni, poi “Mostra altre”.
+- Criteri memorizzati per rivalutazioni: **`docs/lean-event-retention-criteria.md`** + rule `.cursor/rules/lean-event-retention.mdc`.
 - Snapshot documenti pesanti: JSON metadati in Postgres, blob path in `snapshot.attachments[]`.
+- Pack PLATINUM (futuro): alzare `LEAN_EVENT_VERSION_KEEP_LAST` / `KEEP_DAYS` per tenant.
 
 ### 3.3 Cestino (soft delete)
 
@@ -217,8 +222,8 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 | GET | `/api/lean-event/trash` | Lista cestino tenant (paginata) |
 | POST | `/api/lean-event/trash/{type}/{id}/restore` | Ripristino |
 | DELETE | `/api/lean-event/trash/{type}/{id}` | Purge immediata (admin) |
-| GET | `/api/lean-event/{type}/{id}/versions` | Storico revisioni |
-| POST | `/api/lean-event/{type}/{id}/versions/{rev}/restore` | Ripristina revisione |
+| GET | `/api/lean-event/entities/{type}/{id}/versions` | Storico revisioni |
+| POST | `/api/lean-event/entities/{type}/{id}/versions/{rev}/restore` | Ripristina revisione |
 | PATCH | `/api/lean-event/{type}/{id}` | Richiede `expectedRevision` |
 
 ---
@@ -236,22 +241,33 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 - [x] Cron purge 30 giorni: `vercel.json` → `/api/lean-event/cron/purge-trash` (`0 3 * * *`)
 - [x] Regole **safe schema change** (§14) + Cursor rule `.cursor/rules/lean-event-data-schema.mdc`
 
-### Fase B — Postgres + Cronologia (in corso)
+### Fase B — Postgres + Cronologia (implementazione ✅; smoke utente pendente)
 
 - [x] Schema SQL Neon: `docs/sql/001_lean_event_schema.sql`
 - [x] Provisioning Neon + `LEAN_EVENT_DATABASE_URL` (locale + Vercel)
 - [x] Client Postgres (`@neondatabase/serverless`) + **dual-write** su mutazioni
 - [x] Script migrazione FS → Neon: `npm run lean-event:migrate-neon`
-- [ ] Migrazione Blob produzione → Neon (se dati solo su Blob, non in locale)
-- [ ] UI Cronologia versioni in scheda (confronto revisioni)
-- [ ] Cutover letture: Neon source of truth (Blob resta file binari + backup JSON bridge)
+- [x] Migrazione Blob produzione → Neon + purge orfani locali
+- [x] Cutover letture: flag `LEAN_EVENT_READ_FROM_NEON=1` (Neon first, fallback Blob)
+- [x] Produzione: `LEAN_EVENT_READ_FROM_NEON=1` su Vercel + redeploy
+- [x] UI Cronologia versioni in scheda (confronto/ripristino revisioni)
+- [ ] Smoke test produzione con letture Neon attive
 
-### Fase C — Resilienza produzione (1 sprint)
+### Fase C — Resilienza produzione (chiusura solidità · 2026-07-16)
 
-- [ ] Cron backup Blob giornaliero (inclusi `lean-event/workspaces/`)
-- [ ] Export settimanale tenant
-- [ ] Estensione audit su tutte le mutazioni
-- [ ] Polling revision + banner conflitto
+- [x] Schema documenti + audit + indice assignment/contactId: `docs/sql/002_lean_event_documents_audit.sql`
+- [x] Cron backup Blob giornaliero: `/api/lean-event/cron/backup-blob` (`30 2 * * *`)
+- [x] Export settimanale tenant: `/api/lean-event/cron/export-tenants` (`0 4 * * 0`)
+- [x] Audit write su Neon (`lean_event_audit_events`) per mutazioni entità + documenti + import + restore versioni
+- [x] API registry documenti: `GET/POST /api/lean-event/documents`, `GET/DELETE/POST restore /api/lean-event/documents/[id]`
+- [x] Import massivo fornitori + eventi (`POST .../suppliers/import`, `POST .../events/import`) + UI + modelli Excel
+- [x] Polling revision + banner/dialog conflitto su contatto, sede, fornitore, evento
+- [ ] Smoke test produzione formale (`docs/lean-event-smoke-checklist.md`)
+- [ ] UI liste documenti dedicate (C+)
+
+Patto: `docs/lean-event-commercial-pact.md`  
+Integrità: `docs/lean-event-integrity-status.md`  
+Documenti: `docs/lean-event-document-architecture.md`
 
 ### Fase D — Presenza & merge avanzato (opzionale)
 
@@ -301,6 +317,8 @@ ROI: elimina rischio perdita eventi/ospiti multi-giorno — accettabile per piat
 **Soluzione migliore per Lean Event Leonardo:**  
 **Neon Postgres (metadati + versioni + cestino + concorrenza) + Vercel Blob (file + snapshot backup) + Cron backup + soft delete 30 giorni.**
 
+**Patto commerciale 2026-07-16:** non più prototipo — piattaforma **vendibile a moduli** con impegno **zero perdita dati**. Vedi `docs/lean-event-commercial-pact.md`.
+
 ## Requisito prodotto — tutto su DB (produzione multi-tenant)
 
 **Target non negoziabile:** anagrafiche, eventi, ospiti, verbali (testo/HTML), preventivi, stampati metadati, archivi email metadati → **Neon Postgres**.  
@@ -310,8 +328,7 @@ Scala attesa: molti tenant, molti utenti concorrenti, migliaia di persone/eventi
 Schema base: `docs/sql/001_lean_event_schema.sql` (`tenant_id` in PK, `revision`, soft delete, versioni).  
 Cursor rule: `.cursor/rules/lean-event-db-target.mdc`.
 
-**Stato 2026-07-15:** Neon provisionato + schema + migrazione demo (11 entità) + **dual-write attivo**.  
-Letture UI ancora da Blob/FS. Prossimo: migrazione Blob prod (se diversa) + cutover letture Neon.
+**Stato 2026-07-16:** Neon allineato a Blob produzione. Dual-write + cutover letture (`LEAN_EVENT_READ_FROM_NEON=1`) attivi. Fase C **chiusa a codice** (backup, export, audit, documenti API, import fornitori/eventi, conflitto). **Prossimo:** firmare smoke su event.leanme.it (`docs/lean-event-smoke-checklist.md`).
 
 ---
 

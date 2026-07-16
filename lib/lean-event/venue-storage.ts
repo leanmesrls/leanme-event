@@ -3,6 +3,7 @@ import path from "node:path";
 import type { LeonardoVenue } from "@/types/lean-event";
 
 import { createEntityBlobStore, isEntityBlobStorageEnabled } from "./entity-blob-storage";
+import { readManagedEntity, readManagedEntityList } from "./entity-read";
 import {
   deleteJsonFile,
   getDataRoot,
@@ -22,7 +23,7 @@ export function getVenueFilePath(tenantId: string, venueId: string): string {
   return path.join(getVenueDir(tenantId), `${venueId}.json`);
 }
 
-export async function listStoredVenues(
+async function listVenuesFromBlobOrFs(
   tenantId: string
 ): Promise<LeonardoVenue[]> {
   if (isEntityBlobStorageEnabled()) {
@@ -37,7 +38,7 @@ export async function listStoredVenues(
   return venues.filter((venue): venue is LeonardoVenue => Boolean(venue));
 }
 
-export async function getStoredVenue(
+async function getVenueFromBlobOrFs(
   tenantId: string,
   venueId: string
 ): Promise<LeonardoVenue | null> {
@@ -45,6 +46,23 @@ export async function getStoredVenue(
     return venueBlob.get<LeonardoVenue>(tenantId, venueId);
   }
   return readJsonFile<LeonardoVenue>(getVenueFilePath(tenantId, venueId));
+}
+
+export async function listStoredVenues(
+  tenantId: string
+): Promise<LeonardoVenue[]> {
+  return readManagedEntityList(tenantId, "venue", () =>
+    listVenuesFromBlobOrFs(tenantId)
+  );
+}
+
+export async function getStoredVenue(
+  tenantId: string,
+  venueId: string
+): Promise<LeonardoVenue | null> {
+  return readManagedEntity(tenantId, "venue", venueId, () =>
+    getVenueFromBlobOrFs(tenantId, venueId)
+  );
 }
 
 export async function saveStoredVenue(venue: LeonardoVenue): Promise<void> {

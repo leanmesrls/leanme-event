@@ -20,6 +20,8 @@ const expectedTables = [
   "lean_event_entities",
   "lean_event_entity_versions",
   "lean_event_entity_presence",
+  "lean_event_documents",
+  "lean_event_audit_events",
 ];
 
 try {
@@ -45,6 +47,10 @@ try {
     SELECT 'versions', COUNT(*)::int FROM lean_event_entity_versions
     UNION ALL
     SELECT 'presence', COUNT(*)::int FROM lean_event_entity_presence
+    UNION ALL
+    SELECT 'documents', COUNT(*)::int FROM lean_event_documents
+    UNION ALL
+    SELECT 'audit', COUNT(*)::int FROM lean_event_audit_events
   `;
   console.log("Row counts:", Object.fromEntries(counts.map((r) => [r.t, r.n])));
 
@@ -80,15 +86,9 @@ try {
   );
 
   console.log("\nOK: schema Neon raggiungibile e completo.");
-  if (counts.find((c) => c.t === "entities")?.n > 0) {
-    console.log(
-      "NOTE: dual-write attivo in codice. Letture UI ancora da Blob/FS fino al cutover."
-    );
-  } else {
-    console.log(
-      "NOTE: tabella vuota — esegui npm run lean-event:migrate-neon (locale) o migrazione Blob prod."
-    );
-  }
+  console.log(
+    "NOTE: dual-write + cutover letture (LEAN_EVENT_READ_FROM_NEON) + schema documenti/audit (002)."
+  );
 } catch (error) {
   console.error("VERIFY_FAIL:", error instanceof Error ? error.message : error);
   process.exit(1);

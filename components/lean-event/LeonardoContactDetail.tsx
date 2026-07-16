@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { LeonardoContactLinkedEvents } from "@/components/lean-event/LeonardoContactLinkedEvents";
 import { formatTagsDisplay } from "@/lib/lean-event/contact-tags";
 import { formatContactName } from "@/lib/lean-event/contact-display";
-import {
-  leanEventLeonardoContattiPath,
-  leanEventLeonardoEventPath,
-} from "@/lib/lean-event/paths";
+import { leanEventLeonardoContattiPath } from "@/lib/lean-event/paths";
 import type { ContactAssignmentWithEvent } from "@/lib/lean-event/event-assignments";
 import type { LeanEventContact } from "@/types/lean-event";
 
@@ -269,31 +267,12 @@ export function LeonardoContactDetail({
         <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-white/45">
           Eventi collegati
         </h3>
-        {assignments.length === 0 ? (
-          <p className="mt-3 text-sm text-white/50">
-            Nessun ruolo assegnato su eventi. Collega il contatto dalla scheda
-            evento → tab Ospiti.
-          </p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {assignments.map((assignment) => (
-              <li
-                key={assignment.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-sm"
-              >
-                <div>
-                  <Link
-                    href={leanEventLeonardoEventPath(tenantSlug, assignment.eventId)}
-                    className="font-medium text-white hover:text-leanme-fuchsia"
-                  >
-                    {assignment.eventTitle}
-                  </Link>
-                  <p className="text-xs text-white/50">{assignment.roleLabel}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="mt-3">
+          <LeonardoContactLinkedEvents
+            tenantSlug={tenantSlug}
+            assignments={assignments}
+          />
+        </div>
       </section>
     </div>
   );

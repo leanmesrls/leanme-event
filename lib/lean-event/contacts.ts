@@ -23,6 +23,10 @@ import {
 } from "./contact-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
 import { saveEntityVersionSnapshot } from "./version-storage";
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
 
 function normalizeContact(contact: LeanEventContact): LeanEventContact {
   return withLifecycleDefaults(contact) as LeanEventContact;
@@ -122,6 +126,13 @@ async function persistContact(
   }
   await saveStoredContact(contact);
   await upsertManagedEntityToNeon("contact", contact);
+  await auditManagedEntityMutation({
+    tenantId: contact.tenantId,
+    entityType: "contact",
+    entityId: contact.id,
+    action: resolveEntityAuditAction(previous, contact),
+    userId: contact.updatedBy,
+  });
 }
 
 export async function saveContact(

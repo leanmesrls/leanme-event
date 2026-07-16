@@ -1,6 +1,10 @@
 import {
   CONTACT_HEADER_ALIASES,
   CONTACT_IMPORT_COLUMNS,
+  EVENT_HEADER_ALIASES,
+  EVENT_IMPORT_COLUMNS,
+  SUPPLIER_HEADER_ALIASES,
+  SUPPLIER_IMPORT_COLUMNS,
   VENUE_HEADER_ALIASES,
   VENUE_IMPORT_COLUMNS,
 } from "./import-schemas";
@@ -11,10 +15,44 @@ import {
   stripBom,
 } from "./spreadsheet-import-utils";
 
+export type LeanEventImportKind =
+  | "contacts"
+  | "venues"
+  | "suppliers"
+  | "events";
+
 export interface ParsedSpreadsheet {
   rows: Record<string, string>[];
   sheetName: string;
   rawRowCount: number;
+}
+
+function schemaForKind(kind: LeanEventImportKind): {
+  aliases: Record<string, string>;
+  columns: readonly string[];
+} {
+  switch (kind) {
+    case "contacts":
+      return {
+        aliases: CONTACT_HEADER_ALIASES,
+        columns: CONTACT_IMPORT_COLUMNS,
+      };
+    case "venues":
+      return {
+        aliases: VENUE_HEADER_ALIASES,
+        columns: VENUE_IMPORT_COLUMNS,
+      };
+    case "suppliers":
+      return {
+        aliases: SUPPLIER_HEADER_ALIASES,
+        columns: SUPPLIER_IMPORT_COLUMNS,
+      };
+    case "events":
+      return {
+        aliases: EVENT_HEADER_ALIASES,
+        columns: EVENT_IMPORT_COLUMNS,
+      };
+  }
 }
 
 function rowsFromMatrix(
@@ -27,7 +65,7 @@ function rowsFromMatrix(
 
 export function parseCsvBuffer(
   buffer: Buffer,
-  kind: "contacts" | "venues"
+  kind: LeanEventImportKind
 ): ParsedSpreadsheet {
   const text = stripBom(buffer.toString("utf8"));
   const lines = text.split(/\r?\n/).filter((line) => line.length > 0);
@@ -37,11 +75,7 @@ export function parseCsvBuffer(
 
   const delimiter = detectDelimiter(lines[0] ?? "");
   const matrix = lines.map((line) => splitCsvLine(line, delimiter));
-  const aliases =
-    kind === "contacts" ? CONTACT_HEADER_ALIASES : VENUE_HEADER_ALIASES;
-  const columns =
-    kind === "contacts" ? CONTACT_IMPORT_COLUMNS : VENUE_IMPORT_COLUMNS;
-
+  const { aliases, columns } = schemaForKind(kind);
   const rows = rowsFromMatrix(matrix, aliases, columns);
   return {
     sheetName: "CSV",
@@ -53,7 +87,7 @@ export function parseCsvBuffer(
 function parseExcelSheet(
   sheet: unknown,
   sheetName: string,
-  kind: "contacts" | "venues",
+  kind: LeanEventImportKind,
   sheetToMatrix: (sheet: unknown) => string[][]
 ): ParsedSpreadsheet {
   if (!sheet) {
@@ -61,10 +95,7 @@ function parseExcelSheet(
   }
 
   const matrix = sheetToMatrix(sheet);
-  const aliases =
-    kind === "contacts" ? CONTACT_HEADER_ALIASES : VENUE_HEADER_ALIASES;
-  const columns =
-    kind === "contacts" ? CONTACT_IMPORT_COLUMNS : VENUE_IMPORT_COLUMNS;
+  const { aliases, columns } = schemaForKind(kind);
   const rows = rowsFromMatrix(matrix, aliases, columns);
 
   return {
@@ -77,7 +108,7 @@ function parseExcelSheet(
 export async function parseSpreadsheetBuffer(
   buffer: Buffer,
   filename: string,
-  kind: "contacts" | "venues"
+  kind: LeanEventImportKind
 ): Promise<ParsedSpreadsheet> {
   const lower = filename.toLowerCase();
 

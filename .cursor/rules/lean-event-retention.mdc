@@ -1,0 +1,31 @@
+---
+description: Criteri fissati di retention Lean Event (revisioni, eventi collegati, cestino). Consultare prima di cambiare limiti o prune.
+globs: lib/lean-event/entity-lifecycle.ts,lib/lean-event/version-storage.ts,lib/lean-event/entity-db.ts,lib/lean-event/event-assignments.ts,docs/lean-event-retention-criteria.md,docs/leanyou-data-resilience.md
+alwaysApply: false
+---
+
+# Lean Event · Retention criteria (non dimenticare)
+
+Fonte memorizzata: `docs/lean-event-retention-criteria.md` (decisione 2026-07-16).
+
+## Revisioni
+
+- Keep: ultimi **50** OR ultimi **90 giorni** (prune solo se oltre entrambi).
+- Costanti: `LEAN_EVENT_VERSION_KEEP_LAST`, `LEAN_EVENT_VERSION_KEEP_DAYS`.
+- Prune su **Neon + Blob + FS** dopo ogni snapshot.
+- UI: prime **20** (`LEAN_EVENT_VERSION_UI_PAGE_SIZE`).
+
+## Eventi collegati (assignment)
+
+- **Nessun tetto** sui dati storici.
+- UI: **8** + “Mostra altri”; attuali prima, poi passati.
+
+## Cestino
+
+- Soft delete **30 giorni**, poi purge cron.
+
+## Prima di cambiare i numeri
+
+1. Leggere `docs/lean-event-retention-criteria.md`
+2. Aggiornare costanti + doc + questa rule nella stessa modifica
+3. Non abbassare sotto 20/30 senza decisione prodotto esplicita

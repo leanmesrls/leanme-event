@@ -3,8 +3,13 @@
 import { useEffect, useState } from "react";
 
 import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
+import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
+import { LeonardoRevisionConflictDialog } from "@/components/lean-event/LeonardoRevisionConflictDialog";
+import { LeonardoRevisionStaleBanner } from "@/components/lean-event/LeonardoRevisionStaleBanner";
 import { LeonardoSupplierDocumentsSection } from "@/components/lean-event/LeonardoSupplierDocumentsSection";
+import { isRevisionConflictPayload } from "@/lib/lean-event/revision-conflict";
 import { getSupplierCategoryLabel, SUPPLIER_CATEGORIES } from "@/lib/lean-event/supplier-categories";
+import { useEntityRevisionWatch } from "@/lib/lean-event/use-entity-revision-watch";
 import type { LeanEventSupplier, LeonardoSupplierCategoryId } from "@/types/lean-event";
 
 interface LeonardoSupplierSheetContentProps {
@@ -35,6 +40,14 @@ export function LeonardoSupplierSheetContent({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
+  const [stale, setStale] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
 
   useEffect(() => {
     setForm({
@@ -49,7 +62,40 @@ export function LeonardoSupplierSheetContent({
       contactPerson: supplier.contactPerson,
       notes: supplier.notes,
     });
+    setStale(null);
   }, [supplier]);
+
+  useEntityRevisionWatch({
+    enabled: Boolean(supplier.id),
+    fetchUrl: `/api/lean-event/suppliers/${supplier.id}`,
+    localRevision: supplier.revision ?? 1,
+    extract: (payload) => {
+      const next = (payload as { supplier?: LeanEventSupplier }).supplier;
+      if (!next) {
+        return null;
+      }
+      return {
+        revision: next.revision ?? 1,
+        updatedAt: next.updatedAt,
+        updatedBy: next.updatedBy,
+      };
+    },
+    onRemoteNewer: (info) => {
+      setStale({ updatedBy: info.updatedBy, updatedAt: info.updatedAt });
+    },
+  });
+
+  async function reloadSupplier() {
+    const response = await fetch(`/api/lean-event/suppliers/${supplier.id}`, {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as { supplier?: LeanEventSupplier };
+    if (payload.supplier) {
+      onSupplierChange(payload.supplier);
+      setStale(null);
+      setConflict(null);
+    }
+  }
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
@@ -70,9 +116,19 @@ export function LeonardoSupplierSheetContent({
     const payload = (await response.json()) as {
       error?: string;
       supplier?: LeanEventSupplier;
+      updatedBy?: string;
+      updatedAt?: string;
     };
 
     setSaving(false);
+
+    if (response.status === 409 && isRevisionConflictPayload(payload)) {
+      setConflict({
+        updatedBy: payload.updatedBy,
+        updatedAt: payload.updatedAt,
+      });
+      return;
+    }
 
     if (!response.ok || !payload.supplier) {
       setError(payload.error ?? "Salvataggio non riuscito.");
@@ -87,6 +143,23 @@ export function LeonardoSupplierSheetContent({
 
   return (
     <div className="space-y-4">
+      <LeonardoRevisionStaleBanner
+        open={Boolean(stale)}
+        updatedBy={stale?.updatedBy}
+        updatedAt={stale?.updatedAt}
+        onReload={() => {
+          void reloadSupplier();
+        }}
+      />
+      <LeonardoRevisionConflictDialog
+        open={Boolean(conflict)}
+        updatedBy={conflict?.updatedBy}
+        updatedAt={conflict?.updatedAt}
+        onReload={() => {
+          void reloadSupplier();
+        }}
+        onDismiss={() => setConflict(null)}
+      />
       {message ? (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
           {message}
@@ -228,6 +301,15 @@ export function LeonardoSupplierSheetContent({
           />
         </div>
       </LeonardoCollapsiblePanel>
+
+      <LeonardoEntityVersionsPanel
+        entityType="supplier"
+        entityId={supplier.id}
+        currentRevision={supplier.revision}
+        onRestored={(entity) => {
+          onSupplierChange(entity as LeanEventSupplier);
+        }}
+      />
 
       <div className="flex flex-wrap gap-3 border-t border-white/10 pt-4">
         <button

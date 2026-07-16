@@ -17,6 +17,25 @@ Dopo l'accesso (email, password o token), l'utente viene indirizzato all'area de
 - Percorsi legacy `/lean-event/leonardo/*` reindirizzano al tenant della sessione attiva
 - `robots.txt` esclude `/lean-event`
 
+## Cheatsheet operativo
+
+Comandi PowerShell di base + query Neon (conteggi, cerca nome, cerca evento, cestino, versioni):
+
+→ **`docs/lean-event-ops-cheatsheet.md`**
+
+Criteri retention (revisioni / eventi collegati) — per rivalutazioni future:
+
+→ **`docs/lean-event-retention-criteria.md`**
+
+Integrità DB / scala enterprise / documenti massivi:
+
+→ **`docs/lean-event-integrity-status.md`**  
+→ **`docs/lean-event-document-architecture.md`**
+
+**Patto commerciale (2026-07-16) — vendibile, zero perdita, moduli nel tempo:**
+
+→ **`docs/lean-event-commercial-pact.md`**
+
 ## Setup locale
 
 1. Copia `.env.example` in `.env.local` e imposta:

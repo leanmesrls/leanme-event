@@ -1,0 +1,21 @@
+---
+description: Architettura documenti Lean Event a scala (CV, attestati, Age.na.s). Metadati Neon, binari Blob.
+globs: docs/lean-event-document-architecture.md,docs/sql/002_lean_event_documents_audit.sql,lib/lean-event/**/*document*
+alwaysApply: false
+---
+
+# Lean Event · Documents at scale
+
+Fonte: `docs/lean-event-document-architecture.md`
+
+## Regole
+
+- Metadati su **Neon** (`lean_event_documents`); binari su **Blob**.
+- Mai migliaia di file solo come array JSON dentro evento/contatto.
+- Attestati/CV “sempre disponibili” → no expiry automatica; solo soft delete.
+- Liste paginate da Postgres; download da Blob.
+- PDF generati: Neon `generating` → Blob put → Neon `ready` (atomico).
+
+## Prima di moduli faculty / attestati
+
+Verificare tabella `lean_event_documents` + API registry, non inventare storage ad hoc.

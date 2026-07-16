@@ -21,6 +21,10 @@ import {
 } from "./venue-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
 import { saveEntityVersionSnapshot } from "./version-storage";
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
 
 function normalizeStoredVenue(venue: LeonardoVenue): LeonardoVenue {
   return normalizeVenue(withLifecycleDefaults(venue) as LeonardoVenue);
@@ -77,6 +81,13 @@ async function persistVenue(
   }
   await saveStoredVenue(venue);
   await upsertManagedEntityToNeon("venue", venue);
+  await auditManagedEntityMutation({
+    tenantId: venue.tenantId,
+    entityType: "venue",
+    entityId: venue.id,
+    action: resolveEntityAuditAction(previous, venue),
+    userId: venue.updatedBy,
+  });
 }
 
 export async function saveVenue(

@@ -1,0 +1,33 @@
+---
+description: Patto commerciale Lean Event (2026-07-16). Da oggi non è prototipo — vendibile, zero perdita dati, moduli nel tempo, import massivi.
+alwaysApply: true
+---
+
+# Lean Event · Commercial ready (patto 2026-07-16)
+
+Fonte: `docs/lean-event-commercial-pact.md`
+
+## Mentalità
+
+- **Non** prototipo / pilota interno.
+- Software **vendibile da subito**, moduli rilasciati progressivamente.
+- Priorità assoluta: **non perdere mai** contatti, eventi, documenti, flussi, storico.
+
+## Prima di ogni feature
+
+1. La scrittura passa da lifecycle + Neon (SoT / dual-write).
+2. Soft delete + revision sulle entità gestite.
+3. Documenti binari → `lean_event_documents` + Blob (mai solo array JSON a scala).
+4. Import massivi previsti per onboarding clienti (migliaia di righe).
+5. Se tocchi schema/storage: aggiorna docs integrity / retention / documents / patto.
+
+## Vietato
+
+- Hard-delete silenzioso
+- Bypass lifecycle “per velocità”
+- Feature che rischiano wipe o orphan massivi senza piano migrazione
+- Dichiarare “su DB” se le write non passano da Postgres
+
+## Scala commerciale
+
+Agenzie internazionali / feder congressi: multi-tenant, multi-utente, dati sensibili, storico + presenti/futuri, upload massivi.

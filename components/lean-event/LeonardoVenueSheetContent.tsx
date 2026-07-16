@@ -4,6 +4,11 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
+import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
+import { LeonardoRevisionConflictDialog } from "@/components/lean-event/LeonardoRevisionConflictDialog";
+import { LeonardoRevisionStaleBanner } from "@/components/lean-event/LeonardoRevisionStaleBanner";
+import { isRevisionConflictPayload } from "@/lib/lean-event/revision-conflict";
+import { useEntityRevisionWatch } from "@/lib/lean-event/use-entity-revision-watch";
 import { resolveVenueCoverSrc } from "@/lib/lean-event/venue-display";
 import {
   formatInternalRatingLabel,
@@ -31,10 +36,51 @@ export function LeonardoVenueSheetContent({
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
+  const [stale, setStale] = useState<{
+    updatedBy?: string;
+    updatedAt?: string;
+  } | null>(null);
 
   useEffect(() => {
     setForm({ ...venue });
+    setStale(null);
   }, [venue]);
+
+  useEntityRevisionWatch({
+    enabled: Boolean(venue.id),
+    fetchUrl: `/api/lean-event/venues/${venue.id}`,
+    localRevision: venue.revision ?? 1,
+    extract: (payload) => {
+      const next = (payload as { venue?: LeonardoVenue }).venue;
+      if (!next) {
+        return null;
+      }
+      return {
+        revision: next.revision ?? 1,
+        updatedAt: next.updatedAt,
+        updatedBy: next.updatedBy,
+      };
+    },
+    onRemoteNewer: (info) => {
+      setStale({ updatedBy: info.updatedBy, updatedAt: info.updatedAt });
+    },
+  });
+
+  async function reloadVenue() {
+    const response = await fetch(`/api/lean-event/venues/${venue.id}`, {
+      credentials: "same-origin",
+    });
+    const payload = (await response.json()) as { venue?: LeonardoVenue };
+    if (payload.venue) {
+      onVenueChange(payload.venue);
+      setStale(null);
+      setConflict(null);
+    }
+  }
 
   const coverSrc = resolveVenueCoverSrc(venue);
 
@@ -57,9 +103,19 @@ export function LeonardoVenueSheetContent({
     const payload = (await response.json()) as {
       error?: string;
       venue?: LeonardoVenue;
+      updatedBy?: string;
+      updatedAt?: string;
     };
 
     setSaving(false);
+
+    if (response.status === 409 && isRevisionConflictPayload(payload)) {
+      setConflict({
+        updatedBy: payload.updatedBy,
+        updatedAt: payload.updatedAt,
+      });
+      return;
+    }
 
     if (!response.ok || !payload.venue) {
       setError(payload.error ?? "Salvataggio non riuscito.");
@@ -103,6 +159,23 @@ export function LeonardoVenueSheetContent({
 
   return (
     <div className="space-y-4">
+      <LeonardoRevisionStaleBanner
+        open={Boolean(stale)}
+        updatedBy={stale?.updatedBy}
+        updatedAt={stale?.updatedAt}
+        onReload={() => {
+          void reloadVenue();
+        }}
+      />
+      <LeonardoRevisionConflictDialog
+        open={Boolean(conflict)}
+        updatedBy={conflict?.updatedBy}
+        updatedAt={conflict?.updatedAt}
+        onReload={() => {
+          void reloadVenue();
+        }}
+        onDismiss={() => setConflict(null)}
+      />
       {message ? (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
           {message}
@@ -329,6 +402,15 @@ export function LeonardoVenueSheetContent({
           </label>
         </div>
       </LeonardoCollapsiblePanel>
+
+      <LeonardoEntityVersionsPanel
+        entityType="venue"
+        entityId={venue.id}
+        currentRevision={venue.revision}
+        onRestored={(entity) => {
+          onVenueChange(entity as LeonardoVenue);
+        }}
+      />
 
       <div className="flex flex-wrap gap-3 border-t border-white/10 pt-4">
         <button

@@ -46,3 +46,16 @@ export function isLeanEventDatabaseStrict(): boolean {
   }
   return isLeanEventDatabaseEnabled();
 }
+
+/**
+ * Cutover Fase B: letture da Neon invece di Blob/FS.
+ * Richiede `LEAN_EVENT_READ_FROM_NEON=1` e `LEAN_EVENT_DATABASE_URL`.
+ * Default: off (Blob resta source of truth finché non abiliti esplicitamente).
+ */
+export function isLeanEventReadFromNeon(): boolean {
+  const raw = readLeanEventEnv("LEAN_EVENT_READ_FROM_NEON");
+  if (raw === "1" || raw === "true") {
+    return isLeanEventDatabaseEnabled();
+  }
+  return false;
+}

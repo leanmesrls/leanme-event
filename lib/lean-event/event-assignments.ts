@@ -38,6 +38,10 @@ import {
 } from "./event-assignment-storage";
 import { saveEntityVersionSnapshot } from "./version-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
+import {
+  auditManagedEntityMutation,
+  resolveEntityAuditAction,
+} from "./audit-log";
 
 const roleCategories = eventsConfig.roleCategories as Array<{
   id: LeonardoEventRoleCategory;
@@ -163,6 +167,13 @@ async function persistAssignment(
   }
   await saveStoredAssignment(assignment);
   await upsertManagedEntityToNeon("assignment", assignment);
+  await auditManagedEntityMutation({
+    tenantId: assignment.tenantId,
+    entityType: "assignment",
+    entityId: assignment.id,
+    action: resolveEntityAuditAction(previous, assignment),
+    userId: assignment.updatedBy,
+  });
 }
 
 export async function createEventContactAssignment(
@@ -406,6 +417,10 @@ export async function updateEventContactAssignment(
 export type ContactAssignmentWithEvent = LeonardoEventContactAssignment & {
   eventTitle: string;
   roleLabel: string;
+  eventStartDate?: string;
+  eventEndDate?: string;
+  /** true se l'evento non è ancora concluso (endDate >= oggi) o data mancante */
+  eventIsCurrent: boolean;
 };
 
 export async function listAssignmentsForContactWithEvents(
@@ -413,17 +428,31 @@ export async function listAssignmentsForContactWithEvents(
   contactId: string
 ): Promise<ContactAssignmentWithEvent[]> {
   const assignments = await listAssignmentsForContact(tenantId, contactId);
+  const today = new Date().toISOString().slice(0, 10);
   const enriched = await Promise.all(
     assignments.map(async (assignment) => {
       const event = await getEvent(tenantId, assignment.eventId);
+      const eventEndDate = event?.endDate || event?.startDate;
+      const eventIsCurrent = !eventEndDate || eventEndDate >= today;
       return {
         ...assignment,
         eventTitle: event?.title ?? "Evento",
         roleLabel: getEventRoleCategoryLabel(assignment.roleCategory),
+        eventStartDate: event?.startDate,
+        eventEndDate: event?.endDate,
+        eventIsCurrent,
       };
     })
   );
-  return enriched;
+
+  return enriched.sort((a, b) => {
+    if (a.eventIsCurrent !== b.eventIsCurrent) {
+      return a.eventIsCurrent ? -1 : 1;
+    }
+    const aDate = a.eventStartDate ?? "";
+    const bDate = b.eventStartDate ?? "";
+    return bDate.localeCompare(aDate);
+  });
 }
 
 export type EventAssignmentWithContact = LeonardoEventContactAssignment & {

@@ -10,6 +10,8 @@
 
 ---
 
+**Cheatsheet comandi PowerShell + query Neon:** `docs/lean-event-ops-cheatsheet.md`
+
 ## 1. GitHub — `leanmesrls/leanme-event`
 
 Repo privato sull’org **leanmesrls**, branch principale `master`.

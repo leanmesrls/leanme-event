@@ -3,6 +3,23 @@ import type { LeanEventSession } from "@/types/lean-event";
 /** Giorni di retention in cestino prima del purge definitivo. */
 export const LEONYOU_TRASH_RETENTION_DAYS = 30;
 
+/**
+ * Retention versioni (Fase B+) — criteri fissati 2026-07-16.
+ * Fonte rivisitazioni: `docs/lean-event-retention-criteria.md`
+ *
+ * Si conserva una revisione se è tra le ultime N **oppure** più recente di D giorni.
+ * Oltre entrambi i limiti → prune su Neon + Blob + FS.
+ */
+export const LEAN_EVENT_VERSION_KEEP_LAST = 50;
+export const LEAN_EVENT_VERSION_KEEP_DAYS = 90;
+/** Quante revisioni mostrare di default in UI Cronologia (poi “Mostra tutte”). */
+export const LEAN_EVENT_VERSION_UI_PAGE_SIZE = 20;
+/**
+ * Quanti eventi collegati mostrare di default nella scheda contatto.
+ * I dati assignment restano illimitati (storico completo).
+ */
+export const LEAN_EVENT_CONTACT_EVENTS_UI_PAGE_SIZE = 8;
+
 const TRASH_RETENTION_MS = LEONYOU_TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
 export type LeanEventManagedEntityType =

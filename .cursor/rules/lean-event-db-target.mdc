@@ -29,6 +29,9 @@ Fonte: `docs/leanyou-data-resilience.md`, `docs/sql/001_lean_event_schema.sql`.
 
 ## Stato implementazione
 
-- Fase A: Blob + lifecycle (ponte)
-- Fase B: Neon schema + dual-write → poi Neon source of truth
+- Fase A: Blob + lifecycle (ponte) ✅
+- Fase B: Neon schema + dual-write + cutover letture ✅
+- Fase C: backup/export/audit/document registry (in corso)
+- **Patto commerciale 2026-07-16:** vendibile a moduli, zero perdita — `docs/lean-event-commercial-pact.md`
 - Non dichiarare “su DB” finché le write path non passano da Postgres
+- Non dichiarare “enterprise-ready” finché backup + audit write + registry documenti operativi non sono chiusi
