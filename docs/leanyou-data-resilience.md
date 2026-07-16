@@ -241,7 +241,7 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 - [x] Cron purge 30 giorni: `vercel.json` → `/api/lean-event/cron/purge-trash` (`0 3 * * *`)
 - [x] Regole **safe schema change** (§14) + Cursor rule `.cursor/rules/lean-event-data-schema.mdc`
 
-### Fase B — Postgres + Cronologia (implementazione ✅; smoke utente pendente)
+### Fase B — Postgres + Cronologia (implementazione ✅; smoke ✅ 2026-07-16)
 
 - [x] Schema SQL Neon: `docs/sql/001_lean_event_schema.sql`
 - [x] Provisioning Neon + `LEAN_EVENT_DATABASE_URL` (locale + Vercel)
@@ -251,7 +251,7 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 - [x] Cutover letture: flag `LEAN_EVENT_READ_FROM_NEON=1` (Neon first, fallback Blob)
 - [x] Produzione: `LEAN_EVENT_READ_FROM_NEON=1` su Vercel + redeploy
 - [x] UI Cronologia versioni in scheda (confronto/ripristino revisioni)
-- [ ] Smoke test produzione con letture Neon attive
+- [x] Smoke test produzione con letture Neon attive
 
 ### Fase C — Resilienza produzione (chiusura solidità · 2026-07-16)
 
@@ -262,7 +262,7 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 - [x] API registry documenti: `GET/POST /api/lean-event/documents`, `GET/DELETE/POST restore /api/lean-event/documents/[id]`
 - [x] Import massivo fornitori + eventi (`POST .../suppliers/import`, `POST .../events/import`) + UI + modelli Excel
 - [x] Polling revision + banner/dialog conflitto su contatto, sede, fornitore, evento
-- [ ] Smoke test produzione formale (`docs/lean-event-smoke-checklist.md`)
+- [x] Smoke test produzione formale (`docs/lean-event-smoke-checklist.md` — firmata 2026-07-16, Luana Martuzzi)
 - [ ] UI liste documenti dedicate (C+)
 
 Patto: `docs/lean-event-commercial-pact.md`  
@@ -328,7 +328,7 @@ Scala attesa: molti tenant, molti utenti concorrenti, migliaia di persone/eventi
 Schema base: `docs/sql/001_lean_event_schema.sql` (`tenant_id` in PK, `revision`, soft delete, versioni).  
 Cursor rule: `.cursor/rules/lean-event-db-target.mdc`.
 
-**Stato 2026-07-16:** Neon allineato a Blob produzione. Dual-write + cutover letture (`LEAN_EVENT_READ_FROM_NEON=1`) attivi. Fase C **chiusa a codice** (backup, export, audit, documenti API, import fornitori/eventi, conflitto). **Prossimo:** firmare smoke su event.leanme.it (`docs/lean-event-smoke-checklist.md`).
+**Stato 2026-07-16:** Neon allineato a Blob produzione. Dual-write + cutover + Fase C + **smoke prod firmato**. **Prossimo prodotto:** UI documenti, import async a scala, poi moduli faculty/attestati.
 
 ---
 

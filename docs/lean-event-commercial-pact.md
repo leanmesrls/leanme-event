@@ -92,7 +92,7 @@ Solidità **nucleo Fase C chiusa a codice** (2026-07-16). Restano solo verifiche
 
 | # | Voce | Stato |
 |---|------|--------|
-| 1 | Smoke formale produzione | Checklist: `docs/lean-event-smoke-checklist.md` — da firmare su event.leanme.it |
+| 1 | Smoke formale produzione | ✅ firmata 2026-07-16 (Luana Martuzzi) — `docs/lean-event-smoke-checklist.md` |
 | 2 | Backup Blob giornaliero | ✅ cron `backup-blob` |
 | 3 | Export periodico tenant | ✅ cron `export-tenants` (domenica 04:00 UTC) |
 | 4 | Audit write su Neon | ✅ mutazioni + import + documenti + restore versioni |
@@ -100,7 +100,7 @@ Solidità **nucleo Fase C chiusa a codice** (2026-07-16). Restano solo verifiche
 | 6 | Import fornitori + eventi | ✅ API + UI `LeonardoBulkImport` + modelli Excel |
 | 7 | Banner conflitto multi-utente | ✅ dialog + polling revision su contatto/sede/fornitore/evento |
 
-Nuovi moduli prodotto solo se **non** indeboliscono il nucleo. Dopo smoke firmato → prioritizzare UI documenti e job async import > soglia.
+Nuovi moduli prodotto solo se **non** indeboliscono il nucleo. Smoke firmato → prioritizzare UI documenti e job async import > soglia.
 
 ---
 

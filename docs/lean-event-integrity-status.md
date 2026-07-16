@@ -11,8 +11,8 @@
 | Fase | Stato | Note |
 |------|--------|------|
 | **A Fondamenta** | ✅ chiusa | lifecycle, soft delete 30g, cestino, version snapshot, cron purge |
-| **B Neon + Cronologia** | ✅ codice + cutover prod | manca **smoke test utente** formale su event.leanme.it |
-| **C Resilienza prod** | ✅ codice chiuso | backup, export, audit Neon, API documenti, import fornitori/eventi, polling conflitto |
+| **B Neon + Cronologia** | ✅ codice + cutover + smoke | smoke formale firmato 2026-07-16 |
+| **C Resilienza prod** | ✅ codice + smoke | backup, export, audit Neon, API documenti, import fornitori/eventi, polling conflitto |
 | **D Presenza/merge** | ⬜ opzionale | heartbeat, merge campi, SSE |
 
 ### Runtime verificato
@@ -43,7 +43,7 @@
 
 | # | Lacuna | Rischio | Priorità |
 |---|--------|---------|----------|
-| 1 | Smoke prod formale non firmato | cutover non certificato operativamente | **immediata** — `docs/lean-event-smoke-checklist.md` |
+| 1 | ~~Smoke prod formale~~ | firmato 2026-07-16 | ✅ chiuso |
 | 2 | UI liste documenti dedicata | API ok; moduli faculty/attestati ancora senza shell UI | C+ |
 | 3 | Import async > migliaia di righe | timeout HTTP su file enormi | C+ |
 | 4 | Verbali HTML ancora payload workspace | OK oggi; a volume alto versionare come document | C+ |
@@ -74,18 +74,17 @@ Dettaglio: `docs/lean-event-document-architecture.md`.
 
 ---
 
-## 5. Ordine di lavoro consigliato (dopo Fase C)
+## 5. Ordine di lavoro consigliato (dopo Fase C + smoke)
 
-1. Firmare smoke checklist su produzione
-2. UI documenti (liste/filtri) sopra API esistenti
-3. Job async import se soglia superata
-4. Drill recovery backup/export
-5. Solo dopo: moduli faculty / ECM / area partecipante
+1. UI documenti (liste/filtri) sopra API esistenti
+2. Job async import se soglia superata
+3. Drill recovery backup/export
+4. Solo dopo: moduli faculty / ECM / area partecipante
 
 ---
 
 ## 6. Verdetto
 
-**Nucleo commerciale (integrità dati):** Fase C **chiusa a codice** — backup, export, audit, documenti API, import fornitori/eventi, conflitto multi-utente esteso.
+**Nucleo commerciale (integrità dati):** Fase C **chiusa** a codice + **smoke produzione firmato** (2026-07-16, Luana Martuzzi).
 
-**Prossimo step operativo:** eseguire e firmare `docs/lean-event-smoke-checklist.md` su https://event.leanme.it (dopo deploy del branch corrente).
+**Prossimo step prodotto:** UI documenti e import async a scala; poi moduli faculty/attestati.
