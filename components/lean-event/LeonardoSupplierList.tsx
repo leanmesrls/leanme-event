@@ -9,9 +9,10 @@ import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSort
 import {
   LeonardoPageHeader,
   LEONARDO_PAGE_ACTION_BUTTON,
+  LEONARDO_PAGE_ACTION_BUTTON_SECONDARY,
+  LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
-import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { LeonardoSupplierListTable } from "@/components/lean-event/LeonardoSupplierListTable";
 import { LeonardoSupplierSheetModal } from "@/components/lean-event/LeonardoSupplierSheetModal";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
@@ -200,27 +201,40 @@ export function LeonardoSupplierList({
         title="Rubrica fornitori"
         subtitle={`${suppliers.length} fornitori · elenco paginato · scheda in popup · j/k per navigare`}
         action={
-          <button
-            type="button"
-            onClick={() => setSection("create")}
-            className={LEONARDO_PAGE_ACTION_BUTTON}
-          >
-            Aggiungi nuovo
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                setSection((current) =>
+                  current === "create" ? "list" : "create"
+                )
+              }
+              className={LEONARDO_PAGE_ACTION_BUTTON}
+            >
+              {section === "create" ? "Torna all'elenco" : "Aggiungi nuovo"}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setSection((current) =>
+                  current === "import" ? "list" : "import"
+                )
+              }
+              className={
+                section === "import"
+                  ? LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE
+                  : LEONARDO_PAGE_ACTION_BUTTON_SECONDARY
+              }
+            >
+              {section === "import"
+                ? "Torna all'elenco"
+                : "Importazione massiva"}
+            </button>
+          </>
         }
       />
 
       <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled={clientiEnabled} />
-
-      <LeonardoSecondarySectionNav
-        aria-label="Azioni fornitori"
-        sections={[
-          { id: "list", label: "Visualizza elenco" },
-          { id: "import", label: "Importazione massiva" },
-        ]}
-        active={section === "create" ? "list" : section}
-        onChange={(id) => setSection(id)}
-      />
 
       {error ? (
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">

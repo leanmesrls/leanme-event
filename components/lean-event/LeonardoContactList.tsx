@@ -14,9 +14,10 @@ import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSort
 import {
   LeonardoPageHeader,
   LEONARDO_PAGE_ACTION_BUTTON,
+  LEONARDO_PAGE_ACTION_BUTTON_SECONDARY,
+  LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
-import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { collectContactTags } from "@/lib/lean-event/contact-tags";
 import {
   contactMatchesFilters,
@@ -205,29 +206,38 @@ export function LeonardoContactList({
         title="Rubrica contatti"
         subtitle={`${contacts.length} contatti · elenco paginato · scheda in popup · j/k per navigare`}
         action={
-          <button
-            type="button"
-            onClick={() => setCreateModalOpen(true)}
-            className={LEONARDO_PAGE_ACTION_BUTTON}
-          >
-            Aggiungi nuovo
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setCreateModalOpen(true)}
+              className={LEONARDO_PAGE_ACTION_BUTTON}
+            >
+              Aggiungi nuovo
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setSection((current) =>
+                  current === "import" ? "list" : "import"
+                )
+              }
+              className={
+                section === "import"
+                  ? LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE
+                  : LEONARDO_PAGE_ACTION_BUTTON_SECONDARY
+              }
+            >
+              {section === "import"
+                ? "Torna all'elenco"
+                : "Importazione massiva"}
+            </button>
+          </>
         }
       />
 
       <LeonardoRubricaNav
         tenantSlug={tenantSlug}
         clientiEnabled={clientiEnabled}
-      />
-
-      <LeonardoSecondarySectionNav
-        aria-label="Azioni contatti"
-        sections={[
-          { id: "list", label: "Visualizza elenco" },
-          { id: "import", label: "Importazione massiva" },
-        ]}
-        active={section}
-        onChange={setSection}
       />
 
       {error ? (

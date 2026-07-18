@@ -8,7 +8,6 @@ import {
   LeonardoPageHeader,
   LEONARDO_PAGE_ACTION_BUTTON,
 } from "@/components/lean-event/LeonardoPageHeader";
-import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import {
   collectFilterLabels,
   getWorkspaceKeywords,
@@ -84,13 +83,6 @@ export function LeonardoWorkspaceList({
             Nuovo workspace
           </Link>
         }
-      />
-
-      <LeonardoPrimarySectionNav
-        aria-label="Sezioni verbali"
-        sections={[{ id: "list", label: "Visualizza elenco" }]}
-        active="list"
-        onChange={() => undefined}
       />
 
       <div className="grid gap-3 rounded-xl border border-white/10 bg-[#111111] p-4 md:grid-cols-2 lg:grid-cols-3">

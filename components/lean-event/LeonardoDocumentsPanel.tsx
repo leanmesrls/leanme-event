@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { LeonardoPageHeader } from "@/components/lean-event/LeonardoPageHeader";
-import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
+import { LeonardoPageHeader, LEONARDO_PAGE_ACTION_BUTTON } from "@/components/lean-event/LeonardoPageHeader";
 import {
   formatDocumentBytes,
   formatDocumentKind,
@@ -142,6 +141,19 @@ export function LeonardoDocumentsPanel({
       <LeonardoPageHeader
         title="Documenti"
         subtitle="Registry Neon + Blob: CV, attestati, pack faculty, accordi. Liste paginate, download autenticato."
+        action={
+          <button
+            type="button"
+            onClick={() =>
+              setSection((current) =>
+                current === "upload" ? "list" : "upload"
+              )
+            }
+            className={LEONARDO_PAGE_ACTION_BUTTON}
+          >
+            {section === "upload" ? "Torna all'elenco" : "Carica documento"}
+          </button>
+        }
       />
 
       {message ? (
@@ -154,16 +166,6 @@ export function LeonardoDocumentsPanel({
           {error}
         </p>
       ) : null}
-
-      <LeonardoPrimarySectionNav
-        aria-label="Sezioni documenti"
-        sections={[
-          { id: "list", label: "Visualizza elenco" },
-          { id: "upload", label: "Carica documento" },
-        ]}
-        active={section}
-        onChange={setSection}
-      />
 
       {section === "upload" ? (
       <section className="leonardo-canvas rounded-xl border border-zinc-300/70 bg-[#f5f5f7] p-5 shadow-sm">

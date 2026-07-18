@@ -14,8 +14,8 @@ interface LeonardoPageHeaderProps {
 
 /**
  * Intestazione standard Leonardo:
- * titolo fucsia a sinistra (+ sottotitolo), CTA a destra (es. Nuovo evento).
- * Sotto: menu L1/L2 della sezione, poi area dati.
+ * titolo fucsia a sinistra (+ sottotitolo), CTA a destra
+ * (es. Nuovo evento + Importazione massiva). Sotto: elenco di default.
  */
 export function LeonardoPageHeader({
   title,
@@ -36,11 +36,22 @@ export function LeonardoPageHeader({
           <p className="mt-1 text-sm text-white/60">{subtitle}</p>
         ) : null}
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {action ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {action}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-/** CTA primaria affiancata al titolo (Nuovo evento, Aggiungi nuovo…). */
+/** CTA primaria (Nuovo evento, Aggiungi nuovo…). */
 export const LEONARDO_PAGE_ACTION_BUTTON =
   "inline-flex rounded-md bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark";
+
+/** CTA secondaria (Importazione massiva…). */
+export const LEONARDO_PAGE_ACTION_BUTTON_SECONDARY =
+  "inline-flex rounded-md border border-white/25 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white/80 transition hover:border-white hover:bg-white/10 hover:text-white";
+
+export const LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE =
+  "inline-flex rounded-md bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-black shadow-sm";

@@ -8,8 +8,9 @@ import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSort
 import {
   LeonardoPageHeader,
   LEONARDO_PAGE_ACTION_BUTTON,
+  LEONARDO_PAGE_ACTION_BUTTON_SECONDARY,
+  LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
-import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import {
   LEONARDO_LIST_NAME_CELL,
   LEONARDO_LIST_NAME_LINK,
@@ -85,25 +86,32 @@ export function LeonardoEventList({
         title="Eventi"
         subtitle="Gestione eventi, CDC, sedi e date."
         action={
-          section === "list" ? (
+          <>
             <Link
               href={leanEventLeonardoEventNewPath(tenantSlug)}
               className={LEONARDO_PAGE_ACTION_BUTTON}
             >
               Nuovo evento
             </Link>
-          ) : null
+            <button
+              type="button"
+              onClick={() =>
+                setSection((current) =>
+                  current === "import" ? "list" : "import"
+                )
+              }
+              className={
+                section === "import"
+                  ? LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE
+                  : LEONARDO_PAGE_ACTION_BUTTON_SECONDARY
+              }
+            >
+              {section === "import"
+                ? "Torna all'elenco"
+                : "Importazione massiva"}
+            </button>
+          </>
         }
-      />
-
-      <LeonardoPrimarySectionNav
-        aria-label="Sezioni eventi"
-        sections={[
-          { id: "list", label: "Visualizza elenco" },
-          { id: "import", label: "Importazione massiva" },
-        ]}
-        active={section}
-        onChange={setSection}
       />
 
       {section === "import" ? (
