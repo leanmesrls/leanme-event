@@ -254,7 +254,7 @@ function NavLink({
         className={cn(
           "flex min-h-10 items-start gap-3 px-3 py-2 text-sm transition",
           nested
-            ? "rounded-full text-white/35 hover:bg-white/[0.04] hover:text-white/50"
+            ? "rounded-md text-white/35 hover:bg-white/[0.04] hover:text-white/50"
             : "rounded-md text-leanme-fuchsia/50 hover:bg-leanme-fuchsia/10"
         )}
         title={LEONARDO_UPGRADE_HINT}
@@ -280,7 +280,7 @@ function NavLink({
       onClick={onNavigate}
       className={cn(
         "flex min-h-10 items-center gap-3 px-3 py-2 text-sm transition",
-        nested ? "rounded-full text-[13px]" : "min-h-11 rounded-md py-2.5",
+        nested ? "rounded-md text-[13px]" : "min-h-11 rounded-md py-2.5",
         active
           ? nested
             ? "bg-white text-black"
@@ -334,7 +334,7 @@ function LeonardoNav({
   }
 
   return (
-    <nav aria-label="Leonardo" className="space-y-3">
+    <nav aria-label="Leonardo" className="space-y-1">
       <div className="space-y-1 rounded-xl border border-white/10 bg-zinc-950 p-2">
         {navigation.map((item) => {
           if (item.children?.length) {
@@ -344,7 +344,7 @@ function LeonardoNav({
             const collapsed = isGroupCollapsed(item);
 
             return (
-              <div key={item.id}>
+              <div key={item.id} className="space-y-1">
                 <button
                   type="button"
                   onClick={() => toggleGroup(item.id)}
@@ -380,6 +380,20 @@ function LeonardoNav({
                     />
                   </svg>
                 </button>
+                {!collapsed ? (
+                  <div className="ml-2 flex flex-col gap-1 border-l border-white/10 pl-2">
+                    {item.children.map((child) => (
+                      <NavLink
+                        key={child.id}
+                        item={child}
+                        pathname={pathname}
+                        leonardoBase={leonardoBase}
+                        onNavigate={onNavigate}
+                        nested
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
             );
           }
@@ -395,29 +409,6 @@ function LeonardoNav({
           );
         })}
       </div>
-
-      {navigation.map((item) => {
-        if (!item.children?.length) {
-          return null;
-        }
-        if (isGroupCollapsed(item)) {
-          return null;
-        }
-        return (
-          <div key={`${item.id}-children`} className="flex flex-col gap-1 px-0.5">
-            {item.children.map((child) => (
-              <NavLink
-                key={child.id}
-                item={child}
-                pathname={pathname}
-                leonardoBase={leonardoBase}
-                onNavigate={onNavigate}
-                nested
-              />
-            ))}
-          </div>
-        );
-      })}
     </nav>
   );
 }

@@ -52,7 +52,7 @@ export function LeonardoEventPhaseNav({
         </div>
       </div>
 
-      {/* Livello 2: tab — bottoni arrotondati bianchi, fuori dal riquadro */}
+      {/* Livello 2: tab — stessi angoli squadrati del L1, bianchi, fuori dal riquadro */}
       <div className="flex flex-wrap gap-1.5 px-0.5">
         {phaseTabs.map((tab) => {
           const disabled =
@@ -65,7 +65,7 @@ export function LeonardoEventPhaseNav({
               type="button"
               disabled={disabled}
               onClick={() => onTabChange(tab.id)}
-              className={`shrink-0 rounded-full px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px] ${
+              className={`shrink-0 rounded-md px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px] ${
                 activeTab === tab.id
                   ? "bg-white text-black shadow-sm"
                   : disabled
