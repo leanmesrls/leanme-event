@@ -11,9 +11,12 @@ import {
   LEONARDO_DEFAULT_PAGE_SIZE,
 } from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
+import {
+  LeonardoPageHeader,
+  LEONARDO_PAGE_ACTION_BUTTON,
+} from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
 import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
-import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import { collectContactTags } from "@/lib/lean-event/contact-tags";
 import {
   contactMatchesFilters,
@@ -44,8 +47,7 @@ function emptyDraftContact(): LeanEventContact {
   };
 }
 
-type ContactView = "list" | "add";
-type ContactAddMode = "single" | "import";
+type ContactSection = "list" | "import";
 
 interface LeonardoContactListProps {
   tenantSlug: string;
@@ -69,8 +71,7 @@ export function LeonardoContactList({
       tags: contact.tags ?? [],
     }))
   );
-  const [view, setView] = useState<ContactView>("list");
-  const [addMode, setAddMode] = useState<ContactAddMode>("single");
+  const [section, setSection] = useState<ContactSection>("list");
   const [sheetContactId, setSheetContactId] = useState<string | null>(
     initialContactId
   );
@@ -141,7 +142,7 @@ export function LeonardoContactList({
   );
 
   useLeonardoListKeyboard({
-    enabled: view === "list" && filtered.length > 0,
+    enabled: section === "list" && filtered.length > 0,
     items: paginated.pageItems,
     activeId: sheetContactId,
     onSelect: syncContactSheet,
@@ -200,27 +201,33 @@ export function LeonardoContactList({
 
   return (
     <div className="space-y-4">
+      <LeonardoPageHeader
+        title="Rubrica contatti"
+        subtitle={`${contacts.length} contatti · elenco paginato · scheda in popup · j/k per navigare`}
+        action={
+          <button
+            type="button"
+            onClick={() => setCreateModalOpen(true)}
+            className={LEONARDO_PAGE_ACTION_BUTTON}
+          >
+            Aggiungi nuovo
+          </button>
+        }
+      />
+
       <LeonardoRubricaNav
         tenantSlug={tenantSlug}
         clientiEnabled={clientiEnabled}
       />
 
-      <div>
-        <h2 className={LEONARDO_PAGE_TITLE}>Rubrica contatti</h2>
-        <p className="mt-2 text-sm text-white/60">
-          {contacts.length} contatti · elenco paginato · scheda in popup · j/k
-          per navigare
-        </p>
-      </div>
-
       <LeonardoSecondarySectionNav
         aria-label="Azioni contatti"
         sections={[
           { id: "list", label: "Visualizza elenco" },
-          { id: "add", label: "Aggiungi nuovo" },
+          { id: "import", label: "Importazione massiva" },
         ]}
-        active={view}
-        onChange={setView}
+        active={section}
+        onChange={setSection}
       />
 
       {error ? (
@@ -229,7 +236,9 @@ export function LeonardoContactList({
         </p>
       ) : null}
 
-      {view === "list" ? (
+      {section === "import" ? (
+        <LeonardoContactImport compact onImported={reloadContacts} />
+      ) : (
         <div className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-[200px] flex-1 text-sm">
@@ -293,7 +302,7 @@ export function LeonardoContactList({
           {filtered.length === 0 ? (
             <p className="text-sm text-white/50">
               {contacts.length === 0
-                ? "Nessun contatto. Vai su «Aggiungi nuovo»."
+                ? "Nessun contatto. Usa «Aggiungi nuovo» o Importazione massiva."
                 : "Nessun risultato con i filtri attuali."}
             </p>
           ) : (
@@ -315,39 +324,6 @@ export function LeonardoContactList({
                 virtualScroll={pageSize === "virtual"}
               />
             </>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <LeonardoSecondarySectionNav
-            aria-label="Modalità inserimento contatti"
-            sections={[
-              { id: "single", label: "Aggiungi singolo" },
-              {
-                id: "import",
-                label: "Importazione massiva (Excel / copia-incolla)",
-              },
-            ]}
-            active={addMode}
-            onChange={setAddMode}
-          />
-
-          {addMode === "single" ? (
-            <div className="space-y-3 rounded-xl border border-white/10 bg-black/40 p-4">
-              <p className="text-sm text-white/55">
-                Apre la scheda completa in popup: compili tutti i campi e salvi
-                una sola volta.
-              </p>
-              <button
-                type="button"
-                onClick={() => setCreateModalOpen(true)}
-                className="rounded-md bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
-              >
-                Nuovo contatto
-              </button>
-            </div>
-          ) : (
-            <LeonardoContactImport compact onImported={reloadContacts} />
           )}
         </div>
       )}

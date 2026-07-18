@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoPageHeader } from "@/components/lean-event/LeonardoPageHeader";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
@@ -46,14 +47,11 @@ export default async function LeonardoFinancePage({ params }: PageProps) {
 
   return (
     <LeanEventShell session={session}>
-      <div className="space-y-6 p-6 md:p-8">
-        <div>
-          <h2 className="text-2xl font-bold">Finance</h2>
-          <p className="mt-2 max-w-2xl text-sm text-white/60">
-            Report aggregato dei budget di tutti gli eventi — andamento economico
-            dell&apos;agenzia. In arrivo nello Sprint 3.
-          </p>
-        </div>
+      <div className="space-y-4">
+        <LeonardoPageHeader
+          title="Finance"
+          subtitle="Report aggregato dei budget di tutti gli eventi — andamento economico dell'agenzia. In arrivo nello Sprint 3."
+        />
         <div className="rounded-xl border border-dashed border-white/15 bg-[#111111] p-8 text-center text-sm text-white/45">
           Nessun dato budget ancora consolidato. I budget per evento saranno
           configurabili dalla scheda di ciascun evento.

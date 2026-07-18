@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 
 import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoPageHeader } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
-import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import {
   findTenantBySlug,
   tenantHasLeonardoCapability,
@@ -51,15 +51,12 @@ export default async function LeonardoClientiPage({ params }: PageProps) {
 
   return (
     <LeanEventShell session={session}>
-      <div className="space-y-6">
+      <div className="space-y-4">
+        <LeonardoPageHeader
+          title="Rubrica clienti"
+          subtitle="Anagrafica clienti e patrocinatori con comunicazioni strutturate. Sezione in preparazione — sarà collegata a contratti, eventi e thread email."
+        />
         <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled />
-        <div className="rounded-xl border border-white/10 bg-[#111111] p-8">
-          <h2 className={LEONARDO_PAGE_TITLE}>Rubrica clienti</h2>
-          <p className="mt-3 max-w-2xl text-sm text-white/60">
-            Anagrafica clienti e patrocinatori con comunicazioni strutturate. Sezione
-            in preparazione — sarà collegata a contratti, eventi e thread email.
-          </p>
-        </div>
       </div>
     </LeanEventShell>
   );

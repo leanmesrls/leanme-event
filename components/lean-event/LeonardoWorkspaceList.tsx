@@ -5,6 +5,11 @@ import { useMemo, useState } from "react";
 
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import {
+  LeonardoPageHeader,
+  LEONARDO_PAGE_ACTION_BUTTON,
+} from "@/components/lean-event/LeonardoPageHeader";
+import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
+import {
   collectFilterLabels,
   getWorkspaceKeywords,
   getWorkspaceSearchLabels,
@@ -68,20 +73,25 @@ export function LeonardoWorkspaceList({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold tracking-[0.04em]">Verbali AI</h2>
-          <p className="mt-1 text-sm text-white/60">
-            Cerca per titolo, cliente, tag manuali o keyword generate dai verbali.
-          </p>
-        </div>
-        <Link
-          href={leanEventLeonardoNewPath(tenantSlug)}
-          className="inline-flex rounded-full bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
-        >
-          Nuovo workspace
-        </Link>
-      </div>
+      <LeonardoPageHeader
+        title="Verbali AI"
+        subtitle="Cerca per titolo, cliente, tag manuali o keyword generate dai verbali."
+        action={
+          <Link
+            href={leanEventLeonardoNewPath(tenantSlug)}
+            className={LEONARDO_PAGE_ACTION_BUTTON}
+          >
+            Nuovo workspace
+          </Link>
+        }
+      />
+
+      <LeonardoPrimarySectionNav
+        aria-label="Sezioni verbali"
+        sections={[{ id: "list", label: "Visualizza elenco" }]}
+        active="list"
+        onChange={() => undefined}
+      />
 
       <div className="grid gap-3 rounded-xl border border-white/10 bg-[#111111] p-4 md:grid-cols-2 lg:grid-cols-3">
         <label className="block min-w-0 md:col-span-2 lg:col-span-1">

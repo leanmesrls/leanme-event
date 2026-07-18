@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { LeanEventShell } from "@/components/lean-event/LeanEventShell";
+import { LeonardoPageHeader } from "@/components/lean-event/LeonardoPageHeader";
 import { findTenantBySlug, tenantHasLeonardoCapability } from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
 import {
@@ -43,14 +44,11 @@ export default async function LeonardoGovernmentPage({ params }: PageProps) {
 
   return (
     <LeanEventShell session={session}>
-      <div className="space-y-6 p-6 md:p-8">
-        <div>
-          <h2 className="text-2xl font-bold">Government</h2>
-          <p className="mt-2 max-w-2xl text-sm text-white/60">
-            Moduli per la gestione delle società scientifiche — servizio
-            attivabile separatamente. In roadmap.
-          </p>
-        </div>
+      <div className="space-y-4">
+        <LeonardoPageHeader
+          title="Government"
+          subtitle="Moduli per la gestione delle società scientifiche — servizio attivabile separatamente. In roadmap."
+        />
       </div>
     </LeanEventShell>
   );

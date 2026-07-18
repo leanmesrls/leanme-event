@@ -1,17 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { LeonardoPageHeader } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
-import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import {
   formatDocumentBytes,
   formatDocumentKind,
   LEAN_EVENT_DOCUMENT_KIND_OPTIONS,
   type LeanEventDocumentKind,
 } from "@/lib/lean-event/document-kinds";
-import { leanEventLeonardoPath } from "@/lib/lean-event/paths";
 
 interface LeonardoDocumentRow {
   id: string;
@@ -29,7 +27,7 @@ interface LeonardoDocumentsPanelProps {
 const PAGE_SIZE = 25;
 
 export function LeonardoDocumentsPanel({
-  tenantSlug,
+  tenantSlug: _tenantSlug,
 }: LeonardoDocumentsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<LeonardoDocumentRow[]>([]);
@@ -140,20 +138,11 @@ export function LeonardoDocumentsPanel({
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          href={leanEventLeonardoPath(tenantSlug)}
-          className="text-xs font-semibold uppercase tracking-[0.1em] text-leanme-fuchsia"
-        >
-          ← Cruscotto
-        </Link>
-        <h2 className={`mt-3 ${LEONARDO_PAGE_TITLE}`}>Documenti</h2>
-        <p className="mt-1 text-sm text-white/60">
-          Registry Neon + Blob: CV, attestati, pack faculty, accordi. Liste
-          paginate, download autenticato.
-        </p>
-      </div>
+    <div className="space-y-4">
+      <LeonardoPageHeader
+        title="Documenti"
+        subtitle="Registry Neon + Blob: CV, attestati, pack faculty, accordi. Liste paginate, download autenticato."
+      />
 
       {message ? (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">

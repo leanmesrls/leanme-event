@@ -7,11 +7,14 @@ import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
 import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { LeonardoMeetingCongressiVenueImport } from "@/components/lean-event/LeonardoMeetingCongressiVenueImport";
+import {
+  LeonardoPageHeader,
+  LEONARDO_PAGE_ACTION_BUTTON,
+} from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
 import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { LeonardoVenueListTable } from "@/components/lean-event/LeonardoVenueListTable";
 import { LeonardoVenueSheetModal } from "@/components/lean-event/LeonardoVenueSheetModal";
-import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
 import { sortVenues, type ListSortMode } from "@/lib/lean-event/list-sort";
 import { useLeonardoListKeyboard } from "@/lib/lean-event/use-leonardo-list-keyboard";
@@ -46,8 +49,7 @@ export function LeonardoVenueList({
     LEONARDO_DEFAULT_PAGE_SIZE
   );
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"list" | "add">("list");
-  const [addMode, setAddMode] = useState<"single" | "import">("single");
+  const [section, setSection] = useState<"list" | "import" | "create">("list");
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -104,7 +106,7 @@ export function LeonardoVenueList({
   );
 
   useLeonardoListKeyboard({
-    enabled: view === "list" && filtered.length > 0,
+    enabled: section === "list" && filtered.length > 0,
     items: paginated.pageItems,
     activeId: sheetVenueId,
     onSelect: syncVenueSheet,
@@ -172,23 +174,30 @@ export function LeonardoVenueList({
 
   return (
     <div className="space-y-4">
-      <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled={clientiEnabled} />
+      <LeonardoPageHeader
+        title="Rubrica sedi"
+        subtitle={`${venues.length} sedi · elenco paginato · scheda in popup · j/k per navigare`}
+        action={
+          <button
+            type="button"
+            onClick={() => setSection("create")}
+            className={LEONARDO_PAGE_ACTION_BUTTON}
+          >
+            Aggiungi nuovo
+          </button>
+        }
+      />
 
-      <div>
-        <h2 className={LEONARDO_PAGE_TITLE}>Rubrica sedi</h2>
-        <p className="mt-2 text-sm text-white/60">
-          {venues.length} sedi · elenco paginato · scheda in popup · j/k per navigare
-        </p>
-      </div>
+      <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled={clientiEnabled} />
 
       <LeonardoSecondarySectionNav
         aria-label="Azioni sedi"
         sections={[
           { id: "list", label: "Visualizza elenco" },
-          { id: "add", label: "Aggiungi nuovo" },
+          { id: "import", label: "Importazione massiva" },
         ]}
-        active={view}
-        onChange={setView}
+        active={section === "create" ? "list" : section}
+        onChange={(id) => setSection(id)}
       />
 
       {error ? (
@@ -197,7 +206,70 @@ export function LeonardoVenueList({
         </p>
       ) : null}
 
-      {view === "list" ? (
+      {section === "import" ? (
+        <div className="space-y-4">
+          <LeonardoBulkImport kind="venues" onImported={reloadVenues} />
+          <LeonardoMeetingCongressiVenueImport onImported={reloadVenues} />
+        </div>
+      ) : section === "create" ? (
+        <form
+          onSubmit={handleCreate}
+          className="grid gap-3 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-2"
+        >
+          <input
+            required
+            placeholder="Nome sede *"
+            value={form.name}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
+          />
+          <input
+            required
+            placeholder="Indirizzo *"
+            value={form.address}
+            onChange={(event) => setForm({ ...form, address: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
+          />
+          <input
+            required
+            placeholder="Città *"
+            value={form.city}
+            onChange={(event) => setForm({ ...form, city: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+          />
+          <input
+            required
+            placeholder="Provincia *"
+            value={form.province}
+            onChange={(event) => setForm({ ...form, province: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm uppercase outline-none focus:border-leanme-fuchsia"
+          />
+          <input
+            placeholder="CAP"
+            value={form.postalCode}
+            onChange={(event) => setForm({ ...form, postalCode: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+          />
+          <input
+            placeholder="Telefono"
+            value={form.phone}
+            onChange={(event) => setForm({ ...form, phone: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+          />
+          <input
+            placeholder="Email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
+          />
+          <button
+            type="submit"
+            className="rounded-md bg-leanme-fuchsia px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark md:col-span-2 md:justify-self-start"
+          >
+            Salva sede
+          </button>
+        </form>
+      ) : (
         <div className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-[200px] flex-1 text-sm">
@@ -227,7 +299,7 @@ export function LeonardoVenueList({
           {filtered.length === 0 ? (
             <p className="text-sm text-white/50">
               {venues.length === 0
-                ? "Nessuna sede. Vai su «Aggiungi nuovo»."
+                ? "Nessuna sede. Usa «Aggiungi nuovo» o Importazione massiva."
                 : "Nessun risultato per la ricerca."}
             </p>
           ) : (
@@ -249,80 +321,6 @@ export function LeonardoVenueList({
                 virtualScroll={pageSize === "virtual"}
               />
             </>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <LeonardoSecondarySectionNav
-            aria-label="Modalità inserimento sedi"
-            sections={[
-              { id: "single", label: "Aggiungi singolo" },
-              { id: "import", label: "Importazione massiva" },
-            ]}
-            active={addMode}
-            onChange={setAddMode}
-          />
-
-          {addMode === "single" ? (
-            <form onSubmit={handleCreate} className="grid gap-3 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-2">
-              <input
-                required
-                placeholder="Nome sede *"
-                value={form.name}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
-              />
-              <input
-                required
-                placeholder="Indirizzo *"
-                value={form.address}
-                onChange={(event) => setForm({ ...form, address: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
-              />
-              <input
-                required
-                placeholder="Città *"
-                value={form.city}
-                onChange={(event) => setForm({ ...form, city: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-              <input
-                required
-                placeholder="Provincia *"
-                value={form.province}
-                onChange={(event) => setForm({ ...form, province: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm uppercase outline-none focus:border-leanme-fuchsia"
-              />
-              <input
-                placeholder="CAP"
-                value={form.postalCode}
-                onChange={(event) => setForm({ ...form, postalCode: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-              <input
-                placeholder="Telefono"
-                value={form.phone}
-                onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-              <input
-                placeholder="Email"
-                value={form.email}
-                onChange={(event) => setForm({ ...form, email: event.target.value })}
-                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
-              />
-              <button
-                type="submit"
-                className="rounded-md bg-leanme-fuchsia px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark md:col-span-2 md:justify-self-start"
-              >
-                Salva sede
-              </button>
-            </form>
-          ) : (
-            <div className="space-y-4">
-              <LeonardoBulkImport kind="venues" onImported={reloadVenues} />
-              <LeonardoMeetingCongressiVenueImport onImported={reloadVenues} />
-            </div>
           )}
         </div>
       )}

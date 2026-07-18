@@ -5,11 +5,14 @@ import { useMemo, useState } from "react";
 
 import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
+import {
+  LeonardoPageHeader,
+  LEONARDO_PAGE_ACTION_BUTTON,
+} from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import {
   LEONARDO_LIST_NAME_CELL,
   LEONARDO_LIST_NAME_LINK,
-  LEONARDO_PAGE_TITLE,
 } from "@/components/lean-event/leonardo-ui";
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
 import { sortEvents, type ListSortMode } from "@/lib/lean-event/list-sort";
@@ -78,22 +81,20 @@ export function LeonardoEventList({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className={LEONARDO_PAGE_TITLE}>Eventi</h2>
-          <p className="mt-1 text-sm text-white/60">
-            Gestione eventi, CDC, sedi e date.
-          </p>
-        </div>
-        {section === "list" ? (
-          <Link
-            href={leanEventLeonardoEventNewPath(tenantSlug)}
-            className="inline-flex rounded-md bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
-          >
-            Nuovo evento
-          </Link>
-        ) : null}
-      </div>
+      <LeonardoPageHeader
+        title="Eventi"
+        subtitle="Gestione eventi, CDC, sedi e date."
+        action={
+          section === "list" ? (
+            <Link
+              href={leanEventLeonardoEventNewPath(tenantSlug)}
+              className={LEONARDO_PAGE_ACTION_BUTTON}
+            >
+              Nuovo evento
+            </Link>
+          ) : null
+        }
+      />
 
       <LeonardoPrimarySectionNav
         aria-label="Sezioni eventi"
