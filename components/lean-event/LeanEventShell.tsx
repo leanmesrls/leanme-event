@@ -252,10 +252,10 @@ function NavLink({
         href={leonardoUpgradeMailto(`LeanEvent - Upgrade ${item.label}`)}
         onClick={onNavigate}
         className={cn(
-          "flex min-h-10 items-start gap-3 rounded-lg px-3 py-2 text-sm transition",
+          "flex min-h-10 items-start gap-3 px-3 py-2 text-sm transition",
           nested
-            ? "ml-3 border-l border-white/10 pl-3 text-white/35 hover:bg-white/[0.03] hover:text-white/50"
-            : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-400"
+            ? "rounded-full text-white/35 hover:bg-white/[0.04] hover:text-white/50"
+            : "rounded-md text-leanme-fuchsia/50 hover:bg-leanme-fuchsia/10"
         )}
         title={LEONARDO_UPGRADE_HINT}
       >
@@ -263,7 +263,7 @@ function NavLink({
           <span
             className={cn(
               "block font-medium",
-              nested ? "text-white/50" : "text-zinc-500"
+              nested ? "text-white/50" : "text-leanme-fuchsia/60"
             )}
           >
             {item.label}
@@ -279,15 +279,15 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       className={cn(
-        "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
-        nested ? "ml-3 border-l border-white/10 pl-3 text-[13px]" : "min-h-11 py-2.5",
+        "flex min-h-10 items-center gap-3 px-3 py-2 text-sm transition",
+        nested ? "rounded-full text-[13px]" : "min-h-11 rounded-md py-2.5",
         active
           ? nested
-            ? "bg-leanme-fuchsia/15 text-white"
-            : "bg-zinc-800 text-zinc-100"
+            ? "bg-white text-black"
+            : "bg-leanme-fuchsia text-white"
           : nested
-            ? "text-white/65 hover:bg-white/[0.04] hover:text-white"
-            : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+            ? "border border-white/20 text-white/70 hover:border-white hover:bg-white/10 hover:text-white"
+            : "border border-leanme-fuchsia/40 text-leanme-fuchsia hover:border-leanme-fuchsia hover:bg-leanme-fuchsia/10"
       )}
     >
       {!nested && item.icon ? (
@@ -334,71 +334,88 @@ function LeonardoNav({
   }
 
   return (
-    <nav aria-label="Leonardo" className="space-y-1">
-      {navigation.map((item) => {
-        if (item.children?.length) {
-          const groupActive = item.children.some((child) =>
-            isNavActive(pathname, child.href, leonardoBase)
-          );
-          const collapsed = isGroupCollapsed(item);
+    <nav aria-label="Leonardo" className="space-y-3">
+      <div className="space-y-1 rounded-xl border border-white/10 bg-zinc-950 p-2">
+        {navigation.map((item) => {
+          if (item.children?.length) {
+            const groupActive = item.children.some((child) =>
+              isNavActive(pathname, child.href, leonardoBase)
+            );
+            const collapsed = isGroupCollapsed(item);
+
+            return (
+              <div key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(item.id)}
+                  aria-expanded={!collapsed}
+                  className={cn(
+                    "flex min-h-10 w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition",
+                    groupActive
+                      ? "bg-leanme-fuchsia text-white"
+                      : "border border-leanme-fuchsia/40 text-leanme-fuchsia hover:border-leanme-fuchsia hover:bg-leanme-fuchsia/10"
+                  )}
+                >
+                  {item.icon ? (
+                    <NavIcon
+                      icon={item.icon === "locked" ? "dashboard" : item.icon}
+                    />
+                  ) : null}
+                  <span className="flex-1">{item.label}</span>
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 24 24"
+                    className={cn(
+                      "h-4 w-4 shrink-0 transition-transform",
+                      collapsed ? "" : "rotate-180"
+                    )}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path
+                      d="M6 9l6 6 6-6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            );
+          }
 
           return (
-            <div key={item.id} className="space-y-0.5">
-              <button
-                type="button"
-                onClick={() => toggleGroup(item.id)}
-                aria-expanded={!collapsed}
-                className={cn(
-                  "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition hover:bg-zinc-900",
-                  groupActive ? "bg-zinc-800 text-zinc-100" : "text-zinc-400"
-                )}
-              >
-                {item.icon ? (
-                  <NavIcon
-                    icon={item.icon === "locked" ? "dashboard" : item.icon}
-                  />
-                ) : null}
-                <span className="flex-1">{item.label}</span>
-                <svg
-                  aria-hidden
-                  viewBox="0 0 24 24"
-                  className={cn(
-                    "h-4 w-4 shrink-0 transition-transform",
-                    collapsed ? "" : "rotate-180"
-                  )}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                >
-                  <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              {!collapsed ? (
-                <div className="ml-2 space-y-0.5 rounded-lg border border-white/10 bg-black py-1">
-                  {item.children.map((child) => (
-                    <NavLink
-                      key={child.id}
-                      item={child}
-                      pathname={pathname}
-                      leonardoBase={leonardoBase}
-                      onNavigate={onNavigate}
-                      nested
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            <NavLink
+              key={item.id}
+              item={item}
+              pathname={pathname}
+              leonardoBase={leonardoBase}
+              onNavigate={onNavigate}
+            />
           );
-        }
+        })}
+      </div>
 
+      {navigation.map((item) => {
+        if (!item.children?.length) {
+          return null;
+        }
+        if (isGroupCollapsed(item)) {
+          return null;
+        }
         return (
-          <NavLink
-            key={item.id}
-            item={item}
-            pathname={pathname}
-            leonardoBase={leonardoBase}
-            onNavigate={onNavigate}
-          />
+          <div key={`${item.id}-children`} className="flex flex-col gap-1 px-0.5">
+            {item.children.map((child) => (
+              <NavLink
+                key={child.id}
+                item={child}
+                pathname={pathname}
+                leonardoBase={leonardoBase}
+                onNavigate={onNavigate}
+                nested
+              />
+            ))}
+          </div>
         );
       })}
     </nav>

@@ -31,61 +31,66 @@ export function LeonardoEventPhaseNav({
   const phaseTabs = getTabsForPhase(activePhase);
 
   return (
-    <div className="space-y-2">
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {EVENT_NAV_PHASES.map((phase) => (
-          <button
-            key={phase.id}
-            type="button"
-            onClick={() => onPhaseChange(phase.id)}
-            className={`shrink-0 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] transition sm:text-xs ${
-              activePhase === phase.id
-                ? "bg-zinc-800 text-zinc-100"
-                : "border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-            }`}
-          >
-            {phase.label}
-          </button>
-        ))}
+    <div className="space-y-3">
+      {/* Livello 1: fasi — bottoni squadrati fucsia, dentro il riquadro */}
+      <div className="rounded-xl border border-white/10 bg-zinc-950 p-2 sm:p-3">
+        <div className="-mx-0.5 flex gap-2 overflow-x-auto px-0.5 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {EVENT_NAV_PHASES.map((phase) => (
+            <button
+              key={phase.id}
+              type="button"
+              onClick={() => onPhaseChange(phase.id)}
+              className={`shrink-0 rounded-md px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] transition sm:text-xs ${
+                activePhase === phase.id
+                  ? "bg-leanme-fuchsia text-white shadow-sm"
+                  : "border border-leanme-fuchsia/45 text-leanme-fuchsia hover:border-leanme-fuchsia hover:bg-leanme-fuchsia/10"
+              }`}
+            >
+              {phase.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-black p-2 sm:p-3">
-        <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
-          {EVENT_NAV_PHASES.find((phase) => phase.id === activePhase)?.label}
-        </p>
-        <div className="flex flex-wrap gap-1.5 px-0.5 pb-0.5">
-          {phaseTabs.map((tab) => {
-            const disabled =
-              tab.implemented && !isEventTabAccessible(tab, capabilities);
-            const planned = !tab.implemented;
-            const badge = formatTabBadge(tab, badges);
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => onTabChange(tab.id)}
-                className={`shrink-0 rounded-lg px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:px-3.5 sm:text-[11px] ${
-                  activeTab === tab.id
-                    ? "bg-leanme-fuchsia text-white shadow-sm"
-                    : disabled
-                      ? "cursor-not-allowed text-white/20"
-                      : planned
-                        ? "border border-dashed border-white/20 text-white/50 hover:border-leanme-fuchsia/50 hover:text-white/70"
-                        : "text-white/60 hover:bg-white/[0.04] hover:text-white"
-                }`}
-              >
-                {tab.label}
-                {badge ? (
-                  <span className="ml-1.5 rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] normal-case tracking-normal text-white/70">
-                    {badge}
-                  </span>
-                ) : null}
-                {planned ? " ·" : ""}
-              </button>
-            );
-          })}
-        </div>
+      {/* Livello 2: tab — bottoni arrotondati bianchi, fuori dal riquadro */}
+      <div className="flex flex-wrap gap-1.5 px-0.5">
+        {phaseTabs.map((tab) => {
+          const disabled =
+            tab.implemented && !isEventTabAccessible(tab, capabilities);
+          const planned = !tab.implemented;
+          const badge = formatTabBadge(tab, badges);
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              disabled={disabled}
+              onClick={() => onTabChange(tab.id)}
+              className={`shrink-0 rounded-full px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px] ${
+                activeTab === tab.id
+                  ? "bg-white text-black shadow-sm"
+                  : disabled
+                    ? "cursor-not-allowed border border-white/10 text-white/25"
+                    : planned
+                      ? "border border-dashed border-white/25 text-white/50 hover:border-white/50 hover:text-white/70"
+                      : "border border-white/25 text-white/70 hover:border-white hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {tab.label}
+              {badge ? (
+                <span
+                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[9px] normal-case tracking-normal ${
+                    activeTab === tab.id
+                      ? "bg-black/10 text-black/70"
+                      : "bg-white/10 text-white/70"
+                  }`}
+                >
+                  {badge}
+                </span>
+              ) : null}
+              {planned ? " ·" : ""}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
