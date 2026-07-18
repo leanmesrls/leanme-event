@@ -268,7 +268,7 @@ leanyou/documents/{tenantId}/{entityType}/{entityId}/{documentId}/v{version}/{fi
 - [x] Document download API + purge documenti nel cron cestino
 - [x] Indici scala 003 + script `lean-event:apply-neon-001/003`
 - [x] Backup Blob: prefissi event-assignments / event-suppliers / travel / chat
-- [ ] UI liste documenti dedicate (C+ prodotto)
+- [x] UI liste documenti dedicate (`/leonardo/documenti`)
 
 Patto: `docs/lean-event-commercial-pact.md`  
 Integrità: `docs/lean-event-integrity-status.md`  

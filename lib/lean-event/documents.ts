@@ -21,17 +21,10 @@ import {
   LEONYOU_TRASH_RETENTION_DAYS,
   sessionUserId,
 } from "@/lib/lean-event/entity-lifecycle";
+import type { LeanEventDocumentKind } from "@/lib/lean-event/document-kinds";
 import type { LeanEventSession } from "@/types/lean-event";
 
-export type LeanEventDocumentKind =
-  | "cv"
-  | "faculty_pack"
-  | "attestato_partecipazione"
-  | "certificazione_ecm"
-  | "agenas"
-  | "travel_id"
-  | "supplier_agreement"
-  | "other";
+export type { LeanEventDocumentKind } from "@/lib/lean-event/document-kinds";
 
 export type LeanEventDocumentStatus =
   | "ready"

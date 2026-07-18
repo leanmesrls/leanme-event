@@ -42,6 +42,10 @@ export function leanEventLeonardoCestinoPath(tenantSlug: string): string {
   return `${leanEventLeonardoPath(tenantSlug)}/cestino`;
 }
 
+export function leanEventLeonardoDocumentiPath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/documenti`;
+}
+
 export function leanEventLeonardoProfiloPath(tenantSlug: string): string {
   return `${leanEventLeonardoPath(tenantSlug)}/profilo`;
 }

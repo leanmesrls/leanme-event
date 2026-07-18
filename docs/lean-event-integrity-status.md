@@ -48,7 +48,7 @@
 | 1 | ~~Smoke prod formale~~ | firmato 2026-07-16 | ✅ chiuso |
 | 2 | ~~event_supplier_link / chat fuori Neon~~ | dual-write + soft delete + backup prefix | ✅ chiuso 2026-07-16 |
 | 3 | ~~Blob pubblici travel/chat/supplier docs~~ | upload `private` + download auth | ✅ chiuso |
-| 4 | UI liste documenti dedicata | API + download file ok | C+ prodotto |
+| 4 | ~~UI liste documenti dedicata~~ | `/leonardo/documenti` — lista/filtri/upload/download | ✅ 2026-07-18 |
 | 5 | Import async > migliaia di righe | timeout HTTP su file enormi | C+ |
 | 6 | Verbali HTML ancora payload workspace | OK oggi; a volume alto versionare come document | C+ |
 | 7 | Drill recovery da manifest backup | procedure ops | ops |

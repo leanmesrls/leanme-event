@@ -84,6 +84,14 @@
       "icon": "leonardo"
     },
     {
+      "id": "documenti",
+      "label": "Documenti",
+      "segment": "leonardo/documenti",
+      "module": "events",
+      "capability": "eventi",
+      "icon": "settings"
+    },
+    {
       "id": "finance",
       "label": "Finance",
       "segment": "leonardo/finance",
