@@ -416,7 +416,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   }, [pathname]);
 
   return (
-    <div className="min-h-[100dvh] bg-black text-white">
+    <div className="min-h-[100dvh] bg-[#121216] text-white">
       <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
         <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-[#121216] px-5 py-8 lg:flex">
           <div className="border-b border-white/10 pb-6">
