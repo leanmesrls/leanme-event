@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { LeonardoPrimarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import {
   formatDocumentBytes,
@@ -42,6 +43,7 @@ export function LeonardoDocumentsPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [uploadKind, setUploadKind] = useState<LeanEventDocumentKind>("cv");
   const [uploadTitle, setUploadTitle] = useState("");
+  const [section, setSection] = useState<"list" | "upload">("list");
 
   const loadDocuments = useCallback(async () => {
     setLoading(true);
@@ -164,6 +166,17 @@ export function LeonardoDocumentsPanel({
         </p>
       ) : null}
 
+      <LeonardoPrimarySectionNav
+        aria-label="Sezioni documenti"
+        sections={[
+          { id: "list", label: "Visualizza elenco" },
+          { id: "upload", label: "Carica documento" },
+        ]}
+        active={section}
+        onChange={setSection}
+      />
+
+      {section === "upload" ? (
       <section className="leonardo-canvas rounded-xl border border-zinc-300/70 bg-[#f5f5f7] p-5 shadow-sm">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-leanme-fuchsia">
           Carica documento
@@ -199,7 +212,7 @@ export function LeonardoDocumentsPanel({
               type="button"
               disabled={uploading}
               onClick={() => fileInputRef.current?.click()}
-              className="w-full rounded-full bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:opacity-60 md:w-auto"
+              className="w-full rounded-md bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:opacity-60 md:w-auto"
             >
               {uploading ? "Caricamento…" : "Scegli file"}
             </button>
@@ -218,7 +231,7 @@ export function LeonardoDocumentsPanel({
           </div>
         </div>
       </section>
-
+      ) : (
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <label className="block text-sm">
@@ -249,7 +262,7 @@ export function LeonardoDocumentsPanel({
           <p className="text-sm text-white/50">Caricamento…</p>
         ) : items.length === 0 ? (
           <p className="rounded-xl border border-white/10 bg-[#111111] p-6 text-sm text-white/60">
-            Nessun documento in registry. Carica il primo file sopra.
+            Nessun documento in registry. Vai su «Carica documento».
           </p>
         ) : (
           <div className="leonardo-canvas overflow-hidden rounded-xl border border-zinc-300/70 bg-[#f5f5f7] shadow-sm">
@@ -334,6 +347,7 @@ export function LeonardoDocumentsPanel({
           </div>
         ) : null}
       </section>
+      )}
     </div>
   );
 }

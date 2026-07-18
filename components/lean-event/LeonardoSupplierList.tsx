@@ -3,11 +3,11 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
 import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
 import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { LeonardoSupplierListTable } from "@/components/lean-event/LeonardoSupplierListTable";
 import { LeonardoSupplierSheetModal } from "@/components/lean-event/LeonardoSupplierSheetModal";
 import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
@@ -51,6 +51,8 @@ export function LeonardoSupplierList({
     LEONARDO_DEFAULT_PAGE_SIZE
   );
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"list" | "add">("list");
+  const [addMode, setAddMode] = useState<"single" | "import">("single");
   const [form, setForm] = useState({
     name: "",
     categoryId: "collaboratori" as LeonardoSupplierCategoryId,
@@ -120,7 +122,7 @@ export function LeonardoSupplierList({
   );
 
   useLeonardoListKeyboard({
-    enabled: filtered.length > 0,
+    enabled: view === "list" && filtered.length > 0,
     items: paginated.pageItems,
     activeId: sheetSupplierId,
     onSelect: syncSupplierSheet,
@@ -191,7 +193,7 @@ export function LeonardoSupplierList({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled={clientiEnabled} />
 
       <div>
@@ -201,12 +203,24 @@ export function LeonardoSupplierList({
         </p>
       </div>
 
-      <LeonardoCollapsiblePanel
-        title="Elenco fornitori"
-        summary={`${filtered.length} visibili · ${suppliers.length} totali`}
-        defaultOpen
-      >
-        <div className="space-y-4 pt-2">
+      <LeonardoSecondarySectionNav
+        aria-label="Azioni fornitori"
+        sections={[
+          { id: "list", label: "Visualizza elenco" },
+          { id: "add", label: "Aggiungi nuovo" },
+        ]}
+        active={view}
+        onChange={setView}
+      />
+
+      {error ? (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          {error}
+        </p>
+      ) : null}
+
+      {view === "list" ? (
+        <div className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-[200px] flex-1 text-sm">
               <span className="mb-1 block text-white/60">Cerca</span>
@@ -241,7 +255,7 @@ export function LeonardoSupplierList({
             <button
               type="button"
               onClick={handleExport}
-              className="rounded-full border border-white/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:border-leanme-fuchsia"
+              className="rounded-md border border-white/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:border-leanme-fuchsia"
             >
               Esporta CSV
             </button>
@@ -249,7 +263,9 @@ export function LeonardoSupplierList({
 
           {filtered.length === 0 ? (
             <p className="text-sm text-white/50">
-              Nessun fornitore corrisponde ai filtri.
+              {suppliers.length === 0
+                ? "Nessun fornitore. Vai su «Aggiungi nuovo»."
+                : "Nessun fornitore corrisponde ai filtri."}
             </p>
           ) : (
             <>
@@ -269,120 +285,112 @@ export function LeonardoSupplierList({
                 onOpenSheet={syncSupplierSheet}
                 virtualScroll={pageSize === "virtual"}
               />
-              {pageSize !== "virtual" && paginated.totalPages > 1 ? (
-                <LeonardoListPagination
-                  totalItems={filtered.length}
-                  page={paginated.currentPage}
-                  totalPages={paginated.totalPages}
-                  pageSize={pageSize}
-                  pageItemsCount={paginated.pageItems.length}
-                  itemLabel="fornitori"
-                  onPageChange={setPage}
-                  onPageSizeChange={setPageSize}
-                />
-              ) : null}
             </>
           )}
         </div>
-      </LeonardoCollapsiblePanel>
+      ) : (
+        <div className="space-y-4">
+          <LeonardoSecondarySectionNav
+            aria-label="Modalità inserimento fornitori"
+            sections={[
+              { id: "single", label: "Aggiungi singolo" },
+              { id: "import", label: "Importazione massiva" },
+            ]}
+            active={addMode}
+            onChange={setAddMode}
+          />
 
-      <LeonardoCollapsiblePanel
-        title="Inserimento fornitore"
-        summary="Nuova anagrafica in rubrica"
-      >
-        <section className="pt-2">
-          {error ? (
-            <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              {error}
-            </p>
-          ) : null}
-          <form onSubmit={handleCreate} className="grid gap-3 md:grid-cols-2">
-            <label className="block text-sm md:col-span-2">
-              <span className="mb-1 block text-white/60">Ragione sociale *</span>
-              <input
-                required
-                value={form.name}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-white/60">Categoria *</span>
-              <select
-                required
-                value={form.categoryId}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    categoryId: event.target.value as LeonardoSupplierCategoryId,
-                  })
-                }
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              >
-                {SUPPLIER_CATEGORIES.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-white/60">P.IVA</span>
-              <input
-                value={form.vatNumber}
-                onChange={(event) => setForm({ ...form, vatNumber: event.target.value })}
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-white/60">Referente</span>
-              <input
-                value={form.contactPerson}
-                onChange={(event) =>
-                  setForm({ ...form, contactPerson: event.target.value })
-                }
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-white/60">Email</span>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(event) => setForm({ ...form, email: event.target.value })}
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-white/60">Telefono</span>
-              <input
-                value={form.phone}
-                onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-white/60">Città</span>
-              <input
-                value={form.city}
-                onChange={(event) => setForm({ ...form, city: event.target.value })}
-                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-              />
-            </label>
-            <div className="md:col-span-2">
-              <button
-                type="submit"
-                className="rounded-full bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
-              >
-                Aggiungi fornitore
-              </button>
-            </div>
-          </form>
-          <div className="mt-6">
+          {addMode === "single" ? (
+            <form
+              onSubmit={handleCreate}
+              className="grid gap-3 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-2"
+            >
+              <label className="block text-sm md:col-span-2">
+                <span className="mb-1 block text-white/60">Ragione sociale *</span>
+                <input
+                  required
+                  value={form.name}
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-white/60">Categoria *</span>
+                <select
+                  required
+                  value={form.categoryId}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      categoryId: event.target.value as LeonardoSupplierCategoryId,
+                    })
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                >
+                  {SUPPLIER_CATEGORIES.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-white/60">P.IVA</span>
+                <input
+                  value={form.vatNumber}
+                  onChange={(event) => setForm({ ...form, vatNumber: event.target.value })}
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-white/60">Referente</span>
+                <input
+                  value={form.contactPerson}
+                  onChange={(event) =>
+                    setForm({ ...form, contactPerson: event.target.value })
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-white/60">Email</span>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setForm({ ...form, email: event.target.value })}
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-white/60">Telefono</span>
+                <input
+                  value={form.phone}
+                  onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-white/60">Città</span>
+                <input
+                  value={form.city}
+                  onChange={(event) => setForm({ ...form, city: event.target.value })}
+                  className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  className="rounded-md bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
+                >
+                  Aggiungi fornitore
+                </button>
+              </div>
+            </form>
+          ) : (
             <LeonardoBulkImport kind="suppliers" onImported={reloadSuppliers} />
-          </div>
-        </section>
-      </LeonardoCollapsiblePanel>
+          )}
+        </div>
+      )}
 
       {sheetSupplier ? (
         <LeonardoSupplierSheetModal

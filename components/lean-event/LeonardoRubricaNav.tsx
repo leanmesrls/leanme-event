@@ -24,6 +24,7 @@ const sections = [
   { id: "clienti", label: "Clienti", path: leanEventLeonardoClientiPath },
 ] as const;
 
+/** Rubrica L1: Contatti | Sedi | Fornitori | Clienti — stesso stile fasi evento. */
 export function LeonardoRubricaNav({
   tenantSlug,
   clientiEnabled = false,
@@ -35,42 +36,44 @@ export function LeonardoRubricaNav({
     <nav
       aria-label="Sezioni rubrica"
       className={cn(
-        "flex flex-wrap gap-2 rounded-lg border border-white/10 bg-black/30 p-1",
+        "rounded-xl border border-white/10 bg-zinc-950 p-2 sm:p-3",
         className
       )}
     >
-      {sections.map((section) => {
-        const href = section.path(tenantSlug);
-        const active = pathname.startsWith(href);
-        const disabled = section.id === "clienti" && !clientiEnabled;
+      <div className="-mx-0.5 flex gap-2 overflow-x-auto px-0.5 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {sections.map((section) => {
+          const href = section.path(tenantSlug);
+          const active = pathname.startsWith(href);
+          const disabled = section.id === "clienti" && !clientiEnabled;
 
-        if (disabled) {
+          if (disabled) {
+            return (
+              <span
+                key={section.id}
+                className="shrink-0 cursor-not-allowed rounded-md border border-white/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/25 sm:text-xs"
+                title="In arrivo"
+              >
+                {section.label}
+              </span>
+            );
+          }
+
           return (
-            <span
+            <Link
               key={section.id}
-              className="rounded-md px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 sm:text-[11px]"
-              title="In arrivo"
+              href={href}
+              className={cn(
+                "shrink-0 rounded-md px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] transition sm:text-xs",
+                active
+                  ? "bg-leanme-fuchsia text-white shadow-sm"
+                  : "border border-leanme-fuchsia/45 text-leanme-fuchsia hover:border-leanme-fuchsia hover:bg-leanme-fuchsia/10"
+              )}
             >
               {section.label}
-            </span>
+            </Link>
           );
-        }
-
-        return (
-          <Link
-            key={section.id}
-            href={href}
-            className={cn(
-              "rounded-md px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px]",
-              active
-                ? "bg-leanme-fuchsia/15 text-white"
-                : "text-white/45 hover:bg-white/[0.04] hover:text-white/75"
-            )}
-          >
-            {section.label}
-          </Link>
-        );
-      })}
+        })}
+      </div>
     </nav>
   );
 }

@@ -4,11 +4,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
-import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
 import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { LeonardoMeetingCongressiVenueImport } from "@/components/lean-event/LeonardoMeetingCongressiVenueImport";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { LeonardoVenueListTable } from "@/components/lean-event/LeonardoVenueListTable";
 import { LeonardoVenueSheetModal } from "@/components/lean-event/LeonardoVenueSheetModal";
 import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
@@ -46,6 +46,8 @@ export function LeonardoVenueList({
     LEONARDO_DEFAULT_PAGE_SIZE
   );
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"list" | "add">("list");
+  const [addMode, setAddMode] = useState<"single" | "import">("single");
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -102,7 +104,7 @@ export function LeonardoVenueList({
   );
 
   useLeonardoListKeyboard({
-    enabled: filtered.length > 0,
+    enabled: view === "list" && filtered.length > 0,
     items: paginated.pageItems,
     activeId: sheetVenueId,
     onSelect: syncVenueSheet,
@@ -169,7 +171,7 @@ export function LeonardoVenueList({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled={clientiEnabled} />
 
       <div>
@@ -179,18 +181,24 @@ export function LeonardoVenueList({
         </p>
       </div>
 
+      <LeonardoSecondarySectionNav
+        aria-label="Azioni sedi"
+        sections={[
+          { id: "list", label: "Visualizza elenco" },
+          { id: "add", label: "Aggiungi nuovo" },
+        ]}
+        active={view}
+        onChange={setView}
+      />
+
       {error ? (
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
           {error}
         </p>
       ) : null}
 
-      <LeonardoCollapsiblePanel
-        title="Elenco sedi"
-        summary={`${filtered.length} visibili · ${venues.length} totali`}
-        defaultOpen
-      >
-        <div className="space-y-4 pt-2">
+      {view === "list" ? (
+        <div className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-[200px] flex-1 text-sm">
               <span className="mb-1 block text-white/60">Cerca</span>
@@ -210,7 +218,7 @@ export function LeonardoVenueList({
             <button
               type="button"
               onClick={handleExport}
-              className="rounded-full border border-white/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:border-leanme-fuchsia"
+              className="rounded-md border border-white/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:border-leanme-fuchsia"
             >
               Esporta CSV
             </button>
@@ -219,7 +227,7 @@ export function LeonardoVenueList({
           {filtered.length === 0 ? (
             <p className="text-sm text-white/50">
               {venues.length === 0
-                ? "Nessuna sede. Apri «Inserimento e import»."
+                ? "Nessuna sede. Vai su «Aggiungi nuovo»."
                 : "Nessun risultato per la ricerca."}
             </p>
           ) : (
@@ -243,71 +251,81 @@ export function LeonardoVenueList({
             </>
           )}
         </div>
-      </LeonardoCollapsiblePanel>
+      ) : (
+        <div className="space-y-4">
+          <LeonardoSecondarySectionNav
+            aria-label="Modalità inserimento sedi"
+            sections={[
+              { id: "single", label: "Aggiungi singolo" },
+              { id: "import", label: "Importazione massiva" },
+            ]}
+            active={addMode}
+            onChange={setAddMode}
+          />
 
-      <LeonardoCollapsiblePanel
-        title="Inserimento e import"
-        summary="Nuova sede, bulk import, Meeting e Congressi"
-      >
-        <div className="space-y-4 pt-2">
-          <form onSubmit={handleCreate} className="grid gap-3 md:grid-cols-2">
-            <input
-              required
-              placeholder="Nome sede *"
-              value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
-            />
-            <input
-              required
-              placeholder="Indirizzo *"
-              value={form.address}
-              onChange={(event) => setForm({ ...form, address: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
-            />
-            <input
-              required
-              placeholder="Città *"
-              value={form.city}
-              onChange={(event) => setForm({ ...form, city: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              required
-              placeholder="Provincia *"
-              value={form.province}
-              onChange={(event) => setForm({ ...form, province: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm uppercase outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="CAP"
-              value={form.postalCode}
-              onChange={(event) => setForm({ ...form, postalCode: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="Telefono"
-              value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-            <input
-              placeholder="Email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
-            />
-            <button
-              type="submit"
-              className="rounded-full bg-leanme-fuchsia px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark md:col-span-2 md:justify-self-start"
-            >
-              Salva sede
-            </button>
-          </form>
-          <LeonardoBulkImport kind="venues" onImported={reloadVenues} />
-          <LeonardoMeetingCongressiVenueImport onImported={reloadVenues} />
+          {addMode === "single" ? (
+            <form onSubmit={handleCreate} className="grid gap-3 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-2">
+              <input
+                required
+                placeholder="Nome sede *"
+                value={form.name}
+                onChange={(event) => setForm({ ...form, name: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
+              />
+              <input
+                required
+                placeholder="Indirizzo *"
+                value={form.address}
+                onChange={(event) => setForm({ ...form, address: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
+              />
+              <input
+                required
+                placeholder="Città *"
+                value={form.city}
+                onChange={(event) => setForm({ ...form, city: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+              />
+              <input
+                required
+                placeholder="Provincia *"
+                value={form.province}
+                onChange={(event) => setForm({ ...form, province: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm uppercase outline-none focus:border-leanme-fuchsia"
+              />
+              <input
+                placeholder="CAP"
+                value={form.postalCode}
+                onChange={(event) => setForm({ ...form, postalCode: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+              />
+              <input
+                placeholder="Telefono"
+                value={form.phone}
+                onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+              />
+              <input
+                placeholder="Email"
+                value={form.email}
+                onChange={(event) => setForm({ ...form, email: event.target.value })}
+                className="rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia md:col-span-2"
+              />
+              <button
+                type="submit"
+                className="rounded-md bg-leanme-fuchsia px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark md:col-span-2 md:justify-self-start"
+              >
+                Salva sede
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <LeonardoBulkImport kind="venues" onImported={reloadVenues} />
+              <LeonardoMeetingCongressiVenueImport onImported={reloadVenues} />
+            </div>
+          )}
         </div>
-      </LeonardoCollapsiblePanel>
+      )}
 
       {sheetVenue ? (
         <LeonardoVenueSheetModal

@@ -1,24 +1,28 @@
-"use client";
+﻿"use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
 import { LeonardoContactImport } from "@/components/lean-event/LeonardoContactImport";
 import { LeonardoContactListTable } from "@/components/lean-event/LeonardoContactListTable";
 import { LeonardoContactSheetModal } from "@/components/lean-event/LeonardoContactSheetModal";
-import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
+import {
+  LeonardoListPagination,
+  LEONARDO_DEFAULT_PAGE_SIZE,
+} from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { LeonardoSecondarySectionNav } from "@/components/lean-event/LeonardoSectionNav";
 import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
-import {
-  collectContactTags,
-} from "@/lib/lean-event/contact-tags";
+import { collectContactTags } from "@/lib/lean-event/contact-tags";
 import {
   contactMatchesFilters,
   downloadContactsCsv,
 } from "@/lib/lean-event/contact-export";
-import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
+import {
+  paginateList,
+  type LeonardoPageSize,
+} from "@/lib/lean-event/list-pagination";
 import { sortContacts, type ListSortMode } from "@/lib/lean-event/list-sort";
 import { useLeonardoListKeyboard } from "@/lib/lean-event/use-leonardo-list-keyboard";
 import type { LeanEventContact } from "@/types/lean-event";
@@ -39,6 +43,9 @@ function emptyDraftContact(): LeanEventContact {
     updatedAt: "",
   };
 }
+
+type ContactView = "list" | "add";
+type ContactAddMode = "single" | "import";
 
 interface LeonardoContactListProps {
   tenantSlug: string;
@@ -62,6 +69,8 @@ export function LeonardoContactList({
       tags: contact.tags ?? [],
     }))
   );
+  const [view, setView] = useState<ContactView>("list");
+  const [addMode, setAddMode] = useState<ContactAddMode>("single");
   const [sheetContactId, setSheetContactId] = useState<string | null>(
     initialContactId
   );
@@ -111,7 +120,7 @@ export function LeonardoContactList({
       : paginateList(filtered, page, pageSize);
 
   const sheetContact = sheetContactId
-    ? contacts.find((item) => item.id === sheetContactId) ?? null
+    ? (contacts.find((item) => item.id === sheetContactId) ?? null)
     : null;
 
   const syncContactSheet = useCallback(
@@ -132,7 +141,7 @@ export function LeonardoContactList({
   );
 
   useLeonardoListKeyboard({
-    enabled: filtered.length > 0,
+    enabled: view === "list" && filtered.length > 0,
     items: paginated.pageItems,
     activeId: sheetContactId,
     onSelect: syncContactSheet,
@@ -143,12 +152,16 @@ export function LeonardoContactList({
       const withoutDupes = contact.email.trim()
         ? current.filter(
             (item) =>
-              item.email.trim().toLowerCase() !== contact.email.trim().toLowerCase()
+              item.email.trim().toLowerCase() !==
+              contact.email.trim().toLowerCase()
           )
         : current;
       return [...withoutDupes, { ...contact, tags: contact.tags ?? [] }].sort(
         (a, b) =>
-          `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, "it")
+          `${a.lastName} ${a.firstName}`.localeCompare(
+            `${b.lastName} ${b.firstName}`,
+            "it"
+          )
       );
     });
     setCreateModalOpen(false);
@@ -162,7 +175,10 @@ export function LeonardoContactList({
     const payload = (await response.json()) as { contacts?: LeanEventContact[] };
     if (payload.contacts) {
       setContacts(
-        payload.contacts.map((contact) => ({ ...contact, tags: contact.tags ?? [] }))
+        payload.contacts.map((contact) => ({
+          ...contact,
+          tags: contact.tags ?? [],
+        }))
       );
     }
   }
@@ -176,20 +192,36 @@ export function LeonardoContactList({
     const hasFilters = query.trim().length > 0 || tagFilter.length > 0;
     downloadContactsCsv(
       filtered,
-      hasFilters ? "lean-event-rubrica-contatti-filtrato.csv" : "lean-event-rubrica-contatti.csv"
+      hasFilters
+        ? "lean-event-rubrica-contatti-filtrato.csv"
+        : "lean-event-rubrica-contatti.csv"
     );
   }
 
   return (
-    <div className="space-y-6">
-      <LeonardoRubricaNav tenantSlug={tenantSlug} clientiEnabled={clientiEnabled} />
+    <div className="space-y-4">
+      <LeonardoRubricaNav
+        tenantSlug={tenantSlug}
+        clientiEnabled={clientiEnabled}
+      />
 
       <div>
         <h2 className={LEONARDO_PAGE_TITLE}>Rubrica contatti</h2>
         <p className="mt-2 text-sm text-white/60">
-          {contacts.length} contatti · elenco paginato · scheda in popup · j/k per navigare
+          {contacts.length} contatti · elenco paginato · scheda in popup · j/k
+          per navigare
         </p>
       </div>
+
+      <LeonardoSecondarySectionNav
+        aria-label="Azioni contatti"
+        sections={[
+          { id: "list", label: "Visualizza elenco" },
+          { id: "add", label: "Aggiungi nuovo" },
+        ]}
+        active={view}
+        onChange={setView}
+      />
 
       {error ? (
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
@@ -197,12 +229,8 @@ export function LeonardoContactList({
         </p>
       ) : null}
 
-      <LeonardoCollapsiblePanel
-        title="Elenco contatti"
-        summary={`${filtered.length} visibili · ${contacts.length} totali`}
-        defaultOpen
-      >
-        <div className="space-y-4 pt-2">
+      {view === "list" ? (
+        <div className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-[200px] flex-1 text-sm">
               <span className="mb-1 block text-white/60">Cerca</span>
@@ -237,7 +265,7 @@ export function LeonardoContactList({
             <button
               type="button"
               onClick={handleExport}
-              className="rounded-full border border-white/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:border-leanme-fuchsia"
+              className="rounded-md border border-white/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:border-leanme-fuchsia"
             >
               Esporta CSV
             </button>
@@ -250,7 +278,7 @@ export function LeonardoContactList({
                   key={tag}
                   type="button"
                   onClick={() => setTagFilter(tagFilter === tag ? "" : tag)}
-                  className={`rounded-full px-2.5 py-1 text-[11px] ${
+                  className={`rounded-md px-2.5 py-1 text-[11px] ${
                     tagFilter === tag
                       ? "bg-leanme-fuchsia text-white"
                       : "border border-white/15 text-white/60 hover:border-white/30"
@@ -265,7 +293,7 @@ export function LeonardoContactList({
           {filtered.length === 0 ? (
             <p className="text-sm text-white/50">
               {contacts.length === 0
-                ? "Nessun contatto. Apri «Inserimento e import»."
+                ? "Nessun contatto. Vai su «Aggiungi nuovo»."
                 : "Nessun risultato con i filtri attuali."}
             </p>
           ) : (
@@ -289,27 +317,40 @@ export function LeonardoContactList({
             </>
           )}
         </div>
-      </LeonardoCollapsiblePanel>
+      ) : (
+        <div className="space-y-4">
+          <LeonardoSecondarySectionNav
+            aria-label="Modalità inserimento contatti"
+            sections={[
+              { id: "single", label: "Aggiungi singolo" },
+              {
+                id: "import",
+                label: "Importazione massiva (Excel / copia-incolla)",
+              },
+            ]}
+            active={addMode}
+            onChange={setAddMode}
+          />
 
-      <LeonardoCollapsiblePanel
-        title="Inserimento e import"
-        summary="Nuovo contatto o import massivo"
-      >
-        <div className="space-y-4 pt-2">
-          <button
-            type="button"
-            onClick={() => setCreateModalOpen(true)}
-            className="rounded-full bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
-          >
-            Nuovo contatto
-          </button>
-          <p className="text-sm text-white/55">
-            Apre la scheda completa in popup: compili tutti i campi e salvi una sola
-            volta.
-          </p>
-          <LeonardoContactImport compact onImported={reloadContacts} />
+          {addMode === "single" ? (
+            <div className="space-y-3 rounded-xl border border-white/10 bg-black/40 p-4">
+              <p className="text-sm text-white/55">
+                Apre la scheda completa in popup: compili tutti i campi e salvi
+                una sola volta.
+              </p>
+              <button
+                type="button"
+                onClick={() => setCreateModalOpen(true)}
+                className="rounded-md bg-leanme-fuchsia px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark"
+              >
+                Nuovo contatto
+              </button>
+            </div>
+          ) : (
+            <LeonardoContactImport compact onImported={reloadContacts} />
+          )}
         </div>
-      </LeonardoCollapsiblePanel>
+      )}
 
       {createModalOpen ? (
         <LeonardoContactSheetModal
