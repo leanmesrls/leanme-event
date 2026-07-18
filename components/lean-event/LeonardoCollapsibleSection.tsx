@@ -22,7 +22,10 @@ export function LeonardoCollapsibleSection({
   actions,
 }: LeonardoCollapsibleSectionProps) {
   return (
-    <div className="min-w-0 space-y-3 overflow-hidden rounded-lg border border-white/10 bg-black/20 p-3">
+    <div
+      data-leonardo-canvas
+      className="leonardo-canvas min-w-0 space-y-3 overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-sm sm:p-4"
+    >
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -31,10 +34,10 @@ export function LeonardoCollapsibleSection({
         >
           <span className="flex items-center justify-between gap-2">
             <span className={`${LEONARDO_COLLAPSIBLE_TITLE} truncate`}>{title}</span>
-            <span className="shrink-0 text-xs text-white/40">{open ? "▲" : "▼"}</span>
+            <span className="shrink-0 text-xs text-zinc-400">{open ? "▲" : "▼"}</span>
           </span>
           {!open && summary ? (
-            <span className="truncate text-xs text-white/45">{summary}</span>
+            <span className="truncate text-xs text-zinc-500">{summary}</span>
           ) : null}
         </button>
         {actions && open ? (
@@ -43,7 +46,7 @@ export function LeonardoCollapsibleSection({
           </div>
         ) : null}
       </div>
-      {open ? children : null}
+      {open ? <div className="min-w-0">{children}</div> : null}
     </div>
   );
 }

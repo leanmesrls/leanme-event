@@ -71,18 +71,19 @@ export function LeonardoGuestSheetModal({
       }}
     >
       <div
-        className="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#111111] shadow-2xl sm:rounded-2xl"
+        data-leonardo-canvas
+        className="leonardo-canvas flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl border border-zinc-200 bg-white shadow-2xl sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-5">
           <div className="min-w-0">
             <p
               id="guest-sheet-title"
-              className="truncate text-lg font-semibold text-white"
+              className="truncate text-lg font-semibold text-zinc-900"
             >
               {assignment.contactName}
             </p>
-            <p className="text-xs text-white/50">
+            <p className="text-xs text-zinc-500">
               {assignment.roleLabel} · Scheda ospite
             </p>
           </div>
@@ -101,7 +102,7 @@ export function LeonardoGuestSheetModal({
               type="button"
               disabled={saving}
               onClick={onClose}
-              className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
+              className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-40"
             >
               Chiudi
             </button>
@@ -125,7 +126,7 @@ export function LeonardoGuestSheetModal({
         </div>
 
         {error ? (
-          <p className="shrink-0 border-t border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+          <p className="shrink-0 border-t border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : null}

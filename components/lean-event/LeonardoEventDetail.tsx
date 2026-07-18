@@ -21,6 +21,9 @@ import {
   LeonardoEventTaxonomyFields,
   type EventTaxonomyFormState,
 } from "@/components/lean-event/LeonardoEventTaxonomyFields";
+import {
+  LEONARDO_CANVAS_SURFACE,
+} from "@/components/lean-event/leonardo-ui";
 import { LeonardoRevisionConflictDialog } from "@/components/lean-event/LeonardoRevisionConflictDialog";
 import { LeonardoRevisionStaleBanner } from "@/components/lean-event/LeonardoRevisionStaleBanner";
 import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
@@ -358,6 +361,7 @@ export function LeonardoEventDetail({
         onTabChange={handleTabChange}
       />
 
+      <div data-leonardo-canvas className="leonardo-canvas space-y-6">
       {!activeTabDef.implemented ? (
         <LeonardoEventPlaceholderPanel tab={activeTabDef} />
       ) : null}
@@ -375,7 +379,7 @@ export function LeonardoEventDetail({
       ) : null}
 
       {!tabBlocked && activeTabDef.implemented && activeTab === "evento" ? (
-        <section className="space-y-4 rounded-xl border border-white/10 bg-[#111111] p-6">
+        <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
           <LeonardoEventTaxonomyFields
             value={{
               categoryId: event.categoryId,
@@ -601,7 +605,7 @@ export function LeonardoEventDetail({
       ) : null}
 
       {!tabBlocked && activeTabDef.implemented && activeTab === "stampati" ? (
-        <section className="rounded-xl border border-white/10 bg-[#111111] p-6">
+        <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-leanme-fuchsia">
             Stampati
           </h3>
@@ -624,7 +628,7 @@ export function LeonardoEventDetail({
       ) : null}
 
       {!tabBlocked && activeTabDef.implemented && activeTab === "verbali" ? (
-        <section className="rounded-xl border border-white/10 bg-[#111111] p-6">
+        <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-white/60">
               Verbali collegati a questo evento (`linkedEventId`).
@@ -660,6 +664,7 @@ export function LeonardoEventDetail({
           )}
         </section>
       ) : null}
+      </div>
 
       <LeonardoRevisionConflictDialog
         open={Boolean(conflict)}

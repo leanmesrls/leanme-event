@@ -224,6 +224,116 @@
     animation: cta-glow 2.8s ease-in-out infinite;
   }
 
+  /**
+   * Leonardo canvas — area dati chiara (form, tabelle, sezioni editabili).
+   * Chrome (nav, tab fase) resta scuro. Fonte: decisione UX 2026-07-18.
+   */
+  .leonardo-canvas {
+    color: #18181b;
+  }
+
+  .leonardo-canvas .bg-\[\#111111\],
+  .leonardo-canvas .bg-\[\#0d0d0d\],
+  .leonardo-canvas .bg-\[\#141414\],
+  .leonardo-canvas .bg-black\/20,
+  .leonardo-canvas .bg-black\/30,
+  .leonardo-canvas .bg-black\/40,
+  .leonardo-canvas .bg-black {
+    background-color: #ffffff !important;
+  }
+
+  .leonardo-canvas .bg-\[\#111111\]\/80,
+  .leonardo-canvas .hover\:bg-white\/\[0\.03\]:hover,
+  .leonardo-canvas .hover\:bg-white\/\[0\.04\]:hover,
+  .leonardo-canvas .hover\:bg-white\/10:hover {
+    background-color: #f4f4f5 !important;
+  }
+
+  .leonardo-canvas .border-white\/10,
+  .leonardo-canvas .border-white\/15,
+  .leonardo-canvas .border-white\/20,
+  .leonardo-canvas .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #e4e4e7 !important;
+  }
+
+  .leonardo-canvas .text-white\/20,
+  .leonardo-canvas .text-white\/30,
+  .leonardo-canvas .text-white\/35,
+  .leonardo-canvas .text-white\/40,
+  .leonardo-canvas .text-white\/45,
+  .leonardo-canvas .text-white\/50,
+  .leonardo-canvas .text-white\/55,
+  .leonardo-canvas .text-white\/60,
+  .leonardo-canvas .text-white\/70 {
+    color: #52525b !important;
+  }
+
+  .leonardo-canvas .text-white {
+    color: #18181b !important;
+  }
+
+  /* CTA fucsia: testo bianco anche sul canvas */
+  .leonardo-canvas .bg-leanme-fuchsia,
+  .leonardo-canvas .bg-leanme-fuchsia-dark,
+  .leonardo-canvas .hover\:bg-leanme-fuchsia-dark:hover {
+    color: #ffffff !important;
+  }
+
+  .leonardo-canvas .bg-leanme-fuchsia .text-white,
+  .leonardo-canvas .bg-leanme-fuchsia-dark .text-white,
+  .leonardo-canvas button.bg-leanme-fuchsia,
+  .leonardo-canvas a.bg-leanme-fuchsia,
+  .leonardo-canvas .rounded-full.bg-leanme-fuchsia {
+    color: #ffffff !important;
+  }
+
+  .leonardo-canvas input,
+  .leonardo-canvas select,
+  .leonardo-canvas textarea {
+    background-color: #ffffff !important;
+    color: #18181b !important;
+    border-color: #d4d4d8 !important;
+  }
+
+  .leonardo-canvas input::placeholder,
+  .leonardo-canvas textarea::placeholder {
+    color: #a1a1aa !important;
+  }
+
+  .leonardo-canvas thead,
+  .leonardo-canvas .sticky.top-0 {
+    background-color: #fafafa !important;
+    color: #71717a !important;
+  }
+
+  .leonardo-canvas .bg-leanme-fuchsia\/10 {
+    background-color: rgb(230 0 126 / 0.08) !important;
+  }
+
+  .leonardo-canvas .bg-emerald-500\/10 {
+    background-color: rgb(16 185 129 / 0.12) !important;
+  }
+
+  .leonardo-canvas .bg-amber-500\/10,
+  .leonardo-canvas .bg-amber-500\/15 {
+    background-color: rgb(245 158 11 / 0.14) !important;
+  }
+
+  .leonardo-canvas .text-emerald-100,
+  .leonardo-canvas .text-emerald-50\/90 {
+    color: #065f46 !important;
+  }
+
+  .leonardo-canvas .text-amber-100,
+  .leonardo-canvas .text-amber-50 {
+    color: #92400e !important;
+  }
+
+  .leonardo-canvas .text-red-200,
+  .leonardo-canvas .text-red-300 {
+    color: #b91c1c !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-partner-marquee,
     .partner-marquee-track {
