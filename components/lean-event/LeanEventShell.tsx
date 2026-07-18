@@ -271,12 +271,14 @@ function NavLink({
       onClick={onNavigate}
       className={cn(
         "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
-        nested ? "ml-3 border-l border-white/10 pl-3 text-[13px]" : "min-h-11 py-2.5",
+        nested ? "ml-3 border-l border-zinc-700 pl-3 text-[13px]" : "min-h-11 py-2.5",
         active
           ? nested
-            ? "border-leanme-fuchsia/60 bg-leanme-fuchsia/10 text-white"
+            ? "bg-zinc-800 text-zinc-100"
             : "bg-leanme-fuchsia/15 text-white"
-          : "text-white/65 hover:bg-white/[0.04] hover:text-white"
+          : nested
+            ? "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+            : "text-white/65 hover:bg-white/[0.04] hover:text-white"
       )}
     >
       {!nested && item.icon ? (
@@ -363,7 +365,7 @@ function LeonardoNav({
                 </svg>
               </button>
               {!collapsed ? (
-                <div className="space-y-0.5">
+                <div className="ml-2 space-y-0.5 rounded-lg border border-zinc-800 bg-zinc-950/80 py-1">
                   {item.children.map((child) => (
                     <NavLink
                       key={child.id}
@@ -416,9 +418,9 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   }, [pathname]);
 
   return (
-    <div className="min-h-[100dvh] bg-[#121216] text-white">
+    <div className="min-h-[100dvh] bg-black text-white">
       <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
-        <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-[#121216] px-5 py-8 lg:flex">
+        <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-black px-5 py-8 lg:flex">
           <div className="border-b border-white/10 pb-6">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leanme-fuchsia">
               LeanEvent
@@ -448,7 +450,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-white/10 bg-[#121216]/95 px-4 py-3 backdrop-blur md:px-8 md:py-4">
+          <header className="sticky top-0 z-30 border-b border-white/10 bg-black/95 px-4 py-3 backdrop-blur md:px-8 md:py-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3">
@@ -499,7 +501,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
             </div>
           </header>
 
-          <main className="flex-1 bg-[#141418] px-4 py-6 md:px-8 md:py-8">
+          <main className="flex-1 bg-black px-4 py-6 md:px-8 md:py-8">
             {children}
           </main>
         </div>

@@ -164,7 +164,7 @@ export function LeonardoDocumentsPanel({
         </p>
       ) : null}
 
-      <section className="leonardo-canvas rounded-xl border border-zinc-300/80 bg-[#f0f0f3] p-5 shadow-sm">
+      <section className="leonardo-canvas rounded-xl border border-zinc-300/70 bg-[#f5f5f7] p-5 shadow-sm">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-leanme-fuchsia">
           Carica documento
         </h3>
@@ -252,9 +252,9 @@ export function LeonardoDocumentsPanel({
             Nessun documento in registry. Carica il primo file sopra.
           </p>
         ) : (
-          <div className="leonardo-canvas overflow-hidden rounded-xl border border-zinc-300/80 bg-[#f0f0f3] shadow-sm">
+          <div className="leonardo-canvas overflow-hidden rounded-xl border border-zinc-300/70 bg-[#f5f5f7] shadow-sm">
             <table className="min-w-full text-sm">
-              <thead className="bg-[#e8e8ed] text-left text-xs uppercase tracking-[0.1em] text-zinc-500">
+              <thead className="bg-[#ebebef] text-left text-xs uppercase tracking-[0.1em] text-zinc-500">
                 <tr>
                   <th className="px-4 py-3">Titolo / file</th>
                   <th className="px-4 py-3">Tipo</th>
@@ -267,7 +267,7 @@ export function LeonardoDocumentsPanel({
                 {items.map((doc) => (
                   <tr
                     key={doc.id}
-                    className="border-t border-zinc-300/70 bg-[#f0f0f3]"
+                    className="border-t border-zinc-300/70 bg-[#f5f5f7]"
                   >
                     <td className="px-4 py-3">
                       <p className="font-medium text-white">

@@ -116,7 +116,7 @@ export function LeonardoEventTaxonomyFields({
               ECM *
             </legend>
             <div className="mt-2 flex flex-wrap gap-4">
-              <label className="flex items-center gap-2 text-sm text-white/80">
+              <label className="flex items-center gap-2 text-sm text-zinc-800">
                 <input
                   type="radio"
                   name="ecm-enabled"
@@ -127,7 +127,7 @@ export function LeonardoEventTaxonomyFields({
                 />
                 Sì
               </label>
-              <label className="flex items-center gap-2 text-sm text-white/80">
+              <label className="flex items-center gap-2 text-sm text-zinc-800">
                 <input
                   type="radio"
                   name="ecm-enabled"

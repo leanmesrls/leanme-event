@@ -24,7 +24,7 @@ export function LeonardoCollapsibleSection({
   return (
     <div
       data-leonardo-canvas
-      className="leonardo-canvas min-w-0 space-y-3 overflow-hidden rounded-xl border border-zinc-300/80 bg-[#f0f0f3] p-3 shadow-sm sm:p-4"
+      className="leonardo-canvas min-w-0 space-y-3 overflow-hidden rounded-xl border border-zinc-300/70 bg-[#f5f5f7] p-3 shadow-sm sm:p-4"
     >
       <div className="flex items-center justify-between gap-2">
         <button

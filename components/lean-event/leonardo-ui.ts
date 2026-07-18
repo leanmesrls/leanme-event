@@ -1,6 +1,6 @@
 /** Superficie dati chiara (canvas) — form, tabelle, sezioni editabili. */
 export const LEONARDO_CANVAS_SURFACE =
-  "leonardo-canvas rounded-xl border border-zinc-300/80 bg-[#f0f0f3] p-5 shadow-sm sm:p-6";
+  "leonardo-canvas rounded-xl border border-zinc-300/70 bg-[#f5f5f7] p-5 shadow-sm sm:p-6";
 
 /** Titolo pagina / sezione principale (Eventi, Ospiti, Rubrica…). */
 export const LEONARDO_PAGE_TITLE =
