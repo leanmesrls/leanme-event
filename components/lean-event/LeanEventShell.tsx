@@ -418,7 +418,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   return (
     <div className="min-h-[100dvh] bg-black text-white">
       <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
-        <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-[#0a0a0a] px-5 py-8 lg:flex">
+        <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-[#121216] px-5 py-8 lg:flex">
           <div className="border-b border-white/10 pb-6">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leanme-fuchsia">
               LeanEvent
@@ -448,7 +448,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0a0a0a]/95 px-4 py-3 backdrop-blur md:px-8 md:py-4">
+          <header className="sticky top-0 z-30 border-b border-white/10 bg-[#121216]/95 px-4 py-3 backdrop-blur md:px-8 md:py-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3">
@@ -499,7 +499,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
             </div>
           </header>
 
-          <main className="flex-1 bg-[#0c0c0c] px-4 py-6 md:px-8 md:py-8">
+          <main className="flex-1 bg-[#141418] px-4 py-6 md:px-8 md:py-8">
             {children}
           </main>
         </div>

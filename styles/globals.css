@@ -225,11 +225,11 @@
   }
 
   /**
-   * Leonardo canvas — area dati chiara (form, tabelle, sezioni editabili).
-   * Chrome (nav, tab fase) resta scuro. Fonte: decisione UX 2026-07-18.
+   * Leonardo canvas — area dati chiara (soft gray, non bianco puro).
+   * Chrome resta scuro ma non nero assoluto.
    */
   .leonardo-canvas {
-    color: #18181b;
+    color: #2a2a30;
   }
 
   .leonardo-canvas .bg-\[\#111111\],
@@ -239,21 +239,21 @@
   .leonardo-canvas .bg-black\/30,
   .leonardo-canvas .bg-black\/40,
   .leonardo-canvas .bg-black {
-    background-color: #ffffff !important;
+    background-color: #f0f0f3 !important;
   }
 
   .leonardo-canvas .bg-\[\#111111\]\/80,
   .leonardo-canvas .hover\:bg-white\/\[0\.03\]:hover,
   .leonardo-canvas .hover\:bg-white\/\[0\.04\]:hover,
   .leonardo-canvas .hover\:bg-white\/10:hover {
-    background-color: #f4f4f5 !important;
+    background-color: #e4e4ea !important;
   }
 
   .leonardo-canvas .border-white\/10,
   .leonardo-canvas .border-white\/15,
   .leonardo-canvas .border-white\/20,
   .leonardo-canvas .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #e4e4e7 !important;
+    border-color: #d0d0d8 !important;
   }
 
   .leonardo-canvas .text-white\/20,
@@ -265,11 +265,11 @@
   .leonardo-canvas .text-white\/55,
   .leonardo-canvas .text-white\/60,
   .leonardo-canvas .text-white\/70 {
-    color: #52525b !important;
+    color: #5a5a66 !important;
   }
 
   .leonardo-canvas .text-white {
-    color: #18181b !important;
+    color: #2a2a30 !important;
   }
 
   /* CTA fucsia: testo bianco anche sul canvas */
@@ -290,20 +290,20 @@
   .leonardo-canvas input,
   .leonardo-canvas select,
   .leonardo-canvas textarea {
-    background-color: #ffffff !important;
-    color: #18181b !important;
-    border-color: #d4d4d8 !important;
+    background-color: #f7f7f9 !important;
+    color: #2a2a30 !important;
+    border-color: #c8c8d0 !important;
   }
 
   .leonardo-canvas input::placeholder,
   .leonardo-canvas textarea::placeholder {
-    color: #a1a1aa !important;
+    color: #9898a3 !important;
   }
 
   .leonardo-canvas thead,
   .leonardo-canvas .sticky.top-0 {
-    background-color: #fafafa !important;
-    color: #71717a !important;
+    background-color: #e8e8ed !important;
+    color: #6a6a75 !important;
   }
 
   .leonardo-canvas .bg-leanme-fuchsia\/10 {

@@ -72,14 +72,14 @@ export function LeonardoGuestSheetModal({
     >
       <div
         data-leonardo-canvas
-        className="leonardo-canvas flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl border border-zinc-200 bg-white shadow-2xl sm:rounded-2xl"
+        className="leonardo-canvas flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl border border-zinc-300/80 bg-[#f0f0f3] shadow-2xl sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-5">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-300/70 bg-[#e6e6ec] px-4 py-3 sm:px-5">
           <div className="min-w-0">
             <p
               id="guest-sheet-title"
-              className="truncate text-lg font-semibold text-zinc-900"
+              className="truncate text-lg font-semibold text-zinc-800"
             >
               {assignment.contactName}
             </p>

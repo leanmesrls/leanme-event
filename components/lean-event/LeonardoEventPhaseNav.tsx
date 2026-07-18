@@ -40,7 +40,7 @@ export function LeonardoEventPhaseNav({
             onClick={() => onPhaseChange(phase.id)}
             className={`shrink-0 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] transition sm:text-xs ${
               activePhase === phase.id
-                ? "bg-white text-black"
+                ? "bg-zinc-200 text-zinc-900"
                 : "border border-white/20 text-white/70 hover:border-leanme-fuchsia"
             }`}
           >
