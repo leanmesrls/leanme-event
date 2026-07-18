@@ -252,13 +252,22 @@ function NavLink({
         href={leonardoUpgradeMailto(`LeanEvent - Upgrade ${item.label}`)}
         onClick={onNavigate}
         className={cn(
-          "flex min-h-10 items-start gap-3 rounded-lg px-3 py-2 text-sm text-white/35 transition hover:bg-white/[0.03] hover:text-white/50",
-          nested && "ml-3 border-l border-white/10 pl-3"
+          "flex min-h-10 items-start gap-3 rounded-lg px-3 py-2 text-sm transition",
+          nested
+            ? "ml-3 border-l border-white/10 pl-3 text-white/35 hover:bg-white/[0.03] hover:text-white/50"
+            : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-400"
         )}
         title={LEONARDO_UPGRADE_HINT}
       >
         <span className="min-w-0 flex-1">
-          <span className="block font-medium text-white/50">{item.label}</span>
+          <span
+            className={cn(
+              "block font-medium",
+              nested ? "text-white/50" : "text-zinc-500"
+            )}
+          >
+            {item.label}
+          </span>
           <LeanEventUpgradeHint className="mt-1.5" iconSize={16} />
         </span>
       </a>
@@ -271,14 +280,14 @@ function NavLink({
       onClick={onNavigate}
       className={cn(
         "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
-        nested ? "ml-3 border-l border-zinc-700 pl-3 text-[13px]" : "min-h-11 py-2.5",
+        nested ? "ml-3 border-l border-white/10 pl-3 text-[13px]" : "min-h-11 py-2.5",
         active
           ? nested
-            ? "bg-zinc-800 text-zinc-100"
-            : "bg-leanme-fuchsia/15 text-white"
+            ? "bg-leanme-fuchsia/15 text-white"
+            : "bg-zinc-800 text-zinc-100"
           : nested
-            ? "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
-            : "text-white/65 hover:bg-white/[0.04] hover:text-white"
+            ? "text-white/65 hover:bg-white/[0.04] hover:text-white"
+            : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
       )}
     >
       {!nested && item.icon ? (
@@ -340,8 +349,8 @@ function LeonardoNav({
                 onClick={() => toggleGroup(item.id)}
                 aria-expanded={!collapsed}
                 className={cn(
-                  "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition hover:bg-white/[0.04]",
-                  groupActive ? "text-white" : "text-white/55"
+                  "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition hover:bg-zinc-900",
+                  groupActive ? "bg-zinc-800 text-zinc-100" : "text-zinc-400"
                 )}
               >
                 {item.icon ? (
@@ -365,7 +374,7 @@ function LeonardoNav({
                 </svg>
               </button>
               {!collapsed ? (
-                <div className="ml-2 space-y-0.5 rounded-lg border border-zinc-800 bg-zinc-950/80 py-1">
+                <div className="ml-2 space-y-0.5 rounded-lg border border-white/10 bg-black py-1">
                   {item.children.map((child) => (
                     <NavLink
                       key={child.id}
