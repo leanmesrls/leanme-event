@@ -11,6 +11,7 @@ import {
   LEONARDO_PAGE_ACTION_BUTTON_SECONDARY,
   LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
+import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
 import {
   LEONARDO_LIST_NAME_CELL,
   LEONARDO_LIST_NAME_LINK,
@@ -41,6 +42,7 @@ export function LeonardoEventList({
   tenantSlug,
   initialEvents,
 }: LeonardoEventListProps) {
+  const workTabs = useLeonardoWorkTabsOptional();
   const [events, setEvents] = useState(initialEvents);
   const [section, setSection] = useState<EventSection>("list");
   const [query, setQuery] = useState("");
@@ -157,13 +159,30 @@ export function LeonardoEventList({
                       className="border-t border-white/10 bg-[#111111]"
                     >
                       <td className={`px-4 py-3 ${LEONARDO_LIST_NAME_CELL}`}>
-                        <Link
-                          href={leanEventLeonardoEventPath(tenantSlug, event.id)}
-                          title={event.title}
-                          className={LEONARDO_LIST_NAME_LINK}
-                        >
-                          {event.title}
-                        </Link>
+                        {workTabs ? (
+                          <button
+                            type="button"
+                            title={event.title}
+                            onClick={() =>
+                              workTabs.openTab({
+                                kind: "event",
+                                entityId: event.id,
+                                title: event.title,
+                              })
+                            }
+                            className={`${LEONARDO_LIST_NAME_LINK} w-full text-left`}
+                          >
+                            {event.title}
+                          </button>
+                        ) : (
+                          <Link
+                            href={leanEventLeonardoEventPath(tenantSlug, event.id)}
+                            title={event.title}
+                            className={LEONARDO_LIST_NAME_LINK}
+                          >
+                            {event.title}
+                          </Link>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-white/70">
                         {event.cdc || "—"}

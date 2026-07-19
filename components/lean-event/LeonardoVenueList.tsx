@@ -14,6 +14,7 @@ import {
   LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoVenueListTable } from "@/components/lean-event/LeonardoVenueListTable";
 import { LeonardoVenueSheetModal } from "@/components/lean-event/LeonardoVenueSheetModal";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
@@ -36,11 +37,14 @@ export function LeonardoVenueList({
   clientiEnabled = false,
   initialVenueId = null,
 }: LeonardoVenueListProps) {
+  const workTabs = useLeonardoWorkTabsOptional();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [venues, setVenues] = useState(initialVenues);
-  const [sheetVenueId, setSheetVenueId] = useState<string | null>(initialVenueId);
+  const [sheetVenueId, setSheetVenueId] = useState<string | null>(
+    workTabs ? null : initialVenueId
+  );
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<Exclude<ListSortMode, "date_start">>(
     "alphabetical"
@@ -66,9 +70,22 @@ export function LeonardoVenueList({
   }, [initialVenues]);
 
   useEffect(() => {
-    if (initialVenueId) {
-      setSheetVenueId(initialVenueId);
+    if (!initialVenueId) {
+      return;
     }
+    if (workTabs) {
+      const venue =
+        venues.find((item) => item.id === initialVenueId) ??
+        initialVenues.find((item) => item.id === initialVenueId);
+      workTabs.openTab({
+        kind: "venue",
+        entityId: initialVenueId,
+        title: venue?.name ?? initialVenueId,
+      });
+      return;
+    }
+    setSheetVenueId(initialVenueId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialVenueId]);
 
   const filtered = useMemo(() => {
@@ -91,7 +108,16 @@ export function LeonardoVenueList({
 
   const syncVenueSheet = useCallback(
     (venueId: string | null) => {
-      setSheetVenueId(venueId);
+      if (venueId && workTabs) {
+        const venue = venues.find((item) => item.id === venueId);
+        workTabs.openTab({
+          kind: "venue",
+          entityId: venueId,
+          title: venue?.name ?? venueId,
+        });
+      } else {
+        setSheetVenueId(venueId);
+      }
       const params = new URLSearchParams(searchParams.toString());
       if (venueId) {
         params.set("sede", venueId);
@@ -103,7 +129,7 @@ export function LeonardoVenueList({
         scroll: false,
       });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams, venues, workTabs]
   );
 
   useLeonardoListKeyboard({
@@ -339,7 +365,7 @@ export function LeonardoVenueList({
         </div>
       )}
 
-      {sheetVenue ? (
+      {sheetVenue && !workTabs ? (
         <LeonardoVenueSheetModal
           venue={sheetVenue}
           onVenueChange={(next) => {

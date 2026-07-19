@@ -12,6 +12,10 @@ import {
   leonardoUpgradeMailto,
 } from "@/lib/lean-event/capabilities";
 import { LeanEventUpgradeHint } from "@/components/lean-event/LeanEventUpgradeHint";
+import { LeonardoWorkTabBar } from "@/components/lean-event/LeonardoWorkTabBar";
+import { LeonardoWorkTabsProvider } from "@/components/lean-event/LeonardoWorkTabsContext";
+import { LeonardoWorkTabsRouteSync } from "@/components/lean-event/LeonardoWorkTabsRouteSync";
+import { LeonardoWorkTabHost } from "@/components/lean-event/LeonardoWorkTabHost";
 import {
   leanEventLeonardoCestinoPath,
   leanEventLeonardoPath,
@@ -435,6 +439,8 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   }, [pathname]);
 
   return (
+    <LeonardoWorkTabsProvider tenantSlug={session.tenantSlug}>
+    <LeonardoWorkTabsRouteSync />
     <div className="min-h-[100dvh] bg-black text-white">
       <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
         <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-black px-5 py-8 lg:flex">
@@ -518,8 +524,11 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
             </div>
           </header>
 
-          <main className="flex-1 bg-black px-4 py-6 md:px-8 md:py-8">
-            {children}
+          <main className="flex min-h-0 flex-1 flex-col bg-black px-4 py-6 md:px-8 md:py-8">
+            <LeonardoWorkTabBar />
+            <LeonardoWorkTabHost tenantSlug={session.tenantSlug}>
+              {children}
+            </LeonardoWorkTabHost>
           </main>
         </div>
       </div>
@@ -589,5 +598,6 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
         </div>
       ) : null}
     </div>
+    </LeonardoWorkTabsProvider>
   );
 }

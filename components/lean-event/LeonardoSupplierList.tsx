@@ -13,6 +13,7 @@ import {
   LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoSupplierListTable } from "@/components/lean-event/LeonardoSupplierListTable";
 import { LeonardoSupplierSheetModal } from "@/components/lean-event/LeonardoSupplierSheetModal";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
@@ -38,12 +39,13 @@ export function LeonardoSupplierList({
   clientiEnabled = false,
   initialSupplierId = null,
 }: LeonardoSupplierListProps) {
+  const workTabs = useLeonardoWorkTabsOptional();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [sheetSupplierId, setSheetSupplierId] = useState<string | null>(
-    initialSupplierId
+    workTabs ? null : initialSupplierId
   );
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -71,9 +73,22 @@ export function LeonardoSupplierList({
   }, [initialSuppliers]);
 
   useEffect(() => {
-    if (initialSupplierId) {
-      setSheetSupplierId(initialSupplierId);
+    if (!initialSupplierId) {
+      return;
     }
+    if (workTabs) {
+      const supplier =
+        suppliers.find((item) => item.id === initialSupplierId) ??
+        initialSuppliers.find((item) => item.id === initialSupplierId);
+      workTabs.openTab({
+        kind: "supplier",
+        entityId: initialSupplierId,
+        title: supplier?.name ?? initialSupplierId,
+      });
+      return;
+    }
+    setSheetSupplierId(initialSupplierId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSupplierId]);
 
   const filtered = useMemo(() => {
@@ -109,7 +124,16 @@ export function LeonardoSupplierList({
 
   const syncSupplierSheet = useCallback(
     (supplierId: string | null) => {
-      setSheetSupplierId(supplierId);
+      if (supplierId && workTabs) {
+        const supplier = suppliers.find((item) => item.id === supplierId);
+        workTabs.openTab({
+          kind: "supplier",
+          entityId: supplierId,
+          title: supplier?.name ?? supplierId,
+        });
+      } else {
+        setSheetSupplierId(supplierId);
+      }
       const params = new URLSearchParams(searchParams.toString());
       if (supplierId) {
         params.set("fornitore", supplierId);
@@ -121,7 +145,7 @@ export function LeonardoSupplierList({
         scroll: false,
       });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams, suppliers, workTabs]
   );
 
   useLeonardoListKeyboard({
@@ -401,7 +425,7 @@ export function LeonardoSupplierList({
         </form>
       )}
 
-      {sheetSupplier ? (
+      {sheetSupplier && !workTabs ? (
         <LeonardoSupplierSheetModal
           supplier={sheetSupplier}
           onSupplierChange={(next) => {

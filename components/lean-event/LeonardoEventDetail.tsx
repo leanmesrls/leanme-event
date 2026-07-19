@@ -77,6 +77,9 @@ interface LeonardoEventDetailProps {
   logisticaEnabled: boolean;
   currentUserName: string;
   currentUserEmail: string;
+  /** Quando true, back torna all'elenco tab invece di navigare. */
+  embedded?: boolean;
+  onBackToList?: () => void;
 }
 
 export function LeonardoEventDetail({
@@ -94,6 +97,8 @@ export function LeonardoEventDetail({
   logisticaEnabled,
   currentUserName,
   currentUserEmail,
+  embedded = false,
+  onBackToList,
 }: LeonardoEventDetailProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -322,12 +327,22 @@ export function LeonardoEventDetail({
         }}
       />
       <div>
-        <Link
-          href={leanEventLeonardoEventiPath(tenantSlug)}
-          className="text-xs font-semibold uppercase tracking-[0.1em] text-leanme-fuchsia"
-        >
-          ← Torna agli eventi
-        </Link>
+        {embedded && onBackToList ? (
+          <button
+            type="button"
+            onClick={onBackToList}
+            className="hidden text-xs font-semibold uppercase tracking-[0.1em] text-leanme-fuchsia lg:inline"
+          >
+            ← Torna all&apos;elenco
+          </button>
+        ) : (
+          <Link
+            href={leanEventLeonardoEventiPath(tenantSlug)}
+            className="text-xs font-semibold uppercase tracking-[0.1em] text-leanme-fuchsia"
+          >
+            ← Torna agli eventi
+          </Link>
+        )}
         <h2
           className="mt-3 truncate text-2xl font-bold text-leanme-fuchsia sm:text-3xl"
           title={event.title}

@@ -18,6 +18,8 @@ import {
   LEONARDO_PAGE_ACTION_BUTTON_SECONDARY_ACTIVE,
 } from "@/components/lean-event/LeonardoPageHeader";
 import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
+import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
+import { formatContactName } from "@/lib/lean-event/contact-display";
 import { collectContactTags } from "@/lib/lean-event/contact-tags";
 import {
   contactMatchesFilters,
@@ -63,6 +65,7 @@ export function LeonardoContactList({
   clientiEnabled = false,
   initialContactId = null,
 }: LeonardoContactListProps) {
+  const workTabs = useLeonardoWorkTabsOptional();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -74,7 +77,7 @@ export function LeonardoContactList({
   );
   const [section, setSection] = useState<ContactSection>("list");
   const [sheetContactId, setSheetContactId] = useState<string | null>(
-    initialContactId
+    workTabs ? null : initialContactId
   );
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState("");
@@ -98,9 +101,23 @@ export function LeonardoContactList({
   }, [initialContacts]);
 
   useEffect(() => {
-    if (initialContactId) {
-      setSheetContactId(initialContactId);
+    if (!initialContactId) {
+      return;
     }
+    if (workTabs) {
+      const contact =
+        contacts.find((item) => item.id === initialContactId) ??
+        initialContacts.find((item) => item.id === initialContactId);
+      workTabs.openTab({
+        kind: "contact",
+        entityId: initialContactId,
+        title: contact ? formatContactName(contact) : initialContactId,
+      });
+      return;
+    }
+    setSheetContactId(initialContactId);
+    // Solo deep-link iniziale: non reagire a ogni update contatti.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialContactId]);
 
   const availableTags = useMemo(() => collectContactTags(contacts), [contacts]);
@@ -127,7 +144,16 @@ export function LeonardoContactList({
 
   const syncContactSheet = useCallback(
     (contactId: string | null) => {
-      setSheetContactId(contactId);
+      if (contactId && workTabs) {
+        const contact = contacts.find((item) => item.id === contactId);
+        workTabs.openTab({
+          kind: "contact",
+          entityId: contactId,
+          title: contact ? formatContactName(contact) : contactId,
+        });
+      } else {
+        setSheetContactId(contactId);
+      }
       const params = new URLSearchParams(searchParams.toString());
       if (contactId) {
         params.set("contatto", contactId);
@@ -139,7 +165,7 @@ export function LeonardoContactList({
         scroll: false,
       });
     },
-    [pathname, router, searchParams]
+    [contacts, pathname, router, searchParams, workTabs]
   );
 
   useLeonardoListKeyboard({
@@ -350,7 +376,7 @@ export function LeonardoContactList({
         />
       ) : null}
 
-      {sheetContact ? (
+      {sheetContact && !workTabs ? (
         <LeonardoContactSheetModal
           tenantSlug={tenantSlug}
           contact={sheetContact}
