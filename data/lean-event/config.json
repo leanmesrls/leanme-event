@@ -2,9 +2,9 @@
   "productName": "Lean Event",
   "version": "1.2.0",
   "leonardo": {
-    "title": "Leonardo",
-    "subtitle": "Piattaforma gestionale · Lean.Agent.AI",
-    "logo": "/assets/official/homepage/leonardo-hp.png",
+    "title": "LeanEvent",
+    "subtitle": "Powered by Lean.Agent.AI",
+    "logo": "/assets/official/pittogramma.png",
     "meetingTypes": [
       { "value": "client_meeting", "label": "Riunione cliente" },
       { "value": "scientific_committee", "label": "Comitato scientifico" },

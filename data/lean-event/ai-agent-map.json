@@ -4,50 +4,50 @@
       "name": "Leonardo",
       "action": "PIANIFICA",
       "image": "/assets/official/homepage/leonardo-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/leonardo.png"
+      "badge": "/assets/official/leanyou/agent-badges/leonardo.png"
     },
     "vespucci": {
       "name": "Vespucci",
       "action": "ESPLORA",
       "image": "/assets/official/homepage/vespucci-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/vespucci.png"
+      "badge": "/assets/official/leanyou/agent-badges/vespucci.png"
     },
     "marconi": {
       "name": "Marconi",
       "action": "CONNETTE",
       "image": "/assets/official/homepage/marconi-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/marconi.png"
+      "badge": "/assets/official/leanyou/agent-badges/marconi.png"
     },
     "galileo": {
       "name": "Galileo",
       "action": "DIMOSTRA",
       "image": "/assets/official/homepage/galileo-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/galileo.png"
+      "badge": "/assets/official/leanyou/agent-badges/galileo.png"
     },
     "olivetti": {
       "name": "Olivetti",
       "action": "COSTRUISCE",
       "image": "/assets/official/homepage/olivetti-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/olivetti.png"
+      "badge": "/assets/official/leanyou/agent-badges/olivetti.png"
     },
     "angela": {
       "name": "Angela",
       "action": "INSEGNA",
       "image": "/assets/official/homepage/angela-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/angela.png"
+      "badge": "/assets/official/leanyou/agent-badges/angela.png"
     },
     "teresa": {
       "name": "Teresa",
       "action": "SI PRENDE CURA",
       "image": "/assets/official/homepage/teresa-hp.png",
-      "badge": "/assets/official/lean-event/agent-badges/teresa.png"
+      "badge": "/assets/official/leanyou/agent-badges/teresa.png"
     }
   },
   "capabilityAgents": {
     "verbali": "leonardo",
     "ai_writing": "marconi",
     "ai_graphics": "vespucci",
-    "ai_assistant": "leonardo",
+    "ai_assistant": "teresa",
     "ai_suggestions": "galileo",
     "comunicazioni": "marconi",
     "stampati": "vespucci",

@@ -515,10 +515,11 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
               <div className="flex shrink-0 items-center gap-2">
                 <Image
                   src={config.leonardo.logo}
-                  alt="Lean.Agent Leonardo"
-                  width={40}
+                  alt="LeanEvent"
+                  width={56}
                   height={40}
-                  className="h-9 w-9 rounded-full border border-white/10 sm:h-12 sm:w-12"
+                  className="h-9 w-auto object-contain sm:h-11"
+                  priority
                 />
               </div>
             </div>
