@@ -96,6 +96,17 @@ export function resolveSectionListFromPath(
   }
 
   const parts = rest.split("/").filter(Boolean);
+
+  // Hub / Overview: /lean-event/{tenant} (nessun segmento)
+  if (parts.length === 0) {
+    return {
+      id: buildSectionListTabId("overview"),
+      segment: "overview",
+      href: base,
+      label: SECTION_LABELS[""] ?? "Overview",
+    };
+  }
+
   const segment = parts[0] ?? "";
   // Solo elenco esatto (/eventi), non /eventi/[id] o /eventi/new
   if (parts.length !== 1 || !TRACKED_LIST_SEGMENTS.has(segment)) {

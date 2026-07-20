@@ -528,8 +528,63 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   return (
     <LeonardoWorkTabsProvider tenantSlug={session.tenantSlug}>
     <LeonardoWorkTabsRouteSync tenantSlug={session.tenantSlug} />
-    <div className="min-h-[100dvh] bg-black text-white">
-      <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
+    <div className="mx-auto flex min-h-[100dvh] max-w-[1600px] flex-col bg-black text-white">
+      <header className="sticky top-0 z-30 shrink-0 border-b border-white/10 bg-black/95 px-4 py-3 backdrop-blur md:px-8 md:py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <button
+              type="button"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white lg:hidden"
+              aria-label="Apri menu moduli"
+              aria-expanded={mobileOpen}
+              aria-controls="leanyou-mobile-nav"
+              onClick={() => setMobileOpen(true)}
+            >
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+              </svg>
+            </button>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-leanme-fuchsia sm:text-xs">
+                Area riservata clienti
+              </p>
+              <p className="mt-1.5 truncate text-base font-bold tracking-[0.04em] sm:text-lg">
+                {session.tenantName}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-white/55">
+                {session.userName}
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 pt-0.5 sm:gap-3">
+            <div className="text-right">
+              <h1 className="text-base font-bold tracking-[0.04em] sm:text-xl md:text-2xl">
+                {config.leonardo.title}
+              </h1>
+              <p className="mt-0.5 text-[10px] text-white/55 sm:text-xs">
+                {config.leonardo.subtitle}
+              </p>
+            </div>
+            <Image
+              src={config.leonardo.logo}
+              alt=""
+              width={56}
+              height={40}
+              className="h-9 w-auto object-contain sm:h-11"
+              priority
+            />
+          </div>
+        </div>
+      </header>
+
+      <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
             "relative hidden shrink-0 flex-col border-r border-white/10 bg-black lg:flex",
@@ -567,7 +622,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
               </span>
             </button>
           ) : (
-            <div className="relative flex min-h-0 flex-1 flex-col px-5 py-8">
+            <div className="relative flex min-h-0 flex-1 flex-col px-5 py-6">
               <button
                 type="button"
                 onClick={() => setModulesOpen(false)}
@@ -578,18 +633,8 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
                 <LeanEventRailChevron direction="left" />
               </button>
 
-              <div className="border-b border-white/10 pb-6 pr-10">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leanme-fuchsia">
-                  LeanEvent
-                </p>
-                <p className="mt-2 text-lg font-bold tracking-[0.06em]">
-                  {session.tenantName}
-                </p>
-                <p className="mt-1 text-xs text-white/55">{session.userName}</p>
-              </div>
-
               <div className="flex min-h-0 flex-1 flex-col">
-                <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                <p className="pr-10 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
                   Moduli
                 </p>
 
@@ -608,69 +653,15 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
           )}
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-white/10 bg-black/95 px-4 py-3 backdrop-blur md:px-8 md:py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white lg:hidden"
-                    aria-label="Apri menu moduli"
-                    aria-expanded={mobileOpen}
-                    aria-controls="leanyou-mobile-nav"
-                    onClick={() => setMobileOpen(true)}
-                  >
-                    <svg
-                      aria-hidden
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-leanme-fuchsia sm:text-xs">
-                      Area riservata clienti
-                    </p>
-                    <h1 className="mt-0.5 truncate text-lg font-bold tracking-[0.04em] sm:text-xl md:text-2xl">
-                      {config.leonardo.title}
-                    </h1>
-                    <p className="mt-0.5 hidden text-xs text-white/55 sm:block">
-                      {config.leonardo.subtitle}
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-1 truncate text-xs text-white/50 lg:hidden">
-                  {session.tenantName} · {session.userName}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Image
-                  src={config.leonardo.logo}
-                  alt="LeanEvent"
-                  width={56}
-                  height={40}
-                  className="h-9 w-auto object-contain sm:h-11"
-                  priority
-                />
-              </div>
-            </div>
-          </header>
-
-          <main className="flex min-h-0 flex-1 bg-black">
-            <div className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-8 md:py-8">
-              <LeonardoWorkTabBar />
-              <LeonardoWorkTabHost tenantSlug={session.tenantSlug}>
-                {children}
-              </LeonardoWorkTabHost>
-            </div>
-            <LeonardoTeresaRail />
-          </main>
-        </div>
+        <main className="flex min-h-0 min-w-0 flex-1 bg-black">
+          <div className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-8 md:py-8">
+            <LeonardoWorkTabBar />
+            <LeonardoWorkTabHost tenantSlug={session.tenantSlug}>
+              {children}
+            </LeonardoWorkTabHost>
+          </div>
+          <LeonardoTeresaRail />
+        </main>
       </div>
 
       {mobileOpen ? (
@@ -694,6 +685,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
                   LeanEvent
                 </p>
                 <p className="mt-1 text-sm font-bold">{session.tenantName}</p>
+                <p className="mt-0.5 text-xs text-white/55">{session.userName}</p>
               </div>
               <button
                 type="button"

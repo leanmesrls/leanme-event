@@ -24,12 +24,17 @@ export function LeonardoWorkTabBar() {
     return null;
   }
 
-  function openSection(href: string) {
+  function openSection(section: (typeof sectionTabs)[number]) {
     focusList();
-    if (pathname === href || pathname.startsWith(`${href}/`)) {
+    const onRoute =
+      section.segment === "overview"
+        ? pathname === section.href
+        : pathname === section.href ||
+          pathname.startsWith(`${section.href}/`);
+    if (onRoute) {
       return;
     }
-    router.push(href);
+    router.push(section.href);
   }
 
   const listActive = activeId === LEONARDO_WORK_TAB_LIST_ID;
@@ -41,8 +46,12 @@ export function LeonardoWorkTabBar() {
       className="mb-3 flex items-end gap-1 overflow-x-auto border-b border-white/10 pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {sectionTabs.map((section) => {
+        // Overview href = base tenant: non usare startsWith (matcherebbe tutte le rotte)
         const onThisRoute =
-          pathname === section.href || pathname.startsWith(`${section.href}/`);
+          section.segment === "overview"
+            ? pathname === section.href
+            : pathname === section.href ||
+              pathname.startsWith(`${section.href}/`);
         const active = listActive && onThisRoute;
         return (
           <div
@@ -58,7 +67,7 @@ export function LeonardoWorkTabBar() {
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => openSection(section.href)}
+              onClick={() => openSection(section)}
               className={cn(
                 "px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] transition sm:text-xs",
                 active ? "text-white" : "text-white/45 group-hover:text-white/75"
