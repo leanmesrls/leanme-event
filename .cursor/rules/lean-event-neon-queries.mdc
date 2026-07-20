@@ -1,0 +1,32 @@
+---
+description: Aggiornare query Neon nel cheatsheet a ogni sezione dominio completata
+alwaysApply: true
+---
+
+# Lean Event · Query Neon a chiusura sezione
+
+Quando completi una **sezione di dominio** (nuova `entity_type`, flusso persistito, supervisione, audit, documenti), **prima di chiudere** aggiorna:
+
+`docs/lean-event-ops-cheatsheet.md`
+
+## Cosa aggiungere / aggiornare
+
+1. `entity_type` nella lista tipi (sezione 2)
+2. Chiavi utili in `payload` (tabella campi)
+3. Sotto **§3 Query Neon**: blocco numerato con query operative:
+   - conteggi (globale / per tenant)
+   - elenco recenti
+   - cerca per campi tipici (email, titolo, testo)
+   - dettaglio per `id` (+ `tenant_id`)
+   - eventuali anomalie / incoerenze (es. tetti messaggi, orfani)
+4. Se serve: nota UI/API correlate (path supervisione, route)
+
+## Regole
+
+- **Non** inventare tabelle separate se il dato sta in `lean_event_entities` — documenta `entity_type = '…'`
+- Query in SQL pronto per Neon Console (placeholder chiari: `'demo'`, `INCOLLA-…`)
+- Non lasciare le query solo nella chat utente
+
+## Esempio già presente
+
+§ **3.16 Teresa chat** (`teresa_chat`) — modello di riferimento per le prossime sezioni.

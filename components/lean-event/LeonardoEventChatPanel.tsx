@@ -37,7 +37,7 @@ export function LeonardoEventChatPanel({
   const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const eventPath = `/lean-event/${tenantSlug}/leonardo/eventi/${eventId}`;
+  const eventPath = `/lean-event/${tenantSlug}/eventi/${eventId}`;
 
   useEffect(() => {
     let cancelled = false;

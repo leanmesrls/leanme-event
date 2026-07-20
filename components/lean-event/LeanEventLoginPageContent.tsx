@@ -28,16 +28,14 @@ export function LeanEventLoginPageContent() {
           <div className="mt-8 flex items-center gap-4 rounded-xl border border-white/10 bg-[#111111] p-5">
             <Image
               src={config.leonardo.logo}
-              alt="Lean.Agent Leonardo"
+              alt="LeanEvent"
               width={72}
-              height={72}
-              className="rounded-full border border-white/10"
+              height={48}
+              className="h-12 w-auto object-contain"
             />
             <div>
-              <p className="text-lg font-bold">Leonardo</p>
-              <p className="text-sm text-white/60">
-                Secretary Assistant · Powered by Lean.Agent.AI
-              </p>
+              <p className="text-lg font-bold">LeanEvent</p>
+              <p className="text-sm text-white/60">Powered by Lean.Agent.AI</p>
             </div>
           </div>
         </section>

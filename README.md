@@ -1,8 +1,8 @@
 # LeanMe Event
 
-Gemello di `leanme-site` — area Lean Event / Leonardo (eventi, verbali, rubrica).
+Piattaforma **LeanEvent** (area riservata clienti): eventi, rubrica, verbali AI, Leonardo.
 
-> Fase attuale: clone funzionante con repo e deploy separati. La pulizia (solo eventi qui, solo sito pubblico in `leanme-site`) avverrà in un secondo momento.
+Il sito pubblico marketing vive nel repo separato `leanme-site`.
 
 ## Stack
 
@@ -10,8 +10,7 @@ Gemello di `leanme-site` — area Lean Event / Leonardo (eventi, verbali, rubric
 - React 19
 - TypeScript
 - Tailwind CSS 4
-- Framer Motion
-- Vercel deployment + Vercel Blob
+- Vercel + Neon Postgres + Vercel Blob
 
 ## Sviluppo locale
 
@@ -24,7 +23,7 @@ npm run dev
 
 Apri [http://localhost:3012](http://localhost:3012) (porta **3012** — `leanme-site` resta su **3011**).
 
-Login Lean Event: `/lean-event/login`
+Entry: `/` e `/lean-event` → login. Dopo accesso: `/lean-event/{tenant}`
 
 ## Build
 
@@ -33,20 +32,17 @@ npm run build
 npm start
 ```
 
-## Deploy (GitHub + Vercel)
-
-Progetto **separato** da `leanme-site`:
+## Deploy
 
 | | leanme-site | leanme-event |
 |---|-------------|--------------|
 | Dev | :3011 | :3012 |
-| Produzione | demo.leanme.it | events.leanme.it |
+| Produzione | demo.leanme.it / leanme.it | event.leanme.it |
 | Repo | leanmesrls/leanme-site | leanmesrls/leanme-event |
 
-Guida passo-passo: **`docs/deploy-leanme-event.md`** (Blob Store dedicato, env vars, dominio).
+Guida: **`docs/deploy-leanme-event.md`**.
 
 ```powershell
-gh repo create leanmesrls/leanme-event --private --source=. --remote=origin --push
 npx vercel login
 npx vercel link
 npm run lean-event:sync-vercel -- --deploy

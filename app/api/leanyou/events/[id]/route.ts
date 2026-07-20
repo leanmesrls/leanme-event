@@ -21,6 +21,10 @@ import { deleteEvent, getEvent, saveEvent } from "@/lib/lean-event/events";
 import { reconcileEventAssignmentsWithHotelBlocks } from "@/lib/lean-event/event-assignments";
 import { resolveEventVenueFields } from "@/lib/lean-event/event-venue";
 import { normalizeHotelBlocks } from "@/lib/lean-event/event-hotel";
+import {
+  listPublicTenantUsersByTenantId,
+  sanitizeEventProjectTeam,
+} from "@/lib/lean-event/tenant-users";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -91,6 +95,25 @@ export async function PATCH(request: Request, context: RouteContext) {
       venue: body.venue !== undefined ? body.venue : event.venue,
     });
 
+    const tenantUsers = await listPublicTenantUsersByTenantId(session.tenantId);
+    const projectTeam =
+      body.projectLeaderUserId !== undefined ||
+      body.projectManagerUserIds !== undefined
+        ? sanitizeEventProjectTeam(tenantUsers, {
+            projectLeaderUserId:
+              body.projectLeaderUserId !== undefined
+                ? body.projectLeaderUserId
+                : event.projectLeaderUserId ?? null,
+            projectManagerUserIds:
+              body.projectManagerUserIds !== undefined
+                ? body.projectManagerUserIds
+                : event.projectManagerUserIds ?? [],
+          })
+        : {
+            projectLeaderUserId: event.projectLeaderUserId ?? null,
+            projectManagerUserIds: event.projectManagerUserIds ?? [],
+          };
+
     const next = normalizeLeonardoEvent({
       ...event,
       cdc: body.cdc !== undefined ? body.cdc.trim() : event.cdc,
@@ -122,6 +145,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         body.relatedEvents !== undefined
           ? body.relatedEvents
           : event.relatedEvents,
+      projectLeaderUserId: projectTeam.projectLeaderUserId,
+      projectManagerUserIds: projectTeam.projectManagerUserIds,
     });
 
     const saved = await saveEvent(next, {

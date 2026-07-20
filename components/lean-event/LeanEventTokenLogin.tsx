@@ -10,7 +10,11 @@ function resolvePostLoginPath(
   session: LeanEventSession,
   nextPath: string | null
 ): string {
-  if (nextPath?.startsWith(`/lean-event/${session.tenantSlug}/`)) {
+  const tenantBase = `/lean-event/${session.tenantSlug}`;
+  if (
+    nextPath === tenantBase ||
+    nextPath?.startsWith(`${tenantBase}/`)
+  ) {
     return nextPath;
   }
   return leanEventLeonardoPath(session.tenantSlug);

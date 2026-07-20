@@ -53,6 +53,7 @@ export function LeonardoContactSheetContent({
     phone2: contact.phones[1]?.number ?? "",
     phone2Label: contact.phones[1]?.label ?? "Secondario",
     organization: contact.organization,
+    organizationProvince: contact.organizationProvince ?? "",
     tags: formatTagsDisplay(contact.tags),
     notes: contact.notes,
   });
@@ -118,6 +119,7 @@ export function LeonardoContactSheetContent({
       phone2: contact.phones[1]?.number ?? "",
       phone2Label: contact.phones[1]?.label ?? "Secondario",
       organization: contact.organization,
+      organizationProvince: contact.organizationProvince ?? "",
       tags: formatTagsDisplay(contact.tags),
       notes: contact.notes,
     });
@@ -192,6 +194,7 @@ export function LeonardoContactSheetContent({
       fiscalCode: form.fiscalCode,
       phones,
       organization: form.organization,
+      organizationProvince: form.organizationProvince,
       tags: form.tags,
       notes: form.notes,
     };
@@ -360,6 +363,21 @@ export function LeonardoContactSheetContent({
                 setForm({ ...form, organization: event.target.value })
               }
               className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-white/60">Prov. ente / azienda</span>
+            <input
+              value={form.organizationProvince}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  organizationProvince: event.target.value.toUpperCase(),
+                })
+              }
+              maxLength={2}
+              placeholder="BO"
+              className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm uppercase outline-none focus:border-leanme-fuchsia"
             />
           </label>
           <label className="block text-sm md:col-span-2">

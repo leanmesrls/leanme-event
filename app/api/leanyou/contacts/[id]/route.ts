@@ -74,6 +74,10 @@ export async function PATCH(request: Request, context: RouteContext) {
         body.organization !== undefined
           ? body.organization.trim()
           : contact.organization,
+      organizationProvince:
+        body.organizationProvince !== undefined
+          ? body.organizationProvince.trim().toUpperCase()
+          : contact.organizationProvince ?? "",
       tags: body.tags !== undefined
         ? Array.isArray(body.tags)
           ? normalizeTagsList(body.tags)

@@ -95,7 +95,7 @@ async function main() {
     registryLines.push(`- **Tenant ID:** \`${tenant.id}\``);
     registryLines.push(`- **Token aziendale:** \`${tenantToken}\``);
     registryLines.push(
-      `- **Accesso diretto azienda:** ${siteUrl}/lean-event/login?token=${tenantToken}`,
+      `- **Accesso diretto azienda:** ${siteUrl}/lean-event?token=${tenantToken}`,
       ""
     );
 
@@ -106,7 +106,7 @@ async function main() {
       email: "",
       password: "",
       token: tenantToken,
-      loginUrl: `${siteUrl}/lean-event/login?token=${tenantToken}`,
+      loginUrl: `${siteUrl}/lean-event?token=${tenantToken}`,
     });
 
     const users = [];
@@ -131,7 +131,7 @@ async function main() {
       registryLines.push(`- **Password iniziale:** ${user.password}`);
       registryLines.push(`- **Token utente:** \`${userToken}\``);
       registryLines.push(
-        `- **Accesso diretto utente:** ${siteUrl}/lean-event/login?token=${userToken}`,
+        `- **Accesso diretto utente:** ${siteUrl}/lean-event?token=${userToken}`,
         ""
       );
 
@@ -142,7 +142,7 @@ async function main() {
         email: user.email,
         password: user.password,
         token: userToken,
-        loginUrl: `${siteUrl}/lean-event/login?token=${userToken}`,
+        loginUrl: `${siteUrl}/lean-event?token=${userToken}`,
       });
 
       credentialRows.push({
@@ -151,7 +151,7 @@ async function main() {
         lastName: user.lastName,
         email: user.email,
         password: user.password,
-        loginUrl: `${siteUrl}/lean-event/login?token=${userToken}`,
+        loginUrl: `${siteUrl}/lean-event?token=${userToken}`,
       });
     }
 

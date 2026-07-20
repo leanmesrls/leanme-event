@@ -2,21 +2,26 @@ export function leanEventRoot(): string {
   return "/lean-event";
 }
 
+/** Login unificato — entry LeanEvent. */
 export function leanEventLoginPath(): string {
-  return "/lean-event/login";
+  return "/lean-event";
 }
 
 export function leanEventTenantBase(tenantSlug: string): string {
   return `/lean-event/${tenantSlug}`;
 }
 
+/** @deprecated Usa leanEventLoginPath — login unificato. */
 export function leanEventTenantLoginPath(tenantSlug: string): string {
   return `${leanEventTenantBase(tenantSlug)}/login`;
 }
 
-/** Cruscotto piattaforma Leonardo */
+/**
+ * Hub area riservata tenant (ex …/leonardo).
+ * Nome funzione storico: resta per non rompere i call site.
+ */
 export function leanEventLeonardoPath(tenantSlug: string): string {
-  return `${leanEventTenantBase(tenantSlug)}/leonardo`;
+  return leanEventTenantBase(tenantSlug);
 }
 
 export function leanEventLeonardoVerbaliPath(tenantSlug: string): string {
@@ -141,13 +146,20 @@ export function leanEventLeonardoGovernmentPath(tenantSlug: string): string {
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/** Segmenti riservati (non sono slug tenant). */
+const RESERVED_TENANT_SEGMENTS = new Set([
+  "login",
+  "leonardo",
+  "api",
+]);
+
 export function isLeonardoWorkspaceId(value: string): boolean {
   return UUID_PATTERN.test(value);
 }
 
 export function parseTenantSlugFromPath(pathname: string): string | null {
   const match = pathname.match(/^\/lean-event\/([^/]+)(?:\/|$)/);
-  if (!match?.[1] || match[1] === "login") {
+  if (!match?.[1] || RESERVED_TENANT_SEGMENTS.has(match[1])) {
     return null;
   }
   return match[1];
@@ -159,6 +171,20 @@ export function isTenantLoginPath(pathname: string): boolean {
 
 export function isLegacyLeanEventLeonardoPath(pathname: string): boolean {
   return pathname.startsWith("/lean-event/leonardo");
+}
+
+/** Path legacy …/{tenant}/leonardo(/…) → hub senza segmento leonardo. */
+export function stripLegacyTenantLeonardoSegment(pathname: string): string | null {
+  const match = pathname.match(/^\/lean-event\/([^/]+)\/leonardo(\/.*)?$/);
+  if (!match) {
+    return null;
+  }
+  const tenantSlug = match[1];
+  const rest = match[2] ?? "";
+  if (!rest || rest === "/") {
+    return leanEventLeonardoPath(tenantSlug);
+  }
+  return `${leanEventLeonardoPath(tenantSlug)}${rest}`;
 }
 
 export function mapLegacyLeanEventLeonardoPath(
@@ -177,11 +203,7 @@ export function mapLegacyLeanEventLeonardoPath(
     if (isLeonardoWorkspaceId(workspaceId)) {
       return leanEventLeonardoWorkspacePath(tenantSlug, workspaceId);
     }
-    return `/lean-event/${tenantSlug}/leonardo${rest}`;
-  }
-
-  if (pathname === "/lean-event") {
-    return leanEventLeonardoPath(tenantSlug);
+    return `${leanEventLeonardoPath(tenantSlug)}${rest}`;
   }
 
   return null;

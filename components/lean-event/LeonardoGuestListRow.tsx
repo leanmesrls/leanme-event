@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { LeonardoEntityId } from "@/components/lean-event/LeonardoEntityId";
 import {
   LEONARDO_LIST_NAME_CELL,
   LEONARDO_LIST_NAME_LINK,
@@ -60,6 +61,7 @@ export function LeonardoGuestListRow({
         >
           {assignment.contactName}
         </Link>
+        <LeonardoEntityId id={assignment.contactId} />
         <p className="truncate text-xs text-white/45 sm:hidden">
           {assignment.roleLabel}
         </p>

@@ -12,15 +12,18 @@ import {
 
 import {
   createWorkTab,
+  LEONARDO_SECTION_LIST_TABS_MAX,
   LEONARDO_WORK_TAB_LIST_ID,
   LEONARDO_WORK_TABS_MAX,
   workTabsStorageKey,
+  type LeonardoSectionListTab,
   type LeonardoWorkTab,
   type LeonardoWorkTabKind,
 } from "@/lib/lean-event/work-tabs";
 
 interface LeonardoWorkTabsContextValue {
   tabs: LeonardoWorkTab[];
+  sectionTabs: LeonardoSectionListTab[];
   activeId: string;
   openTab: (input: {
     kind: LeonardoWorkTabKind;
@@ -30,6 +33,8 @@ interface LeonardoWorkTabsContextValue {
   closeTab: (tabId: string) => void;
   focusTab: (tabId: string) => void;
   focusList: () => void;
+  touchSectionList: (section: LeonardoSectionListTab) => void;
+  closeSectionList: (sectionId: string) => void;
   renameTab: (tabId: string, title: string) => void;
   isListActive: boolean;
 }
@@ -39,6 +44,7 @@ const LeonardoWorkTabsContext =
 
 interface StoredState {
   tabs: LeonardoWorkTab[];
+  sectionTabs: LeonardoSectionListTab[];
   activeId: string;
 }
 
@@ -51,12 +57,15 @@ function readStored(tenantSlug: string): StoredState | null {
     if (!raw) {
       return null;
     }
-    const parsed = JSON.parse(raw) as StoredState;
+    const parsed = JSON.parse(raw) as Partial<StoredState>;
     if (!Array.isArray(parsed.tabs)) {
       return null;
     }
     return {
       tabs: parsed.tabs.slice(0, LEONARDO_WORK_TABS_MAX),
+      sectionTabs: Array.isArray(parsed.sectionTabs)
+        ? parsed.sectionTabs.slice(0, LEONARDO_SECTION_LIST_TABS_MAX)
+        : [],
       activeId: parsed.activeId || LEONARDO_WORK_TAB_LIST_ID,
     };
   } catch {
@@ -83,6 +92,7 @@ export function LeonardoWorkTabsProvider({
   children: ReactNode;
 }) {
   const [tabs, setTabs] = useState<LeonardoWorkTab[]>([]);
+  const [sectionTabs, setSectionTabs] = useState<LeonardoSectionListTab[]>([]);
   const [activeId, setActiveId] = useState<string>(LEONARDO_WORK_TAB_LIST_ID);
   const [hydrated, setHydrated] = useState(false);
 
@@ -90,9 +100,11 @@ export function LeonardoWorkTabsProvider({
     const stored = readStored(tenantSlug);
     if (stored) {
       setTabs(stored.tabs);
+      setSectionTabs(stored.sectionTabs);
       setActiveId(stored.activeId);
     } else {
       setTabs([]);
+      setSectionTabs([]);
       setActiveId(LEONARDO_WORK_TAB_LIST_ID);
     }
     setHydrated(true);
@@ -102,8 +114,8 @@ export function LeonardoWorkTabsProvider({
     if (!hydrated) {
       return;
     }
-    writeStored(tenantSlug, { tabs, activeId });
-  }, [tenantSlug, tabs, activeId, hydrated]);
+    writeStored(tenantSlug, { tabs, sectionTabs, activeId });
+  }, [tenantSlug, tabs, sectionTabs, activeId, hydrated]);
 
   const focusList = useCallback(() => {
     setActiveId(LEONARDO_WORK_TAB_LIST_ID);
@@ -111,6 +123,26 @@ export function LeonardoWorkTabsProvider({
 
   const focusTab = useCallback((tabId: string) => {
     setActiveId(tabId);
+  }, []);
+
+  const touchSectionList = useCallback((section: LeonardoSectionListTab) => {
+    setSectionTabs((current) => {
+      const existing = current.find((tab) => tab.id === section.id);
+      if (existing) {
+        return current.map((tab) =>
+          tab.id === section.id ? { ...tab, ...section } : tab
+        );
+      }
+      const withNew = [...current, section];
+      if (withNew.length <= LEONARDO_SECTION_LIST_TABS_MAX) {
+        return withNew;
+      }
+      return withNew.slice(withNew.length - LEONARDO_SECTION_LIST_TABS_MAX);
+    });
+  }, []);
+
+  const closeSectionList = useCallback((sectionId: string) => {
+    setSectionTabs((current) => current.filter((tab) => tab.id !== sectionId));
   }, []);
 
   const openTab = useCallback(
@@ -167,21 +199,27 @@ export function LeonardoWorkTabsProvider({
   const value = useMemo<LeonardoWorkTabsContextValue>(
     () => ({
       tabs,
+      sectionTabs,
       activeId,
       openTab,
       closeTab,
       focusTab,
       focusList,
+      touchSectionList,
+      closeSectionList,
       renameTab,
       isListActive: activeId === LEONARDO_WORK_TAB_LIST_ID,
     }),
     [
       tabs,
+      sectionTabs,
       activeId,
       openTab,
       closeTab,
       focusTab,
       focusList,
+      touchSectionList,
+      closeSectionList,
       renameTab,
     ]
   );

@@ -1,14 +1,26 @@
-import { LeanEventLoginPageContent } from "@/components/lean-event/LeanEventLoginPageContent";
-import { createPageMetadata } from "@/lib/metadata";
+import { redirect } from "next/navigation";
+
 import { leanEventLoginPath } from "@/lib/lean-event/paths";
 
-export const metadata = createPageMetadata({
-  title: "Lean Event · Accesso riservato",
-  description: "Area riservata clienti LeanMe.",
-  path: leanEventLoginPath(),
-  noIndex: true,
-});
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
-export default function LeanEventLoginPage() {
-  return <LeanEventLoginPageContent />;
+/** Legacy /lean-event/login → /lean-event */
+export default async function LeanEventLegacyLoginRedirectPage({
+  searchParams,
+}: PageProps) {
+  const query = await searchParams;
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === "string") {
+      params.set(key, value);
+    } else if (Array.isArray(value)) {
+      value.forEach((entry) => params.append(key, entry));
+    }
+  }
+
+  const suffix = params.toString();
+  redirect(suffix ? `${leanEventLoginPath()}?${suffix}` : leanEventLoginPath());
 }

@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
 import siteData from "@/data/site.json";
-import type { SiteConfig } from "@/types/content";
 
-const site = siteData as SiteConfig;
+type SiteSeoConfig = {
+  name: string;
+  url: string;
+  locale: string;
+  seo: {
+    defaultTitle: string;
+    defaultDescription: string;
+    keywords: string[];
+  };
+};
+
+const site = siteData as SiteSeoConfig;
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? site.url ?? "https://leanme.it";
+  process.env.NEXT_PUBLIC_SITE_URL ?? site.url ?? "https://event.leanme.it";
 
 export function createPageMetadata({
   title,
   description,
   path = "",
-  image = "/images/placeholders/og-default.svg",
-  noIndex = false,
+  image = "/assets/official/pittogramma.png",
+  noIndex = true,
 }: {
   title: string;
   description: string;
@@ -21,9 +31,9 @@ export function createPageMetadata({
   noIndex?: boolean;
 }): Metadata {
   const url = `${SITE_URL}${path}`;
-  const fullTitle = title.includes("LeanMe")
+  const fullTitle = title.includes("LeanEvent") || title.includes("LeanMe")
     ? title
-    : `${title} | LeanMe`;
+    : `${title} | LeanEvent`;
 
   return {
     title: fullTitle,
@@ -67,6 +77,7 @@ export function getDefaultMetadata(): Metadata {
       title: site.seo.defaultTitle,
       description: site.seo.defaultDescription,
       path: "",
+      noIndex: true,
     }),
     manifest: "/manifest.webmanifest",
   };

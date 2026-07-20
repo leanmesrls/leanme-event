@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { LeonardoEntityId } from "@/components/lean-event/LeonardoEntityId";
 import { LEONARDO_PAGE_TITLE } from "@/components/lean-event/leonardo-ui";
 import { LEONYOU_TRASH_RETENTION_DAYS } from "@/lib/lean-event/entity-lifecycle";
 import {
@@ -108,6 +109,7 @@ export function LeonardoTrashList({ tenantSlug }: LeonardoTrashListProps) {
             >
               <div className="min-w-0">
                 <p className="truncate font-medium text-white">{item.title}</p>
+                <LeonardoEntityId id={item.id} />
                 <p className="text-xs text-white/45">
                   {TYPE_LABELS[item.entityType]}
                   {item.subtitle ? ` · ${item.subtitle}` : ""}

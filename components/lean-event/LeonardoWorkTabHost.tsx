@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { LeonardoContactSheetContent } from "@/components/lean-event/LeonardoContactSheetContent";
 import { LeonardoEventDetail } from "@/components/lean-event/LeonardoEventDetail";
@@ -10,14 +11,17 @@ import { LeonardoVenueSheetContent } from "@/components/lean-event/LeonardoVenue
 import { formatContactName } from "@/lib/lean-event/contact-display";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type { EventSupplierWithSupplier } from "@/lib/lean-event/event-suppliers";
+import { resolveSectionListFromPath } from "@/lib/lean-event/work-tabs";
 import type {
   LeanEventContact,
   LeanEventSupplier,
+  LeanEventTenantUserPublic,
   LeonardoEvent,
   LeonardoVenue,
   LeonardoWorkspace,
 } from "@/types/lean-event";
 import { cn } from "@/lib/utils";
+
 
 function LoadingState({ label }: { label: string }) {
   return <p className="text-sm text-white/50">{label}</p>;
@@ -104,6 +108,7 @@ function EventTabPanel({
     supplierLinks: EventSupplierWithSupplier[];
     rubricaSuppliers: LeanEventSupplier[];
     otherEvents: LeonardoEvent[];
+    tenantUsers: LeanEventTenantUserPublic[];
     ospitiEnabled: boolean;
     hotelEnabled: boolean;
     logisticaEnabled: boolean;
@@ -131,6 +136,7 @@ function EventTabPanel({
         supplierLinks?: EventSupplierWithSupplier[];
         rubricaSuppliers?: LeanEventSupplier[];
         otherEvents?: LeonardoEvent[];
+        tenantUsers?: LeanEventTenantUserPublic[];
         ospitiEnabled?: boolean;
         hotelEnabled?: boolean;
         logisticaEnabled?: boolean;
@@ -156,6 +162,7 @@ function EventTabPanel({
         supplierLinks: data.supplierLinks ?? [],
         rubricaSuppliers: data.rubricaSuppliers ?? [],
         otherEvents: data.otherEvents ?? [],
+        tenantUsers: data.tenantUsers ?? [],
         ospitiEnabled: Boolean(data.ospitiEnabled),
         hotelEnabled: Boolean(data.hotelEnabled),
         logisticaEnabled: Boolean(data.logisticaEnabled),
@@ -188,6 +195,7 @@ function EventTabPanel({
             initialSupplierLinks={payload.supplierLinks}
             rubricaSuppliers={payload.rubricaSuppliers}
             otherEvents={payload.otherEvents}
+            tenantUsers={payload.tenantUsers}
             ospitiEnabled={payload.ospitiEnabled}
             hotelEnabled={payload.hotelEnabled}
             logisticaEnabled={payload.logisticaEnabled}
@@ -400,12 +408,58 @@ export function LeonardoWorkTabHost({
   tenantSlug: string;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const { tabs, activeId, isListActive } = useLeonardoWorkTabs();
   const activeTab = tabs.find((tab) => tab.id === activeId) ?? null;
+  const section = resolveSectionListFromPath(pathname, tenantSlug);
+
+  /**
+   * Keep-alive elenchi: ogni sezione visitata resta montata (nascosta).
+   * Richiede Shell nel layout tenant (provider non rimontato).
+   */
+  const listCacheRef = useRef<Map<string, React.ReactNode>>(new Map());
+  const [mountedSectionIds, setMountedSectionIds] = useState<string[]>([]);
+
+  if (section && !listCacheRef.current.has(section.id)) {
+    listCacheRef.current.set(section.id, children);
+  }
+
+  const sectionIds =
+    section && !mountedSectionIds.includes(section.id)
+      ? [...mountedSectionIds, section.id]
+      : mountedSectionIds;
+
+  useEffect(() => {
+    if (!section) {
+      return;
+    }
+    setMountedSectionIds((current) =>
+      current.includes(section.id) ? current : [...current, section.id]
+    );
+  }, [section]);
 
   return (
     <div className="relative min-h-0 flex-1">
-      <div className={cn(!isListActive && "hidden")}>{children}</div>
+      {sectionIds.map((sectionId) => {
+        const visible = isListActive && section?.id === sectionId;
+        const node = listCacheRef.current.get(sectionId);
+        if (!node) {
+          return null;
+        }
+        return (
+          <div
+            key={sectionId}
+            className={cn(!visible && "hidden")}
+            aria-hidden={!visible}
+          >
+            {node}
+          </div>
+        );
+      })}
+
+      {!section ? (
+        <div className={cn(!isListActive && "hidden")}>{children}</div>
+      ) : null}
 
       {!isListActive && activeTab ? (
         <div className="min-h-0">

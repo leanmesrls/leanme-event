@@ -34,6 +34,21 @@ const nextConfig: NextConfig = {
         destination: "/api/lean-event/:path*",
         permanent: true,
       },
+      {
+        source: "/lean-event/login",
+        destination: "/lean-event",
+        permanent: true,
+      },
+      {
+        source: "/lean-event/:tenant/leonardo",
+        destination: "/lean-event/:tenant",
+        permanent: true,
+      },
+      {
+        source: "/lean-event/:tenant/leonardo/:path*",
+        destination: "/lean-event/:tenant/:path*",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

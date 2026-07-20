@@ -16,6 +16,18 @@ export async function findTenantBySlug(
   return data.tenants.find((tenant) => tenant.slug === slug) ?? null;
 }
 
+/** Catalogo tenant (id / name / slug) per operazioni piattaforma. */
+export async function loadTenantsCatalog(): Promise<
+  Array<Pick<LeanEventTenant, "id" | "name" | "slug">>
+> {
+  const data = await loadTenantsFile();
+  return data.tenants.map((tenant) => ({
+    id: tenant.id,
+    name: tenant.name,
+    slug: tenant.slug,
+  }));
+}
+
 export async function findUserByEmail(
   email: string
 ): Promise<{ tenant: LeanEventTenant; user: LeanEventUser } | null> {
@@ -120,3 +132,26 @@ export function tenantHasModule(
 }
 
 export { tenantHasLeonardoCapability } from "./capabilities";
+
+/**
+ * Operatore piattaforma LeanMe — supervisione globale cross-tenant.
+ * Se `LEAN_EVENT_PLATFORM_ADMIN_EMAILS` è impostata (CSV), solo quelle email;
+ * altrimenti qualsiasi indirizzo `@leanme.it`.
+ */
+export function isLeanMePlatformOperator(session: LeanEventSession): boolean {
+  const email = session.userEmail.trim().toLowerCase();
+  if (!email) {
+    return false;
+  }
+
+  const allowlist = (process.env.LEAN_EVENT_PLATFORM_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowlist.length > 0) {
+    return allowlist.includes(email);
+  }
+
+  return email.endsWith("@leanme.it");
+}

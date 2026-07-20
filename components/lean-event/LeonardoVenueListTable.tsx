@@ -1,5 +1,6 @@
 "use client";
 
+import { LeonardoEntityId } from "@/components/lean-event/LeonardoEntityId";
 import {
   LEONARDO_LIST_NAME_CELL,
   LEONARDO_LIST_NAME_LINK,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/lean-event/venue-normalize";
 import type { LeonardoVenue } from "@/types/lean-event";
 
-const VIRTUAL_ROW_HEIGHT = 56;
+const VIRTUAL_ROW_HEIGHT = 68;
 const VIRTUAL_LIST_HEIGHT = 560;
 
 interface LeonardoVenueListTableProps {
@@ -80,6 +81,7 @@ function VenueRow({
         >
           {venue.name}
         </button>
+        <LeonardoEntityId id={venue.id} />
         <p className="mt-0.5 truncate text-xs text-white/45 sm:hidden">
           {venue.city}
         </p>

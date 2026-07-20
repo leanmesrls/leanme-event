@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { LeanAgentAiPoweredBy } from "@/components/lean-event/LeanAgentAiPoweredBy";
+import { LeonardoEntityId } from "@/components/lean-event/LeonardoEntityId";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
 import {
   LeonardoPageHeader,
@@ -74,6 +76,7 @@ export function LeonardoWorkspaceList({
     <div className="space-y-4">
       <LeonardoPageHeader
         title="Verbali AI"
+        poweredBy={<LeanAgentAiPoweredBy capability="verbali" />}
         subtitle="Cerca per titolo, cliente, tag manuali o keyword generate dai verbali."
         action={
           <Link
@@ -149,6 +152,7 @@ export function LeonardoWorkspaceList({
                       {statusLabels[workspace.status]}
                     </p>
                     <h3 className="mt-2 text-lg font-bold">{workspace.title}</h3>
+                    <LeonardoEntityId id={workspace.id} />
                     <p className="mt-1 text-sm text-white/60">
                       {workspace.client} · {formatEuropeanDate(workspace.meetingDate)}
                     </p>

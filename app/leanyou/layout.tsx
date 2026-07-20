@@ -4,8 +4,6 @@ export default function LeanEventRootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="fixed inset-0 z-[120] min-h-[100dvh] overflow-y-auto bg-black text-white">
-      {children}
-    </div>
+    <div className="min-h-[100dvh] bg-black text-white">{children}</div>
   );
 }

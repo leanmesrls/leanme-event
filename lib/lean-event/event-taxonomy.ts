@@ -69,6 +69,8 @@ export function normalizeLeonardoEvent(event: LeonardoEvent): LeonardoEvent {
     venueId: event.venueId ?? null,
     hotelBlocks: normalizeHotelBlocks(event),
     relatedEvents: normalizeRelatedEvents(event.relatedEvents),
+    projectLeaderUserId: event.projectLeaderUserId ?? null,
+    projectManagerUserIds: event.projectManagerUserIds ?? [],
     type: event.type ?? (ecmEnabled ? "ecm" : "base"),
   };
 }

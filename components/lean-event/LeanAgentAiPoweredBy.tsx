@@ -1,13 +1,17 @@
 import Image from "next/image";
 
 import {
+  getLeanAgent,
   getLeanAgentForCapability,
   type LeanAgentAiCapability,
+  type LeanAgentSlug,
 } from "@/lib/lean-event/ai-agents";
 import { cn } from "@/lib/utils";
 
 interface LeanAgentAiPoweredByProps {
-  capability: LeanAgentAiCapability;
+  capability?: LeanAgentAiCapability;
+  /** Override diretto (es. Overview → Leonardo indipendente dalla capability). */
+  agent?: LeanAgentSlug;
   className?: string;
   iconSize?: number;
 }
@@ -15,10 +19,15 @@ interface LeanAgentAiPoweredByProps {
 /** Compact AI attribution next to a specific AI feature only. */
 export function LeanAgentAiPoweredBy({
   capability,
+  agent: agentSlug,
   className,
   iconSize = 22,
 }: LeanAgentAiPoweredByProps) {
-  const agent = getLeanAgentForCapability(capability);
+  const agent = agentSlug
+    ? getLeanAgent(agentSlug)
+    : capability
+      ? getLeanAgentForCapability(capability)
+      : null;
   if (!agent) {
     return null;
   }

@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 interface LeonardoPageHeaderProps {
   title: string;
   subtitle?: string;
+  /** Attribution agente AI affianco al titolo (es. Lean.Agent.Leonardo). */
+  poweredBy?: ReactNode;
   action?: ReactNode;
   className?: string;
 }
@@ -20,6 +22,7 @@ interface LeonardoPageHeaderProps {
 export function LeonardoPageHeader({
   title,
   subtitle,
+  poweredBy,
   action,
   className,
 }: LeonardoPageHeaderProps) {
@@ -31,7 +34,10 @@ export function LeonardoPageHeader({
       )}
     >
       <div className="min-w-0">
-        <h2 className={LEONARDO_PAGE_TITLE}>{title}</h2>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h2 className={LEONARDO_PAGE_TITLE}>{title}</h2>
+          {poweredBy}
+        </div>
         {subtitle ? (
           <p className="mt-1 text-sm text-white/60">{subtitle}</p>
         ) : null}

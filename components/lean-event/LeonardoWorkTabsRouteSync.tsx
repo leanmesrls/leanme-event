@@ -4,15 +4,27 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { useLeonardoWorkTabs } from "@/components/lean-event/LeonardoWorkTabsContext";
+import { resolveSectionListFromPath } from "@/lib/lean-event/work-tabs";
 
-/** Torna all'elenco al cambio sezione sidebar, tenendo le tab aperte. */
-export function LeonardoWorkTabsRouteSync() {
+/**
+ * Al cambio sezione: registra l'elenco visitato (Eventi, Contatti…) e mostra
+ * il list panel della route corrente, tenendo aperte le tab entità.
+ */
+export function LeonardoWorkTabsRouteSync({
+  tenantSlug,
+}: {
+  tenantSlug: string;
+}) {
   const pathname = usePathname();
-  const { focusList } = useLeonardoWorkTabs();
+  const { focusList, touchSectionList } = useLeonardoWorkTabs();
 
   useEffect(() => {
+    const section = resolveSectionListFromPath(pathname, tenantSlug);
+    if (section) {
+      touchSectionList(section);
+    }
     focusList();
-  }, [pathname, focusList]);
+  }, [pathname, tenantSlug, focusList, touchSectionList]);
 
   return null;
 }

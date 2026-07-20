@@ -11,11 +11,11 @@ interface MiddlewareSession {
 }
 
 function leanEventLoginPath(): string {
-  return "/lean-event/login";
+  return "/lean-event";
 }
 
-function leanEventLeonardoPath(tenantSlug: string): string {
-  return `/lean-event/${tenantSlug}/leonardo`;
+function leanEventHubPath(tenantSlug: string): string {
+  return `/lean-event/${tenantSlug}`;
 }
 
 function getSessionSecret(): string {
@@ -119,9 +119,11 @@ function redirectToUnifiedLogin(
   return NextResponse.redirect(loginUrl);
 }
 
+const RESERVED_TENANT_SEGMENTS = new Set(["login", "leonardo", "api"]);
+
 function parseTenantSlugFromPath(pathname: string): string | null {
   const match = pathname.match(/^\/lean-event\/([^/]+)(?:\/|$)/);
-  if (!match?.[1] || match[1] === "login") {
+  if (!match?.[1] || RESERVED_TENANT_SEGMENTS.has(match[1])) {
     return null;
   }
   return match[1];
@@ -131,35 +133,45 @@ function isTenantLoginPath(pathname: string): boolean {
   return /^\/lean-event\/[^/]+\/login$/.test(pathname);
 }
 
-function isLegacyLeanEventLeonardoPath(pathname: string): boolean {
+function isLegacyGlobalLeonardoPath(pathname: string): boolean {
   return pathname.startsWith("/lean-event/leonardo");
 }
 
-function mapLegacyLeanEventLeonardoPath(
+function mapLegacyGlobalLeonardoPath(
   pathname: string,
   tenantSlug: string
 ): string | null {
   if (!pathname.startsWith("/lean-event/leonardo")) {
-    if (pathname === "/lean-event") {
-      return leanEventLeonardoPath(tenantSlug);
-    }
     return null;
   }
 
   const rest = pathname.slice("/lean-event/leonardo".length);
   if (!rest || rest === "/") {
-    return leanEventLeonardoPath(tenantSlug);
+    return leanEventHubPath(tenantSlug);
   }
   if (rest === "/new") {
-    return `${leanEventLeonardoPath(tenantSlug)}/verbali/new`;
+    return `${leanEventHubPath(tenantSlug)}/verbali/new`;
   }
 
   const workspaceId = rest.replace(/^\//, "");
   if (UUID_PATTERN.test(workspaceId)) {
-    return `${leanEventLeonardoPath(tenantSlug)}/verbali/${workspaceId}`;
+    return `${leanEventHubPath(tenantSlug)}/verbali/${workspaceId}`;
   }
 
-  return `/lean-event/${tenantSlug}/leonardo${rest}`;
+  return `${leanEventHubPath(tenantSlug)}${rest}`;
+}
+
+function stripTenantLeonardoSegment(pathname: string): string | null {
+  const match = pathname.match(/^\/lean-event\/([^/]+)\/leonardo(\/.*)?$/);
+  if (!match) {
+    return null;
+  }
+  const tenantSlug = match[1];
+  const rest = match[2] ?? "";
+  if (!rest || rest === "/") {
+    return leanEventHubPath(tenantSlug);
+  }
+  return `${leanEventHubPath(tenantSlug)}${rest}`;
 }
 
 export async function middleware(request: NextRequest) {
@@ -186,30 +198,41 @@ export async function middleware(request: NextRequest) {
 
   const session = await readSessionFromRequest(request);
 
+  // Legacy /lean-event/login → /lean-event
+  if (pathname === "/lean-event/login") {
+    const target = new URL(leanEventLoginPath(), request.url);
+    request.nextUrl.searchParams.forEach((value, key) => {
+      target.searchParams.set(key, value);
+    });
+    return NextResponse.redirect(target);
+  }
+
+  // Legacy …/{tenant}/leonardo(/…) → …/{tenant}(/…)
+  const stripped = stripTenantLeonardoSegment(pathname);
+  if (stripped && stripped !== pathname) {
+    const target = new URL(stripped, request.url);
+    request.nextUrl.searchParams.forEach((value, key) => {
+      target.searchParams.set(key, value);
+    });
+    return NextResponse.redirect(target);
+  }
+
+  // Login / hub root
   if (pathname === leanEventLoginPath()) {
     if (session) {
       return NextResponse.redirect(
-        new URL(leanEventLeonardoPath(session.tenantSlug), request.url)
+        new URL(leanEventHubPath(session.tenantSlug), request.url)
       );
     }
     return NextResponse.next();
-  }
-
-  if (pathname === "/lean-event") {
-    if (session) {
-      return NextResponse.redirect(
-        new URL(leanEventLeonardoPath(session.tenantSlug), request.url)
-      );
-    }
-    return NextResponse.redirect(new URL(leanEventLoginPath(), request.url));
   }
 
   if (isTenantLoginPath(pathname)) {
     return redirectToUnifiedLogin(request);
   }
 
-  if (isLegacyLeanEventLeonardoPath(pathname)) {
-    const target = mapLegacyLeanEventLeonardoPath(
+  if (isLegacyGlobalLeonardoPath(pathname)) {
+    const target = mapLegacyGlobalLeonardoPath(
       pathname,
       session?.tenantSlug ?? DEFAULT_PUBLIC_TENANT_SLUG
     );
@@ -229,7 +252,7 @@ export async function middleware(request: NextRequest) {
 
   if (session.tenantSlug !== tenantSlug) {
     return NextResponse.redirect(
-      new URL(leanEventLeonardoPath(session.tenantSlug), request.url)
+      new URL(leanEventHubPath(session.tenantSlug), request.url)
     );
   }
 

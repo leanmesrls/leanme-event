@@ -23,15 +23,14 @@
   "navigation": [
     {
       "id": "hub",
-      "label": "Cruscotto",
-      "segment": "leonardo",
+      "label": "Overview",
       "capability": "hub",
       "icon": "dashboard"
     },
     {
       "id": "eventi",
       "label": "Eventi",
-      "segment": "leonardo/eventi",
+      "segment": "eventi",
       "module": "events",
       "capability": "eventi",
       "icon": "events"
@@ -44,7 +43,7 @@
         {
           "id": "contatti",
           "label": "Contatti",
-          "segment": "leonardo/contatti",
+          "segment": "contatti",
           "module": "events",
           "capability": "contatti",
           "icon": "contacts"
@@ -52,7 +51,7 @@
         {
           "id": "sedi",
           "label": "Sedi",
-          "segment": "leonardo/sedi",
+          "segment": "sedi",
           "module": "events",
           "capability": "eventi",
           "icon": "events"
@@ -60,7 +59,7 @@
         {
           "id": "fornitori",
           "label": "Fornitori",
-          "segment": "leonardo/fornitori",
+          "segment": "fornitori",
           "module": "events",
           "capability": "fornitori",
           "icon": "contacts"
@@ -68,7 +67,7 @@
         {
           "id": "clienti",
           "label": "Clienti",
-          "segment": "leonardo/clienti",
+          "segment": "clienti",
           "module": "events",
           "capability": "clienti",
           "icon": "contacts"
@@ -78,7 +77,7 @@
     {
       "id": "verbali",
       "label": "Verbali AI",
-      "segment": "leonardo/verbali",
+      "segment": "verbali",
       "module": "leonardo",
       "capability": "verbali",
       "icon": "leonardo"
@@ -86,7 +85,7 @@
     {
       "id": "documenti",
       "label": "Documenti",
-      "segment": "leonardo/documenti",
+      "segment": "documenti",
       "module": "events",
       "capability": "eventi",
       "icon": "settings"
@@ -94,7 +93,7 @@
     {
       "id": "finance",
       "label": "Finance",
-      "segment": "leonardo/finance",
+      "segment": "finance",
       "module": "events",
       "capability": "finance",
       "icon": "finance"
@@ -102,7 +101,7 @@
     {
       "id": "government",
       "label": "Government",
-      "segment": "leonardo/government",
+      "segment": "government",
       "module": "government",
       "capability": "government",
       "icon": "government"
@@ -110,7 +109,7 @@
     {
       "id": "lean-human",
       "label": "Lean.Human",
-      "segment": "leonardo/lean-human",
+      "segment": "lean-human",
       "capability": "lean_human",
       "icon": "support"
     }

@@ -33,7 +33,8 @@ export type LeanEventAuditAction =
   | "import_apply"
   | "tenant_export"
   | "version_restore"
-  | "backup_blob";
+  | "backup_blob"
+  | "teresa_turn";
 
 export interface LeanEventAuditEvent {
   ts: string;

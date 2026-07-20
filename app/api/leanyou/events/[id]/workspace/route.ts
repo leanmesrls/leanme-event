@@ -16,6 +16,7 @@ import {
 } from "@/lib/lean-event/server-auth";
 import { listSuppliers } from "@/lib/lean-event/suppliers";
 import { listVenues } from "@/lib/lean-event/venues";
+import { listPublicTenantUsersByTenantId } from "@/lib/lean-event/tenant-users";
 import { listWorkspacesForEvent } from "@/lib/lean-event/workspaces";
 
 interface RouteContext {
@@ -48,6 +49,7 @@ export async function GET(_request: Request, context: RouteContext) {
       allEvents,
       supplierLinks,
       rubricaSuppliers,
+      tenantUsers,
     ] = await Promise.all([
       listWorkspacesForEvent(session.tenantId, id),
       capabilities.ospiti
@@ -62,6 +64,7 @@ export async function GET(_request: Request, context: RouteContext) {
       tenantHasLeonardoCapability(session, "fornitori")
         ? listSuppliers(session.tenantId)
         : Promise.resolve([]),
+      listPublicTenantUsersByTenantId(session.tenantId),
     ]);
 
     return NextResponse.json({
@@ -73,6 +76,7 @@ export async function GET(_request: Request, context: RouteContext) {
       supplierLinks,
       rubricaSuppliers,
       otherEvents: allEvents.filter((item) => item.id !== id),
+      tenantUsers,
       ospitiEnabled: capabilities.ospiti,
       hotelEnabled: capabilities.hotel,
       logisticaEnabled: capabilities.logistica,

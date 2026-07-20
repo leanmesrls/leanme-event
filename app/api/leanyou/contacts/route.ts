@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       email?: string;
       phone?: string;
       organization?: string;
+      organizationProvince?: string;
       tags?: string | string[];
       notes?: string;
     };
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
           ? [{ label: "Principale", number: body.phone.trim() }]
           : [],
         organization: body.organization ?? "",
+        organizationProvince: body.organizationProvince ?? "",
         tags,
         notes: body.notes ?? "",
       });

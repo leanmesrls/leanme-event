@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { LeanAgentAiPoweredBy } from "@/components/lean-event/LeanAgentAiPoweredBy";
 import { LeanEventUpgradeHint } from "@/components/lean-event/LeanEventUpgradeHint";
+import { LeonardoPageHeader } from "@/components/lean-event/LeonardoPageHeader";
 import {
   leanEventLeonardoContattiPath,
   leanEventLeonardoEventiPath,
@@ -65,11 +67,11 @@ export function LeonardoHub({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-[0.04em]">Cruscotto Leonardo</h2>
-        <p className="mt-2 max-w-2xl text-sm text-white/60">
-          Piattaforma gestionale per eventi, anagrafiche e segreteria. Seleziona
-          uno strumento dalla colonna sinistra o dalle schede sotto.
-        </p>
+        <LeonardoPageHeader
+          title="Overview"
+          poweredBy={<LeanAgentAiPoweredBy agent="leonardo" />}
+          subtitle="Piattaforma gestionale per eventi, anagrafiche e segreteria. Seleziona uno strumento dalla colonna sinistra o dalle schede sotto."
+        />
         {eventiEnabled ? (
           <p className="mt-2 text-xs text-white/45">
             Rubrica:{" "}

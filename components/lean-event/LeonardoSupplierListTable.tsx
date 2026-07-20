@@ -1,5 +1,6 @@
 "use client";
 
+import { LeonardoEntityId } from "@/components/lean-event/LeonardoEntityId";
 import {
   LEONARDO_LIST_ISSUE_BADGE,
   LEONARDO_LIST_NAME_CELL,
@@ -11,7 +12,7 @@ import { getSupplierCompletenessIssues } from "@/lib/lean-event/supplier-display
 import { getSupplierCategoryLabel } from "@/lib/lean-event/supplier-categories";
 import type { LeanEventSupplier } from "@/types/lean-event";
 
-const VIRTUAL_ROW_HEIGHT = 52;
+const VIRTUAL_ROW_HEIGHT = 64;
 const VIRTUAL_LIST_HEIGHT = 560;
 
 interface LeonardoSupplierListTableProps {
@@ -63,6 +64,7 @@ function SupplierRow({
         >
           {supplier.name}
         </button>
+        <LeonardoEntityId id={supplier.id} />
         {supplier.city ? (
           <p className="mt-0.5 truncate text-xs text-white/45">{supplier.city}</p>
         ) : null}

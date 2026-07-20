@@ -1,6 +1,6 @@
 import agentMapData from "@/data/lean-event/ai-agent-map.json";
 
-type AgentSlug =
+export type LeanAgentSlug =
   | "leonardo"
   | "vespucci"
   | "marconi"
@@ -8,6 +8,8 @@ type AgentSlug =
   | "olivetti"
   | "angela"
   | "teresa";
+
+type AgentSlug = LeanAgentSlug;
 
 type CapabilityAgentKey = keyof typeof agentMapData.capabilityAgents;
 

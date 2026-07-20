@@ -5,7 +5,7 @@ import { LeonardoVirtualList } from "@/components/lean-event/LeonardoVirtualList
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type { LeonardoEventHotelBlock } from "@/types/lean-event";
 
-const VIRTUAL_ROW_HEIGHT = 52;
+const VIRTUAL_ROW_HEIGHT = 64;
 const VIRTUAL_LIST_HEIGHT = 560;
 
 interface LeonardoGuestListTableProps {

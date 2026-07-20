@@ -6,6 +6,8 @@
 **Schema SQL:** `docs/sql/001_lean_event_schema.sql`  
 **Resilienza dati:** `docs/leanyou-data-resilience.md`
 
+> **Regola agent / team:** a ogni sezione dominio completata (nuova `entity_type`, flusso, supervisione), aggiornare **questo file** con le query Neon utili (conteggi, cerca, dettaglio, incoerenze). Non lasciare le query solo in chat.
+
 ---
 
 ## 0. Regola Windows / PowerShell
@@ -160,16 +162,18 @@ Tutto il dominio strutturato sta in **3 tabelle**:
 
 | Tabella | Contenuto |
 |---------|-----------|
-| `lean_event_entities` | Eventi, contatti, sedi, fornitori, assignment, workspace, … |
+| `lean_event_entities` | Eventi, contatti, sedi, fornitori, assignment, workspace, **Teresa chat**, … |
 | `lean_event_entity_versions` | Snapshot revisioni |
 | `lean_event_entity_presence` | Presenza multi-utente (Fase D) |
+| `lean_event_documents` | Registry documenti binari (se applicato `002`) |
+| `lean_event_audit_events` | Audit strutturato (se applicato `002`) |
 
-**Non** esistono tabelle separate `contacts` / `events`.  
+**Non** esistono tabelle separate `contacts` / `events` / `teresa_chats`.  
 Il tipo è in `entity_type`; i campi sono in `payload` (JSONB).
 
 ### Tipi `entity_type`
 
-`event` · `contact` · `venue` · `supplier` · `assignment` · `workspace` · `event_supplier_link`
+`event` · `contact` · `venue` · `supplier` · `assignment` · `workspace` · `event_supplier_link` · `event_chat` · **`teresa_chat`**
 
 ### Retention versioni (sostenibilità)
 
@@ -185,16 +189,19 @@ Documento criteri (rivalutazioni): `docs/lean-event-retention-criteria.md`
 
 Gli **assignment** (eventi collegati a un contatto) **non** hanno tetto numerico: restano lo storico completo. In UI: prima in corso/futuri, poi passati, con “Mostra altri” dopo 8.
 
+**Teresa (`teresa_chat`):** ultimi **50 messaggi per thread** (prune applicativo al salvataggio). Più thread per utente.
+
 ### Campi utili in `payload`
 
 | Tipo | Chiavi tipiche |
 |------|----------------|
-| `event` | `title`, `cdc` |
-| `contact` | `firstName`, `lastName`, `email` |
+| `event` | `title`, `cdc`, `startDate`, `endDate`, `venueId`, `projectLeaderUserId`, `projectManagerUserIds[]` |
+| `contact` | `firstName`, `lastName`, `email`, `organization`, `organizationProvince`, `tags[]`, `phones[]` |
 | `venue` | `name`, `city` |
 | `supplier` | `name`, `email` |
 | `assignment` | `eventId`, `contactId` |
 | `workspace` | `title`, `linkedEventId` |
+| `teresa_chat` | `userId`, `userEmail`, `userName`, `title`, `messages[]` (`role`, `content`, `createdAt`, `contextLabel`) |
 
 ---
 
@@ -477,6 +484,139 @@ FROM lean_event_entities
 WHERE entity_type = 'workspace'
   AND deleted_at IS NULL
   AND (payload->>'linkedEventId' IS NULL OR payload->>'linkedEventId' = '');
+```
+
+### 3.16 Teresa chat (`entity_type = 'teresa_chat'`)
+
+**Nota:** non esiste una tabella `teresa_*`. I thread sono righe in `lean_event_entities`.  
+UI supervisione globale LeanMe: `/lean-event/{tenant}/lean-human` (solo email `@leanme.it` / allowlist).  
+API: `GET /api/lean-event/teresa/supervise` · chat utente: `/api/lean-event/teresa/chat`.
+
+```sql
+-- Conteggio thread Teresa (globale e per tenant)
+SELECT tenant_id, COUNT(*)::int AS threads
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND deleted_at IS NULL
+GROUP BY tenant_id
+ORDER BY threads DESC;
+```
+
+```sql
+-- Ultimi thread (tutti i tenant) — vista operatore
+SELECT
+  tenant_id,
+  id,
+  payload->>'userEmail' AS user_email,
+  payload->>'userName' AS user_name,
+  payload->>'title' AS title,
+  jsonb_array_length(COALESCE(payload->'messages', '[]'::jsonb)) AS message_count,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND deleted_at IS NULL
+ORDER BY updated_at DESC
+LIMIT 50;
+```
+
+```sql
+-- Thread di un utente (email) cross-tenant
+SELECT
+  tenant_id,
+  id,
+  payload->>'title' AS title,
+  jsonb_array_length(COALESCE(payload->'messages', '[]'::jsonb)) AS message_count,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND deleted_at IS NULL
+  AND lower(payload->>'userEmail') = lower('luana.martuzzi@leanme.it')
+ORDER BY updated_at DESC;
+```
+
+```sql
+-- Thread di un tenant
+SELECT
+  id,
+  payload->>'userEmail' AS user_email,
+  payload->>'userName' AS user_name,
+  payload->>'title' AS title,
+  jsonb_array_length(COALESCE(payload->'messages', '[]'::jsonb)) AS message_count,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND tenant_id = 'demo'
+  AND deleted_at IS NULL
+ORDER BY updated_at DESC;
+```
+
+```sql
+-- Dettaglio thread + messaggi (payload completo)
+SELECT id, tenant_id, revision, updated_at, payload
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND tenant_id = 'demo'
+  AND id = 'INCOLLA-THREAD-ID';
+```
+
+```sql
+-- Espandi messaggi di un thread (una riga per messaggio)
+SELECT
+  e.tenant_id,
+  e.id AS thread_id,
+  e.payload->>'userEmail' AS user_email,
+  msg.ordinality AS msg_n,
+  msg.elem->>'role' AS role,
+  left(msg.elem->>'content', 200) AS content_preview,
+  msg.elem->>'createdAt' AS created_at,
+  msg.elem->>'contextLabel' AS context_label
+FROM lean_event_entities e
+CROSS JOIN LATERAL jsonb_array_elements(COALESCE(e.payload->'messages', '[]'::jsonb))
+  WITH ORDINALITY AS msg(elem, ordinality)
+WHERE e.entity_type = 'teresa_chat'
+  AND e.deleted_at IS NULL
+  AND e.id = 'INCOLLA-THREAD-ID'
+ORDER BY msg.ordinality;
+```
+
+```sql
+-- Thread con più di 50 messaggi (anomalia: prune applicativo dovrebbe tagliare a 50)
+SELECT
+  tenant_id,
+  id,
+  payload->>'userEmail' AS user_email,
+  jsonb_array_length(COALESCE(payload->'messages', '[]'::jsonb)) AS message_count,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND deleted_at IS NULL
+  AND jsonb_array_length(COALESCE(payload->'messages', '[]'::jsonb)) > 50
+ORDER BY message_count DESC;
+```
+
+```sql
+-- Cerca testo nei messaggi Teresa (grezzo)
+SELECT
+  tenant_id,
+  id,
+  payload->>'userEmail' AS user_email,
+  payload->>'title' AS title,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'teresa_chat'
+  AND deleted_at IS NULL
+  AND payload::text ILIKE '%testo-da-cercare%'
+ORDER BY updated_at DESC
+LIMIT 50;
+```
+
+```sql
+-- Audit turni Teresa (se tabella audit presente)
+SELECT ts, tenant_id, user_email, action, resource_type, resource_id, meta
+FROM lean_event_audit_events
+WHERE action = 'teresa_turn'
+ORDER BY ts DESC
+LIMIT 50;
 ```
 
 ---

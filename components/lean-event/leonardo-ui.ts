@@ -36,6 +36,7 @@ export const LEONARDO_LIST_ISSUE_BADGE =
  * - Liste lunghe: filtri + `LeonardoListPagination` (25/50/100 o scroll virtual)
  * - Dettaglio: riga cliccabile → `LeonardoSheetModal` (Esc / overlay per chiudere)
  * - Deep link: query param dedicato (`?ospite=`, `?fornitore=`) per aprire la scheda
+ * - ID Neon: `LeonardoEntityId` sotto il nome (click = copia)
  * - Componenti condivisi: `LeonardoListPagination`, `LeonardoVirtualList`, `leonardo-ui` tokens
  */
 export const LEONARDO_LIST_UX_STANDARD = "collapsible-panels + pagination + sheet-modal" as const;

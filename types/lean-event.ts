@@ -61,6 +61,12 @@ export interface LeanEventUser {
   accessToken: string;
 }
 
+/** Utenza tenant esposta in UI (senza segreti). */
+export type LeanEventTenantUserPublic = Pick<
+  LeanEventUser,
+  "id" | "email" | "firstName" | "lastName" | "name" | "role"
+>;
+
 export interface LeanEventTenant {
   id: string;
   name: string;
@@ -183,6 +189,10 @@ export interface LeonardoEvent {
   type?: LeonardoEventType;
   status: LeonardoEventStatus;
   notes: string;
+  /** Project Leader — una sola utenza tenant */
+  projectLeaderUserId?: string | null;
+  /** Project Manager — più utenze tenant */
+  projectManagerUserIds?: string[];
   /** Blocchi hotel multipli con allotment per tipologia */
   hotelBlocks?: LeonardoEventHotelBlock[];
   /** Cene gala, attività satellite, ecc. */
@@ -417,6 +427,8 @@ export interface LeanEventContact {
   phones: LeanEventContactPhone[];
   /** Etichette libere per filtri rubrica (es. docente, sponsor, BO) */
   organization: string;
+  /** Provincia ente / azienda di appartenenza (sigla, es. BO) */
+  organizationProvince?: string;
   tags: string[];
   notes: string;
   revision?: number;
@@ -534,6 +546,57 @@ export interface LeonardoEventChatThread {
   deletedAt?: string | null;
   deletedBy?: string | null;
   purgeAfter?: string | null;
+}
+
+/** Turno chat Lean.Agent.Teresa (assistenza workspace). */
+export interface TeresaChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  createdAt: string;
+  /** Contesto UI al momento del messaggio (tab attiva). */
+  contextLabel?: string;
+  contextKind?: string;
+  contextEntityId?: string;
+}
+
+/** Thread Teresa per utenza (più conversazioni possibili; max messaggi per thread). */
+export interface TeresaChatThread {
+  id: string;
+  tenantId: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  /** Titolo breve (prima domanda o “Nuova conversazione”). */
+  title?: string;
+  messages: TeresaChatMessage[];
+  createdAt: string;
+  updatedAt: string;
+  revision?: number;
+  updatedBy?: string;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  purgeAfter?: string | null;
+}
+
+/** Riepilogo thread per supervisione globale LeanMe (cross-tenant). */
+export interface TeresaSuperviseThreadSummary {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  title: string | null;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  messageCount: number;
+  userMessageCount: number;
+  assistantMessageCount: number;
+  updatedAt: string;
+  createdAt: string;
+  lastUserPreview: string | null;
+  lastAssistantPreview: string | null;
+  lastContextLabel: string | null;
 }
 
 /** Sede / location in rubrica tenant (riutilizzabile tra eventi). */

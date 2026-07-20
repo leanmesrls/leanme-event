@@ -12,6 +12,7 @@ import { LeonardoEventSuppliersPanel } from "@/components/lean-event/LeonardoEve
 import { LeonardoEventChatPanel } from "@/components/lean-event/LeonardoEventChatPanel";
 import { LeonardoEventGuestsPanel } from "@/components/lean-event/LeonardoEventGuestsPanel";
 import { LeonardoEventPhaseNav } from "@/components/lean-event/LeonardoEventPhaseNav";
+import { LeonardoEventProjectTeamFields } from "@/components/lean-event/LeonardoEventProjectTeamFields";
 import { LeonardoEventPlaceholderPanel } from "@/components/lean-event/LeonardoEventPlaceholderPanel";
 import {
   LeonardoEventReportPanel,
@@ -55,6 +56,7 @@ import {
 import type {
   LeanEventContact,
   LeanEventSupplier,
+  LeanEventTenantUserPublic,
   LeonardoEvent,
   LeonardoVenue,
   LeonardoWorkspace,
@@ -72,6 +74,7 @@ interface LeonardoEventDetailProps {
   initialSupplierLinks: EventSupplierWithSupplier[];
   rubricaSuppliers: LeanEventSupplier[];
   otherEvents: LeonardoEvent[];
+  tenantUsers: LeanEventTenantUserPublic[];
   ospitiEnabled: boolean;
   hotelEnabled: boolean;
   logisticaEnabled: boolean;
@@ -92,6 +95,7 @@ export function LeonardoEventDetail({
   initialSupplierLinks,
   rubricaSuppliers,
   otherEvents,
+  tenantUsers,
   ospitiEnabled,
   hotelEnabled,
   logisticaEnabled,
@@ -292,6 +296,8 @@ export function LeonardoEventDetail({
         ecmModality: event.ecmModality,
         status: event.status,
         notes: event.notes,
+        projectLeaderUserId: event.projectLeaderUserId ?? null,
+        projectManagerUserIds: event.projectManagerUserIds ?? [],
       }),
     });
     const payload = (await response.json()) as {
@@ -436,6 +442,18 @@ export function LeonardoEventDetail({
             venueText={event.venue}
             onChange={({ venueId, venue }) =>
               setEvent({ ...event, venueId, venue })
+            }
+          />
+          <LeonardoEventProjectTeamFields
+            tenantUsers={tenantUsers}
+            projectLeaderUserId={event.projectLeaderUserId ?? null}
+            projectManagerUserIds={event.projectManagerUserIds ?? []}
+            onChange={({ projectLeaderUserId, projectManagerUserIds }) =>
+              setEvent({
+                ...event,
+                projectLeaderUserId,
+                projectManagerUserIds,
+              })
             }
           />
           <div className="grid gap-4 md:grid-cols-2">

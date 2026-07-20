@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/metadata";
 
+/** Area riservata: non indicizzare. */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: "/",
-      disallow: ["/lean-event", "/api/lean-event"],
+      disallow: "/",
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

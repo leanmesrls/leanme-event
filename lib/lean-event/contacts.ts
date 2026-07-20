@@ -29,7 +29,10 @@ import {
 } from "./audit-log";
 
 function normalizeContact(contact: LeanEventContact): LeanEventContact {
-  return withLifecycleDefaults(contact) as LeanEventContact;
+  return withLifecycleDefaults({
+    ...contact,
+    organizationProvince: contact.organizationProvince?.trim().toUpperCase() ?? "",
+  }) as LeanEventContact;
 }
 
 export async function listContacts(tenantId: string): Promise<LeanEventContact[]> {
@@ -203,6 +206,7 @@ export function createContact(
     fiscalCode?: string;
     phones?: LeanEventContactPhone[];
     organization?: string;
+    organizationProvince?: string;
     tags?: string[];
     notes?: string;
   }
@@ -219,6 +223,7 @@ export function createContact(
     fiscalCode: input.fiscalCode?.trim().toUpperCase() || undefined,
     phones: input.phones ?? [],
     organization: input.organization?.trim() ?? "",
+    organizationProvince: input.organizationProvince?.trim().toUpperCase() ?? "",
     tags: normalizeTagsList(input.tags ?? []),
     notes: input.notes?.trim() ?? "",
     createdAt: now,

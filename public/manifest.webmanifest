@@ -1,8 +1,8 @@
 {
-  "name": "LeanMe — Aziende Ibride",
-  "short_name": "LeanMe",
-  "description": "LeanMe Srls progetta Aziende Ibride attraverso Intelligenza Artificiale, automazione e trasformazione digitale.",
-  "start_url": "/",
+  "name": "LeanEvent",
+  "short_name": "LeanEvent",
+  "description": "LeanEvent — area riservata clienti LeanMe. Powered by Lean.Agent.AI.",
+  "start_url": "/lean-event",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#e6007e",

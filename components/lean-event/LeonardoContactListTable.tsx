@@ -1,16 +1,21 @@
 "use client";
 
+import { LeonardoEntityId } from "@/components/lean-event/LeonardoEntityId";
 import {
   LEONARDO_LIST_NAME_CELL,
   LEONARDO_LIST_NAME_LINK,
   LEONARDO_LIST_STICKY_HEADER,
 } from "@/components/lean-event/leonardo-ui";
 import { LeonardoVirtualList } from "@/components/lean-event/LeonardoVirtualList";
+import {
+  formatContactName,
+  formatContactOrganizationProvince,
+  getContactPrimaryPhone,
+} from "@/lib/lean-event/contact-display";
 import { formatTagsDisplay } from "@/lib/lean-event/contact-tags";
-import { formatContactName } from "@/lib/lean-event/contact-display";
 import type { LeanEventContact } from "@/types/lean-event";
 
-const VIRTUAL_ROW_HEIGHT = 52;
+const VIRTUAL_ROW_HEIGHT = 64;
 const VIRTUAL_LIST_HEIGHT = 560;
 
 interface LeonardoContactListTableProps {
@@ -25,9 +30,10 @@ function ContactListHeader() {
     <thead>
       <tr className={LEONARDO_LIST_STICKY_HEADER}>
         <th className="px-3 py-2.5">Nome</th>
-        <th className="hidden px-3 py-2.5 sm:table-cell">Email</th>
-        <th className="hidden px-3 py-2.5 md:table-cell">Tag</th>
-        <th className="hidden px-3 py-2.5 lg:table-cell">Organizzazione</th>
+        <th className="hidden px-3 py-2.5 sm:table-cell">Tel. principale</th>
+        <th className="hidden px-3 py-2.5 md:table-cell">Email</th>
+        <th className="hidden px-3 py-2.5 lg:table-cell">Tag</th>
+        <th className="hidden px-3 py-2.5 xl:table-cell">Prov. ente</th>
         <th className="px-3 py-2.5 text-right">Scheda</th>
       </tr>
     </thead>
@@ -60,22 +66,28 @@ function ContactRow({
         >
           {formatContactName(contact)}
         </button>
+        <LeonardoEntityId id={contact.id} />
         <p className="mt-0.5 truncate text-xs text-white/45 sm:hidden">
-          {contact.email || formatTagsDisplay(contact.tags) || "—"}
+          {getContactPrimaryPhone(contact)} · {contact.email || "—"}
         </p>
       </td>
       <td className="hidden px-3 py-2.5 text-white/70 sm:table-cell">
+        {getContactPrimaryPhone(contact)}
+      </td>
+      <td className="hidden px-3 py-2.5 text-white/70 md:table-cell">
         {contact.email || "—"}
       </td>
-      <td className="hidden px-3 py-2.5 md:table-cell">
+      <td className="hidden px-3 py-2.5 lg:table-cell">
         {contact.tags?.length ? (
-          <span className="truncate text-white/60">{formatTagsDisplay(contact.tags)}</span>
+          <span className="truncate text-white/60">
+            {formatTagsDisplay(contact.tags)}
+          </span>
         ) : (
           <span className="text-white/40">—</span>
         )}
       </td>
-      <td className="hidden px-3 py-2.5 text-white/70 lg:table-cell">
-        {contact.organization || "—"}
+      <td className="hidden px-3 py-2.5 text-white/70 xl:table-cell">
+        {formatContactOrganizationProvince(contact)}
       </td>
       <td className="px-3 py-2.5 text-right">
         <button
@@ -139,7 +151,7 @@ export function LeonardoContactListTable({
 
   return (
     <div className="max-h-[560px] overflow-auto rounded-xl border border-white/10">
-      <table className="min-w-full text-sm">
+      <table className="min-w-[920px] w-full text-sm">
         <ContactListHeader />
         <tbody>
           {contacts.map((contact) => (

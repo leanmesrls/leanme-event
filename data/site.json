@@ -1,64 +1,30 @@
 {
-  "name": "LeanMe",
+  "name": "LeanEvent",
   "company": "LeanMe Srls",
-  "claim": "Powered by Human Intelligence. Amplified by AI.",
-  "claimSecondary": "Non usiamo semplicemente l'Intelligenza Artificiale. Progettiamo Aziende Ibride.",
-  "url": "https://leanme.it",
+  "claim": "Powered by Lean.Agent.AI",
+  "claimSecondary": "Area riservata clienti LeanMe.",
+  "url": "https://event.leanme.it",
   "locale": "it_IT",
   "language": "it-IT",
   "navigation": [
-    { "label": "Home", "href": "/" },
-    { "label": "Chi siamo", "href": "/chi-siamo" },
-    { "label": "Come possiamo aiutarti", "href": "/come-possiamo-aiutarti" },
-    { "label": "Lean Lab", "href": "/leanlab" },
-    { "label": "Lean Academy", "href": "/lean-academy" },
-    { "label": "Lean Event", "href": "/lean-event/login" }
+    { "label": "Login", "href": "/lean-event" }
   ],
   "footer": {
-    "tagline": "Digital Innovation Company — Progettiamo Aziende Ibride.",
+    "tagline": "LeanEvent — area riservata clienti LeanMe.",
     "copyright": "© 2026 LeanMe S.r.l.s.",
-    "social": [
-      {
-        "label": "LinkedIn",
-        "href": "https://linkedin.com/company/leanme",
-        "platform": "linkedin"
-      },
-      {
-        "label": "Facebook",
-        "href": "https://facebook.com/leanme",
-        "platform": "facebook"
-      },
-      {
-        "label": "Instagram",
-        "href": "https://instagram.com/leanme",
-        "platform": "instagram"
-      },
-      {
-        "label": "Email",
-        "href": "mailto:info@leanme.it",
-        "platform": "email"
-      }
-    ],
-    "legalLinks": [
-      { "label": "Privacy Policy", "href": "/privacy" },
-      { "label": "Informativa Newsletter", "href": "/privacy-newsletter" },
-      { "label": "Cookie Policy", "href": "/cookie" },
-      { "label": "Accessibilità (EAA)", "href": "/accessibilita" }
-    ]
+    "social": [],
+    "legalLinks": []
   },
   "seo": {
-    "defaultTitle": "LeanMe | Aziende Ibride",
-    "titleTemplate": "%s | LeanMe",
-    "defaultDescription": "LeanMe Srls progetta Aziende Ibride attraverso Intelligenza Artificiale, automazione e trasformazione digitale. Powered by Human Intelligence. Amplified by AI.",
+    "defaultTitle": "LeanEvent | Area riservata",
+    "titleTemplate": "%s | LeanEvent",
+    "defaultDescription": "LeanEvent — piattaforma gestionale eventi LeanMe. Area riservata clienti. Powered by Lean.Agent.AI.",
     "keywords": [
+      "LeanEvent",
       "LeanMe",
-      "Azienda Ibrida",
-      "Intelligenza Artificiale",
-      "Automazione",
-      "Trasformazione Digitale",
-      "Healthcare",
+      "gestione eventi",
       "Lean.Agent",
-      "Innovazione"
+      "Leonardo"
     ]
   }
 }

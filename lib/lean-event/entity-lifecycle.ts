@@ -30,7 +30,8 @@ export type LeanEventManagedEntityType =
   | "assignment"
   | "workspace"
   | "event_supplier_link"
-  | "event_chat";
+  | "event_chat"
+  | "teresa_chat";
 
 export interface LeanEventEntityLifecycleFields {
   revision?: number;
