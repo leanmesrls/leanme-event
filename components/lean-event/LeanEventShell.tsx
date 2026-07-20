@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { usePathname } from "next/navigation";
 
 import configData from "@/data/lean-event/config.json";
@@ -11,6 +11,7 @@ import {
   LEONARDO_UPGRADE_HINT,
   leonardoUpgradeMailto,
 } from "@/lib/lean-event/capabilities";
+import { LeanEventRailChevron } from "@/components/lean-event/LeanEventRailChevron";
 import { LeanEventUpgradeHint } from "@/components/lean-event/LeanEventUpgradeHint";
 import { LeonardoTeresaRail } from "@/components/lean-event/LeonardoTeresaRail";
 import { LeonardoWorkTabBar } from "@/components/lean-event/LeonardoWorkTabBar";
@@ -28,6 +29,46 @@ import type { LeanEventConfig, LeanEventNavItem, LeanEventSession } from "@/type
 import { cn } from "@/lib/utils";
 
 const config = configData as LeanEventConfig;
+
+const MODULES_RAIL_KEY = "lean-event.modules-rail";
+const MODULES_RAIL_DEFAULT_WIDTH = 288;
+const MODULES_RAIL_MIN_WIDTH = 240;
+const MODULES_RAIL_MAX_WIDTH = 360;
+
+type ModulesRailStored = {
+  open: boolean;
+  width: number;
+};
+
+function readModulesRail(): ModulesRailStored {
+  if (typeof window === "undefined") {
+    return { open: true, width: MODULES_RAIL_DEFAULT_WIDTH };
+  }
+  try {
+    const raw = localStorage.getItem(MODULES_RAIL_KEY);
+    if (!raw) {
+      return { open: true, width: MODULES_RAIL_DEFAULT_WIDTH };
+    }
+    const parsed = JSON.parse(raw) as Partial<ModulesRailStored>;
+    return {
+      open: parsed.open !== false,
+      width: Math.min(
+        MODULES_RAIL_MAX_WIDTH,
+        Math.max(MODULES_RAIL_MIN_WIDTH, Number(parsed.width) || MODULES_RAIL_DEFAULT_WIDTH)
+      ),
+    };
+  } catch {
+    return { open: true, width: MODULES_RAIL_DEFAULT_WIDTH };
+  }
+}
+
+function writeModulesRail(state: ModulesRailStored) {
+  try {
+    localStorage.setItem(MODULES_RAIL_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore */
+  }
+}
 
 interface LeanEventShellProps {
   session: LeanEventSession;
@@ -339,7 +380,7 @@ function LeonardoNav({
   }
 
   return (
-    <nav aria-label="Leonardo" className="space-y-1">
+    <nav aria-label="Moduli" className="space-y-1">
       <div className="space-y-1 rounded-xl border border-white/10 bg-zinc-950 p-2">
         {navigation.map((item) => {
           if (item.children?.length) {
@@ -423,10 +464,28 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   const tenantBase = leanEventTenantBase(session.tenantSlug);
   const leonardoBase = leanEventLeonardoPath(session.tenantSlug);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [modulesReady, setModulesReady] = useState(false);
+  const [modulesOpen, setModulesOpen] = useState(true);
+  const [modulesWidth, setModulesWidth] = useState(MODULES_RAIL_DEFAULT_WIDTH);
+  const modulesDragging = useRef(false);
 
   const navigation = config.navigation.map((item) =>
     mapNavEntry(item, tenantBase, leonardoBase, session)
   );
+
+  useEffect(() => {
+    const stored = readModulesRail();
+    setModulesOpen(stored.open);
+    setModulesWidth(stored.width);
+    setModulesReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!modulesReady) {
+      return;
+    }
+    writeModulesRail({ open: modulesOpen, width: modulesWidth });
+  }, [modulesOpen, modulesWidth, modulesReady]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -439,38 +498,114 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
     setMobileOpen(false);
   }, [pathname]);
 
+  function onModulesResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    modulesDragging.current = true;
+    const startX = event.clientX;
+    const startWidth = modulesWidth;
+
+    function onMove(moveEvent: PointerEvent) {
+      if (!modulesDragging.current) {
+        return;
+      }
+      const next = Math.min(
+        MODULES_RAIL_MAX_WIDTH,
+        Math.max(MODULES_RAIL_MIN_WIDTH, startWidth + (moveEvent.clientX - startX))
+      );
+      setModulesWidth(next);
+    }
+
+    function onUp() {
+      modulesDragging.current = false;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
   return (
     <LeonardoWorkTabsProvider tenantSlug={session.tenantSlug}>
     <LeonardoWorkTabsRouteSync tenantSlug={session.tenantSlug} />
     <div className="min-h-[100dvh] bg-black text-white">
       <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
-        <aside className="hidden w-72 shrink-0 flex-col border-r border-white/10 bg-black px-5 py-8 lg:flex">
-          <div className="border-b border-white/10 pb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leanme-fuchsia">
-              LeanEvent
-            </p>
-            <p className="mt-2 text-lg font-bold tracking-[0.06em]">
-              {session.tenantName}
-            </p>
-            <p className="mt-1 text-xs text-white/55">{session.userName}</p>
-          </div>
+        <aside
+          className={cn(
+            "relative hidden shrink-0 flex-col border-r border-white/10 bg-black lg:flex",
+            modulesOpen ? "" : "w-12"
+          )}
+          style={modulesOpen ? { width: modulesWidth } : undefined}
+          aria-label="Moduli"
+        >
+          {modulesOpen ? (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Ridimensiona colonna Moduli"
+              onPointerDown={onModulesResizePointerDown}
+              className="absolute inset-y-0 right-0 z-10 w-1.5 cursor-col-resize touch-none hover:bg-leanme-fuchsia/40"
+            />
+          ) : null}
 
-          <div className="flex min-h-0 flex-1 flex-col">
-            <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
-              Leonardo
-            </p>
+          {!modulesOpen ? (
+            <button
+              type="button"
+              onClick={() => setModulesOpen(true)}
+              className="flex h-full flex-col items-center gap-3 px-2 py-4 text-white/60 transition hover:text-white"
+              aria-label="Apri colonna Moduli"
+              title="Moduli"
+            >
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/15">
+                <LeanEventRailChevron direction="right" />
+              </span>
+              <span
+                className="text-[10px] font-semibold uppercase tracking-[0.12em]"
+                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              >
+                Moduli
+              </span>
+            </button>
+          ) : (
+            <div className="relative flex min-h-0 flex-1 flex-col px-5 py-8">
+              <button
+                type="button"
+                onClick={() => setModulesOpen(false)}
+                className="absolute right-3 top-3 z-10 inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-white/15 text-white/60 transition hover:border-white/30 hover:text-white"
+                aria-label="Chiudi colonna Moduli"
+                title="Comprimi Moduli"
+              >
+                <LeanEventRailChevron direction="left" />
+              </button>
 
-            <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
-              <LeonardoNav
-                navigation={navigation}
-                pathname={pathname}
-                leonardoBase={leonardoBase}
-              />
+              <div className="border-b border-white/10 pb-6 pr-10">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leanme-fuchsia">
+                  LeanEvent
+                </p>
+                <p className="mt-2 text-lg font-bold tracking-[0.06em]">
+                  {session.tenantName}
+                </p>
+                <p className="mt-1 text-xs text-white/55">{session.userName}</p>
+              </div>
+
+              <div className="flex min-h-0 flex-1 flex-col">
+                <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                  Moduli
+                </p>
+
+                <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+                  <LeonardoNav
+                    navigation={navigation}
+                    pathname={pathname}
+                    leonardoBase={leonardoBase}
+                  />
+                </div>
+
+                <SidebarFooter tenantSlug={session.tenantSlug} pathname={pathname} />
+                <LogoutButton className="mt-3 shrink-0" />
+              </div>
             </div>
-
-            <SidebarFooter tenantSlug={session.tenantSlug} pathname={pathname} />
-            <LogoutButton className="mt-3 shrink-0" />
-          </div>
+          )}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -481,7 +616,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
                   <button
                     type="button"
                     className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white lg:hidden"
-                    aria-label="Apri menu Leonardo"
+                    aria-label="Apri menu moduli"
                     aria-expanded={mobileOpen}
                     aria-controls="leanyou-mobile-nav"
                     onClick={() => setMobileOpen(true)}
@@ -543,7 +678,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
           id="leanyou-mobile-nav"
           role="dialog"
           aria-modal="true"
-          aria-label="Menu Leonardo"
+          aria-label="Menu moduli"
           className="fixed inset-0 z-50 lg:hidden"
         >
           <button
@@ -580,7 +715,7 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
             </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-4">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
-                Leonardo
+                Moduli
               </p>
               <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
                 <LeonardoNav

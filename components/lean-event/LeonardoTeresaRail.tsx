@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { getLeanAgent } from "@/lib/lean-event/ai-agents";
+import { LeanEventRailChevron } from "@/components/lean-event/LeanEventRailChevron";
 import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
 import type { TeresaChatMessage } from "@/types/lean-event";
 import { cn } from "@/lib/utils";
@@ -510,7 +511,7 @@ export function LeonardoTeresaRail() {
   ) : null;
 
   const header = (
-    <header className="shrink-0 border-b border-white/10 px-4 py-3">
+    <header className="shrink-0 border-b border-white/10 px-4 py-3 pr-14">
       <div className="flex items-center gap-2">
         <span className="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/15 bg-white">
           <Image
@@ -569,8 +570,11 @@ export function LeonardoTeresaRail() {
             onClick={() => setOpen(true)}
             className="flex h-full flex-col items-center gap-3 px-2 py-4 text-white/60 transition hover:text-white"
             aria-label="Apri assistente Lean.Agent.Teresa"
-            title="Lean.Agent.Teresa"
+            title="Apri Lean.Agent.Teresa"
           >
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/15">
+              <LeanEventRailChevron direction="left" />
+            </span>
             <span className="inline-flex h-8 w-8 overflow-hidden rounded-full border border-white/15 bg-white">
               <Image
                 src={teresa.badge}
@@ -594,17 +598,9 @@ export function LeonardoTeresaRail() {
               onClick={() => setOpen(false)}
               className="absolute right-3 top-3 z-10 inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-white/15 text-white/60 transition hover:border-white/30 hover:text-white"
               aria-label="Chiudi colonna Teresa"
+              title="Comprimi Teresa"
             >
-              <svg
-                aria-hidden
-                viewBox="0 0 24 24"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <LeanEventRailChevron direction="right" />
             </button>
             {chatBody}
           </div>
