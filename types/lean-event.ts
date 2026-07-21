@@ -17,7 +17,7 @@ export interface LeanEventLeonardoCapabilities {
   clienti: boolean;
   /** Sidebar — report budget aggregato agenzia */
   finance: boolean;
-  /** Sidebar — Lean.Studio (supporto umano / sviluppo personalizzato) */
+  /** Sidebar — Lean.Studio (sviluppo personalizzato) */
   lean_human: boolean;
   /** @deprecated Rimosso dal catalogo moduli — tenuto per compatibilità tenant */
   government: boolean;
@@ -357,6 +357,8 @@ export interface LeonardoEvent {
   type?: LeonardoEventType;
   status: LeonardoEventStatus;
   notes: string;
+  /** Preferito (stellina) — flag a livello evento/tenant */
+  isFavorite?: boolean;
   /** Project Leader — una sola utenza tenant */
   projectLeaderUserId?: string | null;
   /** Project Manager — più utenze tenant */
@@ -1028,6 +1030,8 @@ export interface LeanEventNavItem {
   segment?: string;
   module?: LeanEventModule;
   capability?: keyof LeanEventLeonardoCapabilities;
+  /** Solo operatori piattaforma LeanMe (es. supervisione Teresa) */
+  platformOperatorOnly?: boolean;
   /** Intestazione di gruppo in sidebar (Starter / Pro / Intelligence) */
   navGroup?: boolean;
   icon?:

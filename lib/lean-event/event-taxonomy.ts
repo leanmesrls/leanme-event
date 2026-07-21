@@ -107,6 +107,7 @@ export function normalizeLeonardoEvent(event: LeonardoEvent): LeonardoEvent {
   return {
     ...event,
     categoryId,
+    isFavorite: Boolean(event.isFavorite),
     healthAreaId: event.healthAreaId ?? null,
     ecmEnabled,
     ecmModality: event.ecmModality ?? null,

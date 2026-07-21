@@ -239,6 +239,7 @@ export function createEvent(
     type: ecmEnabled ? "ecm" : "base",
     status: input.status ?? "draft",
     notes: input.notes?.trim() ?? "",
+    isFavorite: false,
     projectLeaderUserId: input.projectLeaderUserId ?? null,
     projectManagerUserIds: input.projectManagerUserIds ?? [],
     createdAt: now,

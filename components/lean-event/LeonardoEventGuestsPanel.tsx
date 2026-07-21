@@ -6,8 +6,7 @@ import eventsConfig from "@/data/lean-event/events-config.json";
 import { LeonardoEventBulkAssign } from "@/components/lean-event/LeonardoEventBulkAssign";
 import { LeonardoEventGuestListImport } from "@/components/lean-event/LeonardoEventGuestListImport";
 import { LeonardoGuestListTable } from "@/components/lean-event/LeonardoGuestListTable";
-import { LeonardoGuestSheetModal } from "@/components/lean-event/LeonardoGuestSheetModal";
-import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
+import { useLeonardoWorkTabs } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoSubSectionNav } from "@/components/lean-event/LeonardoSubSectionNav";
 import { LEONARDO_PANEL_TITLE } from "@/components/lean-event/leonardo-ui";
 import { formatContactName } from "@/lib/lean-event/contact-display";
@@ -20,11 +19,9 @@ import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignme
 import { SPEAKER_SUB_ROLES } from "@/lib/lean-event/event-nav";
 import type {
   LeanEventContact,
-  LeonardoAssignmentHospitality,
   LeonardoEvent,
   LeonardoEventHotelBlock,
   LeonardoEventRoleCategory,
-  LeonardoRelatedEventParticipation,
   LeonardoVenue,
 } from "@/types/lean-event";
 
@@ -85,7 +82,7 @@ export function LeonardoEventGuestsPanel({
   onGuestSheetChange,
   onAssignmentsChange,
 }: LeonardoEventGuestsPanelProps) {
-  const workTabs = useLeonardoWorkTabsOptional();
+  const workTabs = useLeonardoWorkTabs();
   const speakerRoles = Array.isArray(lockedRoleFilter)
     ? lockedRoleFilter
     : null;
@@ -99,11 +96,6 @@ export function LeonardoEventGuestsPanel({
       ? roleCategories.filter((role) => role.id === lockedSingleRole)
       : roleCategories;
   const [assignments, setAssignments] = useState(initialAssignments);
-  const [sheetAssignmentId, setSheetAssignmentId] = useState<string | null>(null);
-  const [savingAssignmentId, setSavingAssignmentId] = useState<string | null>(
-    null
-  );
-  const [sheetError, setSheetError] = useState<string | null>(null);
 
   function updateAssignments(next: AssignmentRow[]) {
     setAssignments(next);
@@ -133,7 +125,6 @@ export function LeonardoEventGuestsPanel({
   const [insertMode, setInsertMode] = useState<GuestInsertMode>("single");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSizeValue>(DEFAULT_PAGE_SIZE);
-  const [queueMode, setQueueMode] = useState(false);
   const [removingAssignmentId, setRemovingAssignmentId] = useState<string | null>(
     null
   );
@@ -151,34 +142,22 @@ export function LeonardoEventGuestsPanel({
   }
 
   function openContactTab(contactId: string, contactName: string) {
-    if (workTabs) {
-      workTabs.openTab({
-        kind: "contact",
-        entityId: contactId,
-        title: contactName,
-      });
-    }
+    workTabs.openTab({
+      kind: "contact",
+      entityId: contactId,
+      title: contactName,
+    });
   }
 
   function openGuestSheet(assignmentId: string) {
     const row = assignments.find((item) => item.id === assignmentId);
-    if (workTabs) {
-      workTabs.openTab({
-        kind: "assignment",
-        entityId: assignmentId,
-        title: row?.contactName ?? "Scheda ospite",
-        contextId: eventId,
-      });
-      // Non lasciare `?ospite=` in URL: al ritorno sulla tab evento riaprirebbe la scheda.
-      onGuestSheetChange?.(null);
-      return;
-    }
-    setSheetAssignmentId(assignmentId);
-    onGuestSheetChange?.(assignmentId);
-  }
-
-  function closeGuestSheet() {
-    setSheetAssignmentId(null);
+    workTabs.openTab({
+      kind: "assignment",
+      entityId: assignmentId,
+      title: row?.contactName ?? "Scheda ospite",
+      contextId: eventId,
+    });
+    // Non lasciare `?ospite=` in URL: al ritorno sulla tab evento riaprirebbe la scheda.
     onGuestSheetChange?.(null);
   }
 
@@ -281,11 +260,6 @@ export function LeonardoEventGuestsPanel({
     return filteredAssignments.slice(start, start + pageSize);
   }, [filteredAssignments, currentPage, pageSize]);
 
-  const sheetAssignment = useMemo(
-    () => assignments.find((item) => item.id === sheetAssignmentId) ?? null,
-    [assignments, sheetAssignmentId]
-  );
-
   const openedDeepLinkGuestRef = useRef<string | null>(null);
   useEffect(() => {
     if (!initialGuestId) {
@@ -372,8 +346,8 @@ export function LeonardoEventGuestsPanel({
       setError(payload.error ?? "Rimozione non riuscita.");
       return;
     }
-    if (sheetAssignmentId === assignmentId) {
-      closeGuestSheet();
+    if (workTabs.activeId === `assignment:${assignmentId}`) {
+      workTabs.closeTab(`assignment:${assignmentId}`);
     }
 
     const refreshed = await refreshAssignmentsFromServer();
@@ -389,77 +363,6 @@ export function LeonardoEventGuestsPanel({
         "L'ospite risulta ancora sull'evento. Ricarica la pagina e riprova."
       );
     }
-  }
-
-  async function saveAssignmentSheet(
-    assignmentId: string,
-    payload: {
-      hospitality: LeonardoAssignmentHospitality;
-      relatedParticipations: LeonardoRelatedEventParticipation[];
-    }
-  ) {
-    setSavingAssignmentId(assignmentId);
-    setSheetError(null);
-
-    const assignment = assignments.find((item) => item.id === assignmentId);
-    const response = await fetch(
-      `/api/lean-event/events/${eventId}/assignments/${assignmentId}`,
-      {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...payload,
-          expectedRevision: assignment?.revision ?? 1,
-        }),
-      }
-    );
-
-    const result = (await response.json()) as {
-      error?: string;
-      assignment?: AssignmentRow;
-      updatedBy?: string;
-      updatedAt?: string;
-    };
-    setSavingAssignmentId(null);
-
-    if (response.status === 409 && result.error === "REVISION_CONFLICT") {
-      setSheetError(
-        `Conflitto: ${result.updatedBy ?? "un altro utente"} ha salvato prima di te. Ricarica la pagina.`
-      );
-      return;
-    }
-    if (!response.ok || !result.assignment) {
-      setSheetError(result.error ?? "Salvataggio scheda non riuscito.");
-      return;
-    }
-
-    const refreshed = await refreshAssignmentsFromServer();
-    const list =
-      refreshed ??
-      assignments.map((item) =>
-        item.id === assignmentId ? result.assignment! : item
-      );
-    if (!refreshed) {
-      updateAssignments(list);
-    }
-
-    if (queueMode) {
-      const incomplete = list.filter((item) =>
-        isHospitalitySheetIncomplete(item.hospitality, hotelBlocks)
-      );
-      const currentIndex = incomplete.findIndex((item) => item.id === assignmentId);
-      const next =
-        incomplete[currentIndex + 1] ??
-        incomplete.find((item) => item.id !== assignmentId) ??
-        null;
-      if (next) {
-        openGuestSheet(next.id);
-        return;
-      }
-    }
-
-    closeGuestSheet();
   }
 
   function handleExportGuests() {
@@ -710,20 +613,6 @@ export function LeonardoEventGuestsPanel({
               {incompleteCount > 0 ? ` · ${incompleteCount} da compilare` : ""}
             </p>
             <div className="flex flex-wrap items-end gap-2">
-              <label className="flex items-center gap-2 text-xs text-white/60">
-                <input
-                  type="checkbox"
-                  checked={queueMode}
-                  onChange={(event) => {
-                    setQueueMode(event.target.checked);
-                    if (event.target.checked) {
-                      setContentFilter("incomplete");
-                    }
-                  }}
-                  className="accent-leanme-fuchsia"
-                />
-                Coda compilazione
-              </label>
               <button
                 type="button"
                 onClick={handleExportGuests}
@@ -758,22 +647,17 @@ export function LeonardoEventGuestsPanel({
             </div>
           </div>
 
-          {sheetError ? (
-            <p className="text-sm text-red-300">{sheetError}</p>
-          ) : null}
-
           <LeonardoGuestListTable
             tenantSlug={tenantSlug}
             assignments={paginatedAssignments}
             hotelBlocks={hotelBlocks}
             activeSheetId={
-              workTabs &&
               !workTabs.isListActive &&
               workTabs.activeId.startsWith("assignment:")
                 ? workTabs.activeId.slice("assignment:".length)
-                : sheetAssignmentId
+                : null
             }
-            onOpenContact={workTabs ? openContactTab : undefined}
+            onOpenContact={openContactTab}
             onOpenSheet={openGuestSheet}
             onRemove={handleRemove}
             removingAssignmentId={removingAssignmentId}
@@ -829,30 +713,6 @@ export function LeonardoEventGuestsPanel({
         </div>
       )}
 
-      {!workTabs && sheetAssignment ? (
-        <LeonardoGuestSheetModal
-          tenantSlug={tenantSlug}
-          eventId={eventId}
-          assignment={sheetAssignment}
-          allAssignments={assignments}
-          hotelBlocks={hotelBlocks}
-          venues={venues}
-          relatedEvents={relatedEvents ?? []}
-          saving={
-            savingAssignmentId === sheetAssignment.id ||
-            removingAssignmentId === sheetAssignment.id
-          }
-          error={sheetError}
-          onClose={() => {
-            if (!savingAssignmentId) {
-              closeGuestSheet();
-              setSheetError(null);
-            }
-          }}
-          onSave={(payload) => saveAssignmentSheet(sheetAssignment.id, payload)}
-          onRemove={() => handleRemove(sheetAssignment.id)}
-        />
-      ) : null}
         </>
       )}
     </section>

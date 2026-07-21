@@ -60,7 +60,9 @@ export function LeonardoEventList({
   const [events, setEvents] = useState(initialEvents);
   const [section, setSection] = useState<EventSection>("list");
   const [query, setQuery] = useState("");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [sortMode, setSortMode] = useState<ListSortMode>("date_start");
+  const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
 
   const venueById = useMemo(
     () => new Map(venues.map((venue) => [venue.id, venue])),
@@ -70,6 +72,9 @@ export function LeonardoEventList({
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     let rows = events;
+    if (favoritesOnly) {
+      rows = rows.filter((event) => Boolean(event.isFavorite));
+    }
     if (normalized) {
       rows = rows.filter((event) => {
         const projectRif = formatEventProjectRif(event, tenantUsers).toLowerCase();
@@ -83,7 +88,7 @@ export function LeonardoEventList({
       });
     }
     return sortEvents(rows, sortMode);
-  }, [events, query, sortMode, tenantUsers, venues]);
+  }, [events, favoritesOnly, query, sortMode, tenantUsers, venues]);
 
   async function reloadEvents() {
     const response = await fetch("/api/lean-event/events", {
@@ -102,6 +107,50 @@ export function LeonardoEventList({
     });
     if (response.ok) {
       setEvents((current) => current.filter((event) => event.id !== id));
+    }
+  }
+
+  async function toggleFavorite(event: LeonardoEvent) {
+    const nextFavorite = !event.isFavorite;
+    setFavoriteBusyId(event.id);
+    setEvents((current) =>
+      current.map((row) =>
+        row.id === event.id ? { ...row, isFavorite: nextFavorite } : row
+      )
+    );
+    try {
+      const response = await fetch(`/api/lean-event/events/${event.id}`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isFavorite: nextFavorite,
+          expectedRevision: event.revision,
+        }),
+      });
+      const payload = (await response.json()) as {
+        event?: LeonardoEvent;
+        error?: string;
+      };
+      if (!response.ok || !payload.event) {
+        setEvents((current) =>
+          current.map((row) =>
+            row.id === event.id ? { ...row, isFavorite: event.isFavorite } : row
+          )
+        );
+        return;
+      }
+      setEvents((current) =>
+        current.map((row) => (row.id === event.id ? payload.event! : row))
+      );
+    } catch {
+      setEvents((current) =>
+        current.map((row) =>
+          row.id === event.id ? { ...row, isFavorite: event.isFavorite } : row
+        )
+      );
+    } finally {
+      setFavoriteBusyId(null);
     }
   }
 
@@ -143,30 +192,58 @@ export function LeonardoEventList({
         <LeonardoBulkImport kind="events" onImported={reloadEvents} />
       ) : (
         <>
-          <div className="grid gap-3 md:grid-cols-[1fr_minmax(180px,240px)]">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cerca titolo, CDC, città, project team…"
-              className="w-full rounded-lg border border-white/15 bg-[#111111] px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+              className="min-w-0 w-full flex-1 rounded-lg border border-white/15 bg-[#111111] px-4 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
             />
-            <LeonardoListSortSelect
-              value={sortMode}
-              onChange={(value) => setSortMode(value as ListSortMode)}
-              includeEventDate
-            />
+            <div className="flex flex-wrap items-end gap-2">
+              <button
+                type="button"
+                onClick={() => setFavoritesOnly((current) => !current)}
+                aria-pressed={favoritesOnly}
+                title={
+                  favoritesOnly
+                    ? "Mostra tutti gli eventi"
+                    : "Mostra solo i preferiti"
+                }
+                className={
+                  favoritesOnly
+                    ? "inline-flex h-10 items-center gap-1.5 rounded-lg border border-leanme-fuchsia/55 bg-leanme-fuchsia/15 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia/25"
+                    : "inline-flex h-10 items-center gap-1.5 rounded-lg border border-white/15 bg-[#111111] px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white/70 transition hover:border-white/30 hover:text-white"
+                }
+              >
+                <span aria-hidden className="text-sm leading-none">
+                  {favoritesOnly ? "★" : "☆"}
+                </span>
+                Preferiti
+              </button>
+              <div className="min-w-[11rem] flex-1 sm:flex-none sm:w-[13.5rem]">
+                <LeonardoListSortSelect
+                  value={sortMode}
+                  onChange={(value) => setSortMode(value as ListSortMode)}
+                  includeEventDate
+                  className="h-10 w-full rounded-lg border border-white/15 bg-[#111111] px-3 py-0 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </div>
+            </div>
           </div>
 
           {filtered.length === 0 ? (
             <p className="rounded-xl border border-white/10 bg-[#111111] p-6 text-sm text-white/60">
-              Nessun evento. Crea il primo evento o usa Importazione massiva.
+              {favoritesOnly
+                ? "Nessun evento preferito. Usa la stellina in elenco per aggiungerne."
+                : "Nessun evento. Crea il primo evento o usa Importazione massiva."}
             </p>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-white/10">
               <table className="min-w-[980px] w-full text-sm">
                 <thead>
                   <tr className={LEONARDO_LIST_STICKY_HEADER}>
+                    <th className="w-12 px-2 py-3 text-center" aria-label="Preferito" />
                     <th className="px-4 py-3">Titolo</th>
                     <th className="px-4 py-3">Città sede</th>
                     <th className="px-4 py-3">Data</th>
@@ -182,6 +259,36 @@ export function LeonardoEventList({
                       key={event.id}
                       className="border-t border-white/10 bg-[#111111]"
                     >
+                      <td className="px-2 py-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => void toggleFavorite(event)}
+                          disabled={favoriteBusyId === event.id}
+                          title={
+                            event.isFavorite
+                              ? "Rimuovi dai preferiti"
+                              : "Aggiungi ai preferiti"
+                          }
+                          aria-label={
+                            event.isFavorite
+                              ? `Rimuovi ${event.title} dai preferiti`
+                              : `Aggiungi ${event.title} ai preferiti`
+                          }
+                          aria-pressed={Boolean(event.isFavorite)}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg leading-none transition hover:bg-white/5 disabled:opacity-50"
+                        >
+                          <span
+                            className={
+                              event.isFavorite
+                                ? "text-amber-300"
+                                : "text-white/25 hover:text-amber-200/80"
+                            }
+                            aria-hidden
+                          >
+                            {event.isFavorite ? "★" : "☆"}
+                          </span>
+                        </button>
+                      </td>
                       <td className={`px-4 py-3 ${LEONARDO_LIST_NAME_CELL}`}>
                         {workTabs ? (
                           <button

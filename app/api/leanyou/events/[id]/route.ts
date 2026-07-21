@@ -177,6 +177,10 @@ export async function PATCH(request: Request, context: RouteContext) {
           : event.eventSponsors ?? [],
       status: body.status ?? event.status,
       notes: body.notes !== undefined ? body.notes.trim() : event.notes,
+      isFavorite:
+        body.isFavorite !== undefined
+          ? Boolean(body.isFavorite)
+          : Boolean(event.isFavorite),
       hotelBlocks:
         body.hotelBlocks !== undefined
           ? normalizeHotelBlocks({ hotelBlocks: body.hotelBlocks })
