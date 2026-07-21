@@ -135,6 +135,27 @@ export async function saveEvent(
   return normalized;
 }
 
+/** Aggiorna solo la stellina preferiti (senza validazione scheda tecnica completa). */
+export async function setEventFavorite(
+  tenantId: string,
+  eventId: string,
+  isFavorite: boolean,
+  options?: { expectedRevision?: number; userId?: string }
+): Promise<LeonardoEvent | null> {
+  const event = await getEvent(tenantId, eventId);
+  if (!event) {
+    return null;
+  }
+  return saveEvent(
+    { ...event, isFavorite: Boolean(isFavorite) },
+    {
+      expectedRevision: options?.expectedRevision,
+      userId: options?.userId,
+      previous: event,
+    }
+  );
+}
+
 export async function deleteEvent(
   tenantId: string,
   eventId: string,

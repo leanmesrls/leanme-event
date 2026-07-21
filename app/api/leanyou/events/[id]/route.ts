@@ -18,7 +18,12 @@ import {
   validateEventTaxonomy,
 } from "@/lib/lean-event/event-taxonomy";
 import type { LeonardoEvent, LeonardoEventHotelBlock } from "@/types/lean-event";
-import { deleteEvent, getEvent, saveEvent } from "@/lib/lean-event/events";
+import {
+  deleteEvent,
+  getEvent,
+  saveEvent,
+  setEventFavorite,
+} from "@/lib/lean-event/events";
 import { reconcileEventAssignmentsWithHotelBlocks } from "@/lib/lean-event/event-assignments";
 import { resolveEventVenueFields } from "@/lib/lean-event/event-venue";
 import { validateEventRequiredFields } from "@/lib/lean-event/event-required";
@@ -77,6 +82,32 @@ export async function PATCH(request: Request, context: RouteContext) {
       hotelBlocks?: LeonardoEventHotelBlock[];
       expectedRevision?: number;
     };
+
+    /** Toggle stellina: non richiedere REF/sede/date complete. */
+    const bodyKeys = Object.keys(body).filter(
+      (key) => (body as Record<string, unknown>)[key] !== undefined
+    );
+    const favoriteOnly =
+      body.isFavorite !== undefined &&
+      bodyKeys.every(
+        (key) => key === "isFavorite" || key === "expectedRevision"
+      );
+    if (favoriteOnly) {
+      const saved = await setEventFavorite(
+        session.tenantId,
+        id,
+        Boolean(body.isFavorite),
+        {
+          expectedRevision: body.expectedRevision,
+          userId: sessionUserId(session),
+        }
+      );
+      if (!saved) {
+        return NextResponse.json({ error: "Evento non trovato." }, { status: 404 });
+      }
+      return NextResponse.json({ event: saved });
+    }
+
     const categoryId = body.categoryId ?? event.categoryId;
     const healthAreaId =
       body.healthAreaId !== undefined ? body.healthAreaId : event.healthAreaId;

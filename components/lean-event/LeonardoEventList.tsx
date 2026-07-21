@@ -111,7 +111,8 @@ export function LeonardoEventList({
   }
 
   async function toggleFavorite(event: LeonardoEvent) {
-    const nextFavorite = !event.isFavorite;
+    const previousFavorite = Boolean(event.isFavorite);
+    const nextFavorite = !previousFavorite;
     setFavoriteBusyId(event.id);
     setEvents((current) =>
       current.map((row) =>
@@ -119,13 +120,15 @@ export function LeonardoEventList({
       )
     );
     try {
+      const latest =
+        events.find((row) => row.id === event.id)?.revision ?? event.revision;
       const response = await fetch(`/api/lean-event/events/${event.id}`, {
         method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           isFavorite: nextFavorite,
-          expectedRevision: event.revision,
+          expectedRevision: latest,
         }),
       });
       const payload = (await response.json()) as {
@@ -135,20 +138,35 @@ export function LeonardoEventList({
       if (!response.ok || !payload.event) {
         setEvents((current) =>
           current.map((row) =>
-            row.id === event.id ? { ...row, isFavorite: event.isFavorite } : row
+            row.id === event.id
+              ? { ...row, isFavorite: previousFavorite }
+              : row
           )
+        );
+        window.alert(
+          payload.error ?? "Aggiornamento preferito non riuscito."
         );
         return;
       }
       setEvents((current) =>
-        current.map((row) => (row.id === event.id ? payload.event! : row))
+        current.map((row) =>
+          row.id === event.id
+            ? {
+                ...payload.event!,
+                isFavorite: Boolean(payload.event!.isFavorite),
+              }
+            : row
+        )
       );
     } catch {
       setEvents((current) =>
         current.map((row) =>
-          row.id === event.id ? { ...row, isFavorite: event.isFavorite } : row
+          row.id === event.id
+            ? { ...row, isFavorite: previousFavorite }
+            : row
         )
       );
+      window.alert("Aggiornamento preferito non riuscito.");
     } finally {
       setFavoriteBusyId(null);
     }
