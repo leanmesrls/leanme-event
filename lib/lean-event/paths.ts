@@ -132,11 +132,32 @@ export function leanEventLeonardoFinancePath(tenantSlug: string): string {
 }
 
 export function leanEventLeonardoSupportoPath(tenantSlug: string): string {
-  return leanEventLeonardoLeanHumanPath(tenantSlug);
+  return leanEventLeonardoLeanStudioPath(tenantSlug);
 }
 
+/** @deprecated → lean-studio */
 export function leanEventLeonardoLeanHumanPath(tenantSlug: string): string {
-  return `${leanEventLeonardoPath(tenantSlug)}/lean-human`;
+  return leanEventLeonardoLeanStudioPath(tenantSlug);
+}
+
+export function leanEventLeonardoLeanStudioPath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/lean-studio`;
+}
+
+export function leanEventLeonardoAccountPath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/account`;
+}
+
+export function leanEventLeonardoNotifichePath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/notifiche`;
+}
+
+export function leanEventLeonardoHelpCenterPath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/help-center`;
+}
+
+export function leanEventLeonardoFeedbackPath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/feedback`;
 }
 
 export function leanEventLeonardoGovernmentPath(tenantSlug: string): string {

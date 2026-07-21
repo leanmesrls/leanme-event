@@ -29,17 +29,10 @@ export interface PasteColumnMapping {
 
 export const PASTE_COLUMN_OPTIONS: Array<{ value: PasteColumnTarget; label: string }> = [
   { value: "", label: "— Ignora —" },
-  { value: "Nome", label: "Nome" },
-  { value: "Cognome", label: "Cognome" },
-  { value: "Email", label: "Email" },
-  { value: "Codice fiscale", label: "Codice fiscale" },
-  { value: "Telefono", label: "Telefono" },
-  { value: "Etichetta telefono", label: "Etichetta telefono" },
-  { value: "Telefono 2", label: "Telefono 2" },
-  { value: "Etichetta telefono 2", label: "Etichetta telefono 2" },
-  { value: "Organizzazione", label: "Organizzazione" },
-  { value: "Tag", label: "Tag" },
-  { value: "Note", label: "Note" },
+  ...CONTACT_IMPORT_COLUMNS.map((column) => ({
+    value: column as PasteColumnTarget,
+    label: column,
+  })),
 ];
 
 export function parsePasteText(text: string): PasteImportMatrix {

@@ -46,6 +46,9 @@ export async function POST(request: Request) {
       address?: string;
       city?: string;
       province?: string;
+      region?: string;
+      postalCode?: string;
+      country?: string;
       vatNumber?: string;
       contactPerson?: string;
       notes?: string;
@@ -66,6 +69,9 @@ export async function POST(request: Request) {
       address: body.address,
       city: body.city,
       province: body.province,
+      region: body.region,
+      postalCode: body.postalCode,
+      country: body.country,
       vatNumber: body.vatNumber,
       contactPerson: body.contactPerson,
       notes: body.notes,

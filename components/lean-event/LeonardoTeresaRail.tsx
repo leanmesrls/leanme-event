@@ -23,7 +23,6 @@ const MAX_WIDTH = 480;
 const DEFAULT_WIDTH = 340;
 
 type StoredRail = {
-  open: boolean;
   width: number;
 };
 
@@ -36,31 +35,30 @@ type ThreadSummary = {
   lastPreview: string | null;
 };
 
-function readStored(): StoredRail {
+const TERMINI_IA_URL = "https://demo.leanme.it/termini-ia";
+
+function readStoredWidth(): number {
   if (typeof window === "undefined") {
-    return { open: true, width: DEFAULT_WIDTH };
+    return DEFAULT_WIDTH;
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return { open: true, width: DEFAULT_WIDTH };
+      return DEFAULT_WIDTH;
     }
-    const parsed = JSON.parse(raw) as Partial<StoredRail>;
-    return {
-      open: parsed.open !== false,
-      width: Math.min(
-        MAX_WIDTH,
-        Math.max(MIN_WIDTH, Number(parsed.width) || DEFAULT_WIDTH)
-      ),
-    };
+    const parsed = JSON.parse(raw) as Partial<{ open?: boolean; width?: number }>;
+    return Math.min(
+      MAX_WIDTH,
+      Math.max(MIN_WIDTH, Number(parsed.width) || DEFAULT_WIDTH)
+    );
   } catch {
-    return { open: true, width: DEFAULT_WIDTH };
+    return DEFAULT_WIDTH;
   }
 }
 
-function writeStored(state: StoredRail) {
+function writeStoredWidth(width: number) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ open: false, width }));
   } catch {
     /* ignore */
   }
@@ -180,10 +178,12 @@ export function LeonardoTeresaRail() {
   const teresa = getLeanAgent("teresa");
   const context = useTeresaContext();
   const [ready, setReady] = useState(false);
-  const [open, setOpen] = useState(true);
+  /** Sempre chiusa all'ingresso nell'area riservata; resta aperta solo in sessione UI. */
+  const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [draft, setDraft] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(true);
   const [messages, setMessages] = useState<TeresaChatMessage[]>([]);
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -195,9 +195,9 @@ export function LeonardoTeresaRail() {
   const historyLoaded = useRef(false);
 
   useEffect(() => {
-    const stored = readStored();
-    setOpen(stored.open);
-    setWidth(stored.width);
+    setOpen(false);
+    setMobileOpen(false);
+    setWidth(readStoredWidth());
     setReady(true);
   }, []);
 
@@ -205,8 +205,8 @@ export function LeonardoTeresaRail() {
     if (!ready) {
       return;
     }
-    writeStored({ open, width });
-  }, [open, width, ready]);
+    writeStoredWidth(width);
+  }, [width, ready]);
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -303,7 +303,7 @@ export function LeonardoTeresaRail() {
 
   async function sendMessage() {
     const text = draft.trim();
-    if (!text || loading) {
+    if (!text || loading || !acceptedTerms) {
       return;
     }
     setLoading(true);
@@ -445,7 +445,7 @@ export function LeonardoTeresaRail() {
       />
       <button
         type="submit"
-        disabled={loading || !draft.trim()}
+        disabled={loading || !draft.trim() || !acceptedTerms}
         className="mt-2 w-full rounded-md bg-leanme-fuchsia px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:cursor-not-allowed disabled:bg-leanme-fuchsia/40"
       >
         {loading ? "Invio…" : "Invia"}
@@ -472,6 +472,26 @@ export function LeonardoTeresaRail() {
         Restano disponibili gli ultimi {maxMessages} messaggi per conversazione
         (per utente).
       </p>
+      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[10px] leading-relaxed text-white/55">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(event) => setAcceptedTerms(event.target.checked)}
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-white/30 bg-black text-leanme-fuchsia focus:ring-leanme-fuchsia/40"
+        />
+        <span>
+          Accetto i{" "}
+          <a
+            href={TERMINI_IA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/80 underline decoration-white/30 underline-offset-2 transition hover:text-white hover:decoration-white/60"
+          >
+            Termini IA
+          </a>{" "}
+          e l&apos;informativa privacy
+        </span>
+      </label>
     </form>
   );
 
@@ -548,7 +568,7 @@ export function LeonardoTeresaRail() {
     <>
       <aside
         className={cn(
-          "relative hidden shrink-0 flex-col border-l border-white/10 bg-[#0a0a0a] xl:flex",
+          "relative hidden shrink-0 flex-col border-l border-white/10 bg-[#0a0a0a] lg:flex",
           open ? "" : "w-12"
         )}
         style={open ? { width } : undefined}
@@ -610,7 +630,7 @@ export function LeonardoTeresaRail() {
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
-        className="fixed bottom-5 right-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/95 px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-lg xl:hidden"
+        className="fixed bottom-5 right-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/95 px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-lg lg:hidden"
         aria-label="Apri assistente Lean.Agent.Teresa"
       >
         <span className="inline-flex h-7 w-7 overflow-hidden rounded-full border border-white/15 bg-white">
@@ -627,7 +647,7 @@ export function LeonardoTeresaRail() {
 
       {mobileOpen ? (
         <div
-          className="fixed inset-0 z-50 xl:hidden"
+          className="fixed inset-0 z-50 lg:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Assistente Lean.Agent.Teresa"

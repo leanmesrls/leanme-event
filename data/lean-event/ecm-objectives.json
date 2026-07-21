@@ -1,0 +1,154 @@
+{
+  "groups": [
+    {
+      "id": "tecnico_professionale",
+      "label": "Obiettivi formativi tecnico-professionali",
+      "items": [
+        {
+          "code": 10,
+          "label": "Epidemiologia - prevenzione e promozione della salute con acquisizione di nozioni tecnico-professionali"
+        },
+        {
+          "code": 18,
+          "label": "Contenuti tecnico-professionali (conoscenze e competenze) specifici di ciascuna professione, di ciascuna specializzazione e di ciascuna attività ultraspecialistica. Malattie rare"
+        },
+        {
+          "code": 19,
+          "label": "Medicine non convenzionali: valutazione dell'efficacia in ragione degli esiti e degli ambiti di complementarietà"
+        },
+        {
+          "code": 20,
+          "label": "Tematiche speciali del SSN e SSR ed a carattere urgente e/o straordinario individuate dalla Commissionale nazionale per la formazione continua e dalle Regioni/Province autonome per far fronte a specifiche emergenze sanitarie con acquisizione di nozioni di tecnico-professionali"
+        },
+        {
+          "code": 21,
+          "label": "Trattamento del dolore acuto e cronico. Palliazione"
+        },
+        {
+          "code": 22,
+          "label": "Fragilità (minori, anziani, tossico-dipendenti, salute mentale) tutela degli aspetti assistenziali e socio-assistenziali"
+        },
+        {
+          "code": 23,
+          "label": "Sicurezza alimentare e/o patologie correlate"
+        },
+        {
+          "code": 24,
+          "label": "Sanità veterinaria"
+        },
+        {
+          "code": 25,
+          "label": "Farmaco epidemiologia, farmacoeconomia, farmacovigilanza"
+        },
+        {
+          "code": 26,
+          "label": "Sicurezza ambientale e/o patologie correlate"
+        },
+        {
+          "code": 27,
+          "label": "Sicurezza negli ambienti e nei luoghi di lavoro e patologie correlate"
+        },
+        {
+          "code": 28,
+          "label": "Implementazione della cultura e della sicurezza in materia di donazione trapianto"
+        },
+        {
+          "code": 29,
+          "label": "Innovazione tecnologica: valutazione, miglioramento dei processi di gestione delle tecnologie biomediche e dei dispositivi medici. Health Technology Assessment"
+        }
+      ]
+    },
+    {
+      "id": "processo",
+      "label": "Obiettivi formativi di processo",
+      "items": [
+        {
+          "code": 3,
+          "label": "Documentazione clinica. Percorsi clinico-assistenziali diagnostici e riabilitativi, profili di assistenza - profili di cura"
+        },
+        {
+          "code": 4,
+          "label": "Appropriatezza prestazioni sanitarie nei LEA. Sistemi di valutazione, verifica e miglioramento dell'efficienza ed efficacia"
+        },
+        {
+          "code": 7,
+          "label": "La comunicazione efficace interna, esterna, con paziente. La privacy ed il consenso informato"
+        },
+        {
+          "code": 8,
+          "label": "Integrazione interprofessionale e multiprofessionale, interistituzionale"
+        },
+        {
+          "code": 9,
+          "label": "Integrazione tra assistenza territoriale ed ospedaliera"
+        },
+        {
+          "code": 11,
+          "label": "Management sanitario. Innovazione gestionale e sperimentazione di modelli organizzativi e gestionali"
+        },
+        {
+          "code": 12,
+          "label": "Aspetti relazionali (la comunicazione interna, esterna, con paziente) e umanizzazione delle cure"
+        },
+        {
+          "code": 13,
+          "label": "Metodologia e tecniche di comunicazione sociale per lo sviluppo dei programmi nazionali e regionali di prevenzione primaria"
+        },
+        {
+          "code": 14,
+          "label": "Accreditamento strutture sanitarie e dei professionisti. La cultura della qualità"
+        },
+        {
+          "code": 15,
+          "label": "Multiculturalità e cultura dell'accoglienza nell'attività sanitaria"
+        },
+        {
+          "code": 30,
+          "label": "Epidemiologia - prevenzione e promozione della salute con acquisizione di nozioni di processo"
+        },
+        {
+          "code": 32,
+          "label": "Tematiche speciali del SSN e SSR ed a carattere urgente e/o straordinario individuate dalla Commissionale nazionale per la formazione continua e dalle Regioni/Province autonome per far fronte a specifiche emergenze sanitarie con acquisizione di nozioni di processo"
+        }
+      ]
+    },
+    {
+      "id": "sistema",
+      "label": "Obiettivi formativi di sistema",
+      "items": [
+        {
+          "code": 1,
+          "label": "Applicazione nella pratica quotidiana dei principi e delle procedure dell'Evidence Based Practice (EBM - EBN - EBP)"
+        },
+        {
+          "code": 2,
+          "label": "Linee guida - protocolli – procedure"
+        },
+        {
+          "code": 5,
+          "label": "Principi, procedure e strumenti per il governo clinico delle attività sanitarie"
+        },
+        {
+          "code": 6,
+          "label": "La sicurezza del paziente. Risk management"
+        },
+        {
+          "code": 16,
+          "label": "Etica, bioetica e deontologia"
+        },
+        {
+          "code": 17,
+          "label": "Argomenti di carattere generale: informatica e lingua inglese scientifica di livello avanzato. Normativa in materia sanitaria: i principi etici e civili del SSN"
+        },
+        {
+          "code": 31,
+          "label": "Epidemiologia - prevenzione e promozione della salute con acquisizione di nozioni di sistema"
+        },
+        {
+          "code": 33,
+          "label": "Tematiche speciali del SSN e SSR ed a carattere urgente e/o straordinario individuate dalla Commissionale nazionale per la formazione continua e dalle Regioni/Province autonome per far fronte a specifiche emergenze sanitarie con acquisizione di nozioni di sistema"
+        }
+      ]
+    }
+  ]
+}

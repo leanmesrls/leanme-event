@@ -14,6 +14,7 @@ import {
 } from "@/lib/lean-event/paths";
 import { getSession } from "@/lib/lean-event/session";
 import { listVenues } from "@/lib/lean-event/venues";
+import { listPublicTenantUsersByTenantId } from "@/lib/lean-event/tenant-users";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -49,8 +50,13 @@ export default async function LeonardoEventiNewPage({ params }: PageProps) {
   }
 
   const venues = await listVenues(session.tenantId);
+  const tenantUsers = await listPublicTenantUsersByTenantId(session.tenantId);
 
   return (
-      <LeonardoEventForm tenantSlug={tenantSlug} venues={venues} />
+      <LeonardoEventForm
+        tenantSlug={tenantSlug}
+        venues={venues}
+        tenantUsers={tenantUsers}
+      />
     );
 }

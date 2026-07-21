@@ -80,6 +80,7 @@ export async function GET(_request: Request, context: RouteContext) {
       ospitiEnabled: capabilities.ospiti,
       hotelEnabled: capabilities.hotel,
       logisticaEnabled: capabilities.logistica,
+      moduleCapabilities: capabilities,
       currentUserName: session.userName,
       currentUserEmail: session.userEmail,
     });

@@ -102,6 +102,7 @@ export default async function LeonardoEventiDetailPage({ params }: PageProps) {
         ospitiEnabled={capabilities.ospiti}
         hotelEnabled={capabilities.hotel}
         logisticaEnabled={capabilities.logistica}
+        moduleCapabilities={capabilities}
         currentUserName={session.userName}
         currentUserEmail={session.userEmail}
         />

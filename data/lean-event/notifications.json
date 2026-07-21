@@ -1,0 +1,20 @@
+{
+  "notifications": [
+    {
+      "id": "welcome-lean-event-2026",
+      "title": "Benvenuto in Lean Event",
+      "summary": "Da qui riceverai gli aggiornamenti periodici su moduli, roadmap e novità del prodotto.",
+      "body": "Questa è l'area Notifiche di Lean Event. Pubblicheremo qui comunicazioni operative, rilasci e avvisi utili per il tuo team.\n\nPuoi segnare ogni messaggio come letto: il numerino sulla campanella indica solo quelli ancora da aprire.",
+      "publishedAt": "2026-07-01T09:00:00.000Z",
+      "priority": "normal"
+    },
+    {
+      "id": "modules-packs-2026-07",
+      "title": "Nuova struttura moduli: Starter, Pro, Intelligence",
+      "summary": "I moduli sono organizzati per pacchetto. Quelli non inclusi nel tuo abbonamento mostrano l'invito all'upgrade.",
+      "body": "Abbiamo riorganizzato il catalogo:\n\n• Starter — Eventi, Rubrica, Finance, Documenti\n• Pro — Forms, Engagements, Comunicazioni, Web\n• Intelligence — Verbali AI, Writer AI, Designer AI, Traduzioni AI\n• Extra — Lean.Studio\n\nI tool Pro e Intelligence sono disponibili sia in modo standalone (colonna Moduli) sia collegati a un evento (fase Tools).",
+      "publishedAt": "2026-07-21T10:00:00.000Z",
+      "priority": "high"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import { sortByContactName, type ListSortMode } from "@/lib/lean-event/list-sort
 import { isHospitalitySheetIncomplete } from "@/lib/lean-event/hospitality";
 import { buildGuestRemovalConfirmation } from "@/lib/lean-event/guest-removal";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
+import { SPEAKER_SUB_ROLES } from "@/lib/lean-event/event-nav";
 import type {
   LeanEventContact,
   LeonardoAssignmentHospitality,
@@ -52,6 +53,12 @@ interface LeonardoEventGuestsPanelProps {
   otherEvents: LeonardoEvent[];
   guestView?: GuestSection;
   initialGuestId?: string | null;
+  /** Filtro ruolo bloccato dalla tab anagrafiche */
+  lockedRoleFilter?: LeonardoEventRoleCategory | LeonardoEventRoleCategory[] | "";
+  defaultRoleCategory?: LeonardoEventRoleCategory;
+  panelTitle?: string;
+  insertTabLabel?: string;
+  listTabLabel?: string;
   onGuestViewChange?: (view: GuestSection) => void;
   onGuestSheetChange?: (assignmentId: string | null) => void;
   onAssignmentsChange?: (assignments: AssignmentRow[]) => void;
@@ -68,10 +75,27 @@ export function LeonardoEventGuestsPanel({
   otherEvents,
   guestView = "list",
   initialGuestId = null,
+  lockedRoleFilter = "",
+  defaultRoleCategory = "ospite",
+  panelTitle = "Anagrafiche",
+  insertTabLabel = "Inserisci",
+  listTabLabel = "Visualizza elenco",
   onGuestViewChange,
   onGuestSheetChange,
   onAssignmentsChange,
 }: LeonardoEventGuestsPanelProps) {
+  const speakerRoles = Array.isArray(lockedRoleFilter)
+    ? lockedRoleFilter
+    : null;
+  const lockedSingleRole =
+    typeof lockedRoleFilter === "string" && lockedRoleFilter
+      ? lockedRoleFilter
+      : null;
+  const roleSelectOptions = speakerRoles
+    ? roleCategories.filter((role) => speakerRoles.includes(role.id))
+    : lockedSingleRole
+      ? roleCategories.filter((role) => role.id === lockedSingleRole)
+      : roleCategories;
   const [assignments, setAssignments] = useState(initialAssignments);
   const [sheetAssignmentId, setSheetAssignmentId] = useState<string | null>(null);
   const [savingAssignmentId, setSavingAssignmentId] = useState<string | null>(
@@ -89,12 +113,17 @@ export function LeonardoEventGuestsPanel({
   }, [initialAssignments]);
   const [contactId, setContactId] = useState("");
   const [roleCategory, setRoleCategory] =
-    useState<LeonardoEventRoleCategory>("ospite");
+    useState<LeonardoEventRoleCategory>(defaultRoleCategory);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [query, setQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<LeonardoEventRoleCategory | "">("");
+  const [roleFilter, setRoleFilter] = useState<LeonardoEventRoleCategory | "">(
+    typeof lockedRoleFilter === "string" ? lockedRoleFilter : ""
+  );
+  const [speakerSubFilter, setSpeakerSubFilter] = useState<
+    LeonardoEventRoleCategory | ""
+  >("");
   const [contentFilter, setContentFilter] = useState<GuestContentFilter>("all");
   const [sortMode, setSortMode] = useState<Exclude<ListSortMode, "date_start">>(
     "alphabetical"
@@ -137,10 +166,35 @@ export function LeonardoEventGuestsPanel({
     [contacts]
   );
 
+  useEffect(() => {
+    if (typeof lockedRoleFilter === "string") {
+      setRoleFilter(lockedRoleFilter);
+      setSpeakerSubFilter("");
+      if (lockedRoleFilter) {
+        setRoleCategory(lockedRoleFilter);
+      } else {
+        setRoleCategory(defaultRoleCategory);
+      }
+    } else if (Array.isArray(lockedRoleFilter) && lockedRoleFilter.length > 0) {
+      setRoleFilter("");
+      setSpeakerSubFilter("");
+      setRoleCategory(lockedRoleFilter[0]!);
+    }
+  }, [lockedRoleFilter, defaultRoleCategory]);
+
   const filteredAssignments = useMemo(() => {
     let rows = [...assignments];
 
-    if (roleFilter) {
+    if (Array.isArray(lockedRoleFilter) && lockedRoleFilter.length > 0) {
+      rows = rows.filter((assignment) =>
+        lockedRoleFilter.includes(assignment.roleCategory)
+      );
+      if (speakerSubFilter) {
+        rows = rows.filter(
+          (assignment) => assignment.roleCategory === speakerSubFilter
+        );
+      }
+    } else if (roleFilter) {
       rows = rows.filter((assignment) => assignment.roleCategory === roleFilter);
     }
 
@@ -169,7 +223,16 @@ export function LeonardoEventGuestsPanel({
     }
 
     return rows;
-  }, [assignments, query, roleFilter, contentFilter, sortMode, hotelBlocks]);
+  }, [
+    assignments,
+    query,
+    roleFilter,
+    contentFilter,
+    sortMode,
+    hotelBlocks,
+    lockedRoleFilter,
+    speakerSubFilter,
+  ]);
 
   const incompleteCount = useMemo(
     () =>
@@ -382,17 +445,17 @@ export function LeonardoEventGuestsPanel({
   return (
     <section className="min-w-0 space-y-6 overflow-hidden rounded-xl border border-white/10 bg-[#111111] p-6">
       <div>
-        <h3 className={LEONARDO_PANEL_TITLE}>Ospiti</h3>
+        <h3 className={LEONARDO_PANEL_TITLE}>{panelTitle}</h3>
         <p className="mt-2 text-sm text-white/60">
-          Elenco compatto con paginazione e scheda in popup per compilazione rapida
-          anche con migliaia di ospiti.
+          Elenco compatto con paginazione e scheda viaggio/ospitalità in popup,
+          anche con migliaia di assegnazioni.
         </p>
       </div>
 
       <LeonardoSubSectionNav
         sections={[
-          { id: "insert", label: "Inserisci nuovi ospiti" },
-          { id: "list", label: "Visualizza elenco" },
+          { id: "insert", label: insertTabLabel },
+          { id: "list", label: listTabLabel },
         ]}
         active={guestView}
         onChange={(view) => onGuestViewChange?.(view)}
@@ -445,9 +508,10 @@ export function LeonardoEventGuestsPanel({
             onChange={(e) =>
               setRoleCategory(e.target.value as LeonardoEventRoleCategory)
             }
-            className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+            disabled={Boolean(lockedSingleRole) && !speakerRoles}
+            className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia disabled:opacity-70"
           >
-            {roleCategories.map((role) => (
+            {roleSelectOptions.map((role) => (
               <option key={role.id} value={role.id}>
                 {role.label}
               </option>
@@ -528,25 +592,52 @@ export function LeonardoEventGuestsPanel({
             className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
           />
         </label>
-        <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-            Categoria ruolo
-          </span>
-          <select
-            value={roleFilter}
-            onChange={(e) =>
-              setRoleFilter(e.target.value as LeonardoEventRoleCategory | "")
-            }
-            className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-          >
-            <option value="">Tutte le categorie</option>
-            {roleCategories.map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        {speakerRoles ? (
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+              Sotto-ruolo speaker
+            </span>
+            <select
+              value={speakerSubFilter}
+              onChange={(e) =>
+                setSpeakerSubFilter(
+                  e.target.value as LeonardoEventRoleCategory | ""
+                )
+              }
+              className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+            >
+              <option value="">Tutti gli speaker</option>
+              {SPEAKER_SUB_ROLES.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.label}
+                </option>
+              ))}
+              {speakerRoles.includes("docente") ? (
+                <option value="docente">Docente</option>
+              ) : null}
+            </select>
+          </label>
+        ) : !lockedSingleRole ? (
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+              Categoria ruolo
+            </span>
+            <select
+              value={roleFilter}
+              onChange={(e) =>
+                setRoleFilter(e.target.value as LeonardoEventRoleCategory | "")
+              }
+              className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+            >
+              <option value="">Tutte le categorie</option>
+              {roleCategories.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label className="block">
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
             Filtro schede
@@ -558,7 +649,7 @@ export function LeonardoEventGuestsPanel({
             }
             className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
           >
-            <option value="all">Tutti gli ospiti ({assignments.length})</option>
+            <option value="all">Tutti ({assignments.length})</option>
             <option value="incomplete">
               Schede incomplete ({incompleteCount})
             </option>

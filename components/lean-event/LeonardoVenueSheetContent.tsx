@@ -3,10 +3,12 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import { LeonardoAddressFields } from "@/components/lean-event/LeonardoAddressFields";
 import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
 import { LeonardoEntityVersionsPanel } from "@/components/lean-event/LeonardoEntityVersionsPanel";
 import { LeonardoRevisionConflictDialog } from "@/components/lean-event/LeonardoRevisionConflictDialog";
 import { LeonardoRevisionStaleBanner } from "@/components/lean-event/LeonardoRevisionStaleBanner";
+import { DEFAULT_COUNTRY } from "@/lib/lean-event/geo-italy";
 import { isRevisionConflictPayload } from "@/lib/lean-event/revision-conflict";
 import { useEntityRevisionWatch } from "@/lib/lean-event/use-entity-revision-watch";
 import { resolveVenueCoverSrc } from "@/lib/lean-event/venue-display";
@@ -278,41 +280,29 @@ export function LeonardoVenueSheetContent({
               className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
             />
           </label>
-          <label className="block text-sm md:col-span-2">
-            <span className="mb-1 block text-white/60">Indirizzo *</span>
-            <input
-              required
-              value={form.address}
-              onChange={(event) => setForm({ ...form, address: event.target.value })}
-              className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+          <div className="md:col-span-2">
+            <LeonardoAddressFields
+              value={{
+                address: form.address,
+                city: form.city,
+                province: form.province,
+                region: form.region ?? "",
+                postalCode: form.postalCode,
+                country: form.country || DEFAULT_COUNTRY,
+              }}
+              onChange={(address) =>
+                setForm({
+                  ...form,
+                  address: address.address,
+                  city: address.city,
+                  province: address.province,
+                  region: address.region,
+                  postalCode: address.postalCode,
+                  country: address.country,
+                })
+              }
             />
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-white/60">Città *</span>
-            <input
-              required
-              value={form.city}
-              onChange={(event) => setForm({ ...form, city: event.target.value })}
-              className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-white/60">Provincia *</span>
-            <input
-              required
-              value={form.province}
-              onChange={(event) => setForm({ ...form, province: event.target.value })}
-              className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm uppercase outline-none focus:border-leanme-fuchsia"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-white/60">CAP</span>
-            <input
-              value={form.postalCode}
-              onChange={(event) => setForm({ ...form, postalCode: event.target.value })}
-              className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-          </label>
+          </div>
           <label className="block text-sm">
             <span className="mb-1 block text-white/60">Telefono</span>
             <input

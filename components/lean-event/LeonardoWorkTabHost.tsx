@@ -14,6 +14,7 @@ import type { EventSupplierWithSupplier } from "@/lib/lean-event/event-suppliers
 import { resolveSectionListFromPath } from "@/lib/lean-event/work-tabs";
 import type {
   LeanEventContact,
+  LeanEventLeonardoCapabilities,
   LeanEventSupplier,
   LeanEventTenantUserPublic,
   LeonardoEvent,
@@ -112,6 +113,7 @@ function EventTabPanel({
     ospitiEnabled: boolean;
     hotelEnabled: boolean;
     logisticaEnabled: boolean;
+    moduleCapabilities: Partial<LeanEventLeonardoCapabilities>;
     currentUserName: string;
     currentUserEmail: string;
   } | null>(null);
@@ -140,6 +142,7 @@ function EventTabPanel({
         ospitiEnabled?: boolean;
         hotelEnabled?: boolean;
         logisticaEnabled?: boolean;
+        moduleCapabilities?: Partial<LeanEventLeonardoCapabilities>;
         currentUserName?: string;
         currentUserEmail?: string;
       };
@@ -166,6 +169,7 @@ function EventTabPanel({
         ospitiEnabled: Boolean(data.ospitiEnabled),
         hotelEnabled: Boolean(data.hotelEnabled),
         logisticaEnabled: Boolean(data.logisticaEnabled),
+        moduleCapabilities: data.moduleCapabilities ?? {},
         currentUserName: data.currentUserName ?? "",
         currentUserEmail: data.currentUserEmail ?? "",
       });
@@ -199,6 +203,7 @@ function EventTabPanel({
             ospitiEnabled={payload.ospitiEnabled}
             hotelEnabled={payload.hotelEnabled}
             logisticaEnabled={payload.logisticaEnabled}
+            moduleCapabilities={payload.moduleCapabilities}
             currentUserName={payload.currentUserName}
             currentUserEmail={payload.currentUserEmail}
             embedded

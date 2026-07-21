@@ -7,6 +7,7 @@ import type {
   LeonardoEcmModality,
   LeonardoEventStatus,
   LeonardoEventType,
+  LeonardoFormationEventTypeId,
 } from "@/types/lean-event";
 
 import { normalizeMeetingDateInput } from "./dates";
@@ -21,6 +22,7 @@ import {
   withLifecycleDefaults,
 } from "./entity-lifecycle";
 import {
+  isFormationCategory,
   isHealthFormationCategory,
   normalizeLeonardoEvent,
   validateEventTaxonomy,
@@ -167,15 +169,20 @@ export function createEvent(
     title: string;
     venue: string;
     venueId?: string | null;
+    venueDetails?: LeonardoEvent["venueDetails"];
     startDate: string;
     endDate: string;
     categoryId?: LeonardoEventCategoryId;
     healthAreaId?: string | null;
     ecmEnabled?: boolean | null;
     ecmModality?: LeonardoEcmModality | null;
+    formationEventTypeId?: LeonardoFormationEventTypeId | null;
+    formationStructureName?: string | null;
     type?: LeonardoEventType;
     status?: LeonardoEventStatus;
     notes?: string;
+    projectLeaderUserId?: string | null;
+    projectManagerUserIds?: string[];
   }
 ): LeonardoEvent {
   const now = new Date().toISOString();
@@ -193,6 +200,8 @@ export function createEvent(
       input.ecmEnabled ??
       (isHealthFormationCategory(categoryId) ? null : false),
     ecmModality: input.ecmModality ?? null,
+    formationEventTypeId: input.formationEventTypeId ?? null,
+    formationStructureName: input.formationStructureName ?? null,
   });
   if (taxonomyError) {
     throw new Error(`INVALID_EVENT_TAXONOMY:${taxonomyError}`);
@@ -210,6 +219,7 @@ export function createEvent(
     title: input.title.trim(),
     venue: input.venue.trim(),
     venueId: input.venueId ?? null,
+    venueDetails: input.venueDetails,
     startDate,
     endDate,
     categoryId,
@@ -217,10 +227,20 @@ export function createEvent(
       ? input.healthAreaId ?? null
       : null,
     ecmEnabled,
-    ecmModality: ecmEnabled ? input.ecmModality ?? null : null,
+    ecmModality: isFormationCategory(categoryId)
+      ? input.ecmModality ?? null
+      : null,
+    formationEventTypeId: isFormationCategory(categoryId)
+      ? input.formationEventTypeId ?? null
+      : null,
+    formationStructureName: isFormationCategory(categoryId)
+      ? input.formationStructureName ?? null
+      : null,
     type: ecmEnabled ? "ecm" : "base",
     status: input.status ?? "draft",
     notes: input.notes?.trim() ?? "",
+    projectLeaderUserId: input.projectLeaderUserId ?? null,
+    projectManagerUserIds: input.projectManagerUserIds ?? [],
     createdAt: now,
     updatedAt: now,
   });

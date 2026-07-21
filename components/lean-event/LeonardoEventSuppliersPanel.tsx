@@ -2,10 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { LeonardoCollapsiblePanel } from "@/components/lean-event/LeonardoCollapsiblePanel";
 import { LeonardoEventSupplierLinkModal } from "@/components/lean-event/LeonardoEventSupplierLinkModal";
 import { LeonardoEventSupplierListTable } from "@/components/lean-event/LeonardoEventSupplierListTable";
-import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
+import {
+  LeonardoListPagination,
+  LEONARDO_DEFAULT_PAGE_SIZE,
+} from "@/components/lean-event/LeonardoListPagination";
+import { LeonardoSubSectionNav } from "@/components/lean-event/LeonardoSubSectionNav";
 import { LEONARDO_PANEL_TITLE } from "@/components/lean-event/leonardo-ui";
 import type { EventSupplierWithSupplier } from "@/lib/lean-event/event-suppliers";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
@@ -17,12 +20,16 @@ import {
 } from "@/lib/lean-event/supplier-categories";
 import type { LeanEventSupplier, LeonardoSupplierCategoryId } from "@/types/lean-event";
 
+type SupplierView = "insert" | "list";
+
 interface LeonardoEventSuppliersPanelProps {
   tenantSlug: string;
   eventId: string;
   initialLinks: EventSupplierWithSupplier[];
   rubricaSuppliers: LeanEventSupplier[];
   initialLinkId?: string | null;
+  supplierView?: SupplierView;
+  onSupplierViewChange?: (view: SupplierView) => void;
   onLinkSheetChange?: (linkId: string | null) => void;
 }
 
@@ -32,6 +39,8 @@ export function LeonardoEventSuppliersPanel({
   initialLinks,
   rubricaSuppliers,
   initialLinkId = null,
+  supplierView = "list",
+  onSupplierViewChange,
   onLinkSheetChange,
 }: LeonardoEventSuppliersPanelProps) {
   const [links, setLinks] = useState(initialLinks);
@@ -88,7 +97,9 @@ export function LeonardoEventSuppliersPanel({
       const name = link.supplier?.name ?? "";
       return (
         name.toLowerCase().includes(normalized) ||
-        getSupplierCategoryLabel(link.categoryId).toLowerCase().includes(normalized) ||
+        getSupplierCategoryLabel(link.categoryId)
+          .toLowerCase()
+          .includes(normalized) ||
         link.roleNotes.toLowerCase().includes(normalized)
       );
     });
@@ -104,7 +115,7 @@ export function LeonardoEventSuppliersPanel({
       : paginateList(filtered, page, pageSize);
 
   const sheetLink = sheetLinkId
-    ? links.find((item) => item.id === sheetLinkId) ?? null
+    ? (links.find((item) => item.id === sheetLinkId) ?? null)
     : null;
 
   const selectLinkSheet = useCallback(
@@ -116,7 +127,7 @@ export function LeonardoEventSuppliersPanel({
   );
 
   useLeonardoListKeyboard({
-    enabled: filtered.length > 0,
+    enabled: supplierView === "list" && filtered.length > 0,
     items: paginated.pageItems,
     activeId: sheetLinkId,
     onSelect: selectLinkSheet,
@@ -130,7 +141,9 @@ export function LeonardoEventSuppliersPanel({
     setError(null);
     downloadEventSuppliersCsv(
       filtered,
-      query.trim() ? "leanyou-fornitori-evento-filtrato.csv" : "leanyou-fornitori-evento.csv"
+      query.trim()
+        ? "leanyou-fornitori-evento-filtrato.csv"
+        : "leanyou-fornitori-evento.csv"
     );
   }
 
@@ -176,6 +189,7 @@ export function LeonardoEventSuppliersPanel({
     openLinkSheet(nextLink.id);
     setSelectedSupplierId("");
     setRoleNotes("");
+    onSupplierViewChange?.("list");
   }
 
   async function handleRemoveLink(linkId: string) {
@@ -207,13 +221,22 @@ export function LeonardoEventSuppliersPanel({
   }
 
   return (
-    <div className="space-y-4">
+    <section className="min-w-0 space-y-6 overflow-hidden rounded-xl border border-white/10 bg-[#111111] p-6">
       <div>
-        <h3 className={LEONARDO_PANEL_TITLE}>Fornitori evento</h3>
+        <h3 className={LEONARDO_PANEL_TITLE}>Fornitori</h3>
         <p className="mt-2 text-sm text-white/60">
-          Collega fornitori dalla rubrica · traccia documenti ed email per commessa
+          Collega fornitori dalla rubrica · documenti ed email per commessa.
         </p>
       </div>
+
+      <LeonardoSubSectionNav
+        sections={[
+          { id: "insert", label: "Inserisci fornitori" },
+          { id: "list", label: "Visualizza elenco" },
+        ]}
+        active={supplierView}
+        onChange={(view) => onSupplierViewChange?.(view)}
+      />
 
       {error ? (
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
@@ -221,12 +244,11 @@ export function LeonardoEventSuppliersPanel({
         </p>
       ) : null}
 
-      <LeonardoCollapsiblePanel
-        title="Collega fornitore"
-        summary={`${availableSuppliers.length} disponibili in rubrica`}
-        defaultOpen={links.length === 0}
-      >
-        <form onSubmit={handleAddSupplier} className="grid gap-3 pt-2 md:grid-cols-2">
+      {supplierView === "insert" ? (
+        <form
+          onSubmit={handleAddSupplier}
+          className="grid gap-3 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-2"
+        >
           <label className="block text-sm md:col-span-2">
             <span className="mb-1 block text-white/60">Fornitore rubrica *</span>
             <select
@@ -246,7 +268,8 @@ export function LeonardoEventSuppliersPanel({
               <option value="">Seleziona fornitore</option>
               {availableSuppliers.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>
-                  {supplier.name} · {getSupplierCategoryLabel(supplier.categoryId)}
+                  {supplier.name} ·{" "}
+                  {getSupplierCategoryLabel(supplier.categoryId)}
                 </option>
               ))}
             </select>
@@ -284,16 +307,16 @@ export function LeonardoEventSuppliersPanel({
             >
               {adding ? "Collegamento…" : "+ Aggiungi fornitore"}
             </button>
+            {availableSuppliers.length === 0 ? (
+              <p className="mt-2 text-xs text-white/45">
+                Nessun fornitore disponibile in rubrica, oppure sono già tutti
+                collegati.
+              </p>
+            ) : null}
           </div>
         </form>
-      </LeonardoCollapsiblePanel>
-
-      <LeonardoCollapsiblePanel
-        title="Elenco fornitori evento"
-        summary={`${filtered.length} fornitori collegati`}
-        defaultOpen
-      >
-        <div className="space-y-4 pt-2">
+      ) : (
+        <div className="space-y-4">
           <label className="block text-sm">
             <span className="mb-1 block text-white/60">Cerca</span>
             <input
@@ -315,7 +338,7 @@ export function LeonardoEventSuppliersPanel({
 
           {filtered.length === 0 ? (
             <p className="text-sm text-white/50">
-              Nessun fornitore collegato a questo evento.
+              Nessun fornitore collegato. Usa Inserisci per aggiungerne uno.
             </p>
           ) : (
             <>
@@ -339,7 +362,7 @@ export function LeonardoEventSuppliersPanel({
             </>
           )}
         </div>
-      </LeonardoCollapsiblePanel>
+      )}
 
       {sheetLink ? (
         <LeonardoEventSupplierLinkModal
@@ -351,6 +374,6 @@ export function LeonardoEventSuppliersPanel({
           onRemove={() => handleRemoveLink(sheetLink.id)}
         />
       ) : null}
-    </div>
+    </section>
   );
 }

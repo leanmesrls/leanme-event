@@ -1,0 +1,592 @@
+{
+  "professions": [
+    {
+      "id": "medico_chirurgo",
+      "label": "Medico chirurgo",
+      "disciplines": [
+        {
+          "id": "medico_chirurgo_allergologia_ed_immunologia_clinica",
+          "label": "Allergologia ed immunologia clinica"
+        },
+        {
+          "id": "medico_chirurgo_angiologia",
+          "label": "Angiologia"
+        },
+        {
+          "id": "medico_chirurgo_cardiologia",
+          "label": "Cardiologia"
+        },
+        {
+          "id": "medico_chirurgo_dermatologia_e_venereologia",
+          "label": "Dermatologia e venereologia"
+        },
+        {
+          "id": "medico_chirurgo_ematologia",
+          "label": "Ematologia"
+        },
+        {
+          "id": "medico_chirurgo_endocrinologia",
+          "label": "Endocrinologia"
+        },
+        {
+          "id": "medico_chirurgo_gastroenterologia",
+          "label": "Gastroenterologia"
+        },
+        {
+          "id": "medico_chirurgo_genetica_medica",
+          "label": "Genetica medica"
+        },
+        {
+          "id": "medico_chirurgo_geriatria",
+          "label": "Geriatria"
+        },
+        {
+          "id": "medico_chirurgo_malattie_metaboliche_e_diabetologia",
+          "label": "Malattie metaboliche e diabetologia"
+        },
+        {
+          "id": "medico_chirurgo_malattie_dell_apparato_respiratorio",
+          "label": "Malattie dell'apparato respiratorio"
+        },
+        {
+          "id": "medico_chirurgo_malattie_infettive",
+          "label": "Malattie infettive"
+        },
+        {
+          "id": "medico_chirurgo_medicina_e_chirurgia_di_accettazione_e_di_urgenza",
+          "label": "Medicina e chirurgia di accettazione e di urgenza"
+        },
+        {
+          "id": "medico_chirurgo_medicina_fisica_e_riabilitazione",
+          "label": "Medicina fisica e riabilitazione"
+        },
+        {
+          "id": "medico_chirurgo_medicina_interna",
+          "label": "Medicina interna"
+        },
+        {
+          "id": "medico_chirurgo_medicina_termale",
+          "label": "Medicina termale"
+        },
+        {
+          "id": "medico_chirurgo_medicina_aeronautica_e_spaziale",
+          "label": "Medicina aeronautica e spaziale"
+        },
+        {
+          "id": "medico_chirurgo_medicina_dello_sport",
+          "label": "Medicina dello sport"
+        },
+        {
+          "id": "medico_chirurgo_nefrologia",
+          "label": "Nefrologia"
+        },
+        {
+          "id": "medico_chirurgo_neonatologia",
+          "label": "Neonatologia"
+        },
+        {
+          "id": "medico_chirurgo_neurologia",
+          "label": "Neurologia"
+        },
+        {
+          "id": "medico_chirurgo_neuropsichiatria_infantile",
+          "label": "Neuropsichiatria infantile"
+        },
+        {
+          "id": "medico_chirurgo_oncologia",
+          "label": "Oncologia"
+        },
+        {
+          "id": "medico_chirurgo_pediatria",
+          "label": "Pediatria"
+        },
+        {
+          "id": "medico_chirurgo_psichiatria",
+          "label": "Psichiatria"
+        },
+        {
+          "id": "medico_chirurgo_radioterapia",
+          "label": "Radioterapia"
+        },
+        {
+          "id": "medico_chirurgo_reumatologia",
+          "label": "Reumatologia"
+        },
+        {
+          "id": "medico_chirurgo_cardiochirurgia",
+          "label": "Cardiochirurgia"
+        },
+        {
+          "id": "medico_chirurgo_chirurgia_generale",
+          "label": "Chirurgia generale"
+        },
+        {
+          "id": "medico_chirurgo_chirurgia_maxillo_facciale",
+          "label": "Chirurgia maxillo-facciale"
+        },
+        {
+          "id": "medico_chirurgo_chirurgia_pediatrica",
+          "label": "Chirurgia pediatrica"
+        },
+        {
+          "id": "medico_chirurgo_chirurgia_plastica_e_ricostruttiva",
+          "label": "Chirurgia plastica e ricostruttiva"
+        },
+        {
+          "id": "medico_chirurgo_chirurgia_toracica",
+          "label": "Chirurgia toracica"
+        },
+        {
+          "id": "medico_chirurgo_chirurgia_vascolare",
+          "label": "Chirurgia vascolare"
+        },
+        {
+          "id": "medico_chirurgo_ginecologia_e_ostetricia",
+          "label": "Ginecologia e ostetricia"
+        },
+        {
+          "id": "medico_chirurgo_neurochirurgia",
+          "label": "Neurochirurgia"
+        },
+        {
+          "id": "medico_chirurgo_oftalmologia",
+          "label": "Oftalmologia"
+        },
+        {
+          "id": "medico_chirurgo_ortopedia_e_traumatologia",
+          "label": "Ortopedia e traumatologia"
+        },
+        {
+          "id": "medico_chirurgo_otorinolaringoiatria",
+          "label": "Otorinolaringoiatria"
+        },
+        {
+          "id": "medico_chirurgo_urologia",
+          "label": "Urologia"
+        },
+        {
+          "id": "medico_chirurgo_anatomia_patologica",
+          "label": "Anatomia patologica"
+        },
+        {
+          "id": "medico_chirurgo_anestesia_e_rianimazione",
+          "label": "Anestesia e rianimazione"
+        },
+        {
+          "id": "medico_chirurgo_biochimica_clinica",
+          "label": "Biochimica clinica"
+        },
+        {
+          "id": "medico_chirurgo_farmacologia_e_tossicologia_clinica",
+          "label": "Farmacologia e tossicologia clinica"
+        },
+        {
+          "id": "medico_chirurgo_laboratorio_di_genetica_medica",
+          "label": "Laboratorio di genetica medica"
+        },
+        {
+          "id": "medico_chirurgo_medicina_trasfusionale",
+          "label": "Medicina trasfusionale"
+        },
+        {
+          "id": "medico_chirurgo_medicina_legale",
+          "label": "Medicina legale"
+        },
+        {
+          "id": "medico_chirurgo_medicina_nucleare",
+          "label": "Medicina nucleare"
+        },
+        {
+          "id": "medico_chirurgo_microbiologia_e_virologia",
+          "label": "Microbiologia e virologia"
+        },
+        {
+          "id": "medico_chirurgo_neurofisiopatologia",
+          "label": "Neurofisiopatologia"
+        },
+        {
+          "id": "medico_chirurgo_neuroradiologia",
+          "label": "Neuroradiologia"
+        },
+        {
+          "id": "medico_chirurgo_patologia_clinica_laboratorio_di_analisi_chimico_cliniche_e_microbiologia",
+          "label": "Patologia clinica (laboratorio di analisi chimico-cliniche e microbiologia)"
+        },
+        {
+          "id": "medico_chirurgo_radiodiagnostica",
+          "label": "Radiodiagnostica"
+        },
+        {
+          "id": "medico_chirurgo_igiene_epidemiologia_e_sanita_pubblica",
+          "label": "Igiene, epidemiologia e sanità pubblica"
+        },
+        {
+          "id": "medico_chirurgo_igiene_degli_alimenti_e_della_nutrizione",
+          "label": "Igiene degli alimenti e della nutrizione"
+        },
+        {
+          "id": "medico_chirurgo_medicina_del_lavoro_e_sicurezza_degli_ambienti_di_lavoro",
+          "label": "Medicina del lavoro e sicurezza degli ambienti di lavoro"
+        },
+        {
+          "id": "medico_chirurgo_medicina_generale_medici_di_famiglia",
+          "label": "Medicina generale (medici di famiglia)"
+        },
+        {
+          "id": "medico_chirurgo_continuita_assistenziale",
+          "label": "Continuità assistenziale"
+        },
+        {
+          "id": "medico_chirurgo_pediatria_pediatri_di_libera_scelta",
+          "label": "Pediatria (pediatri di libera scelta)"
+        },
+        {
+          "id": "medico_chirurgo_scienza_dell_alimentazione_e_dietetica",
+          "label": "Scienza dell'alimentazione e dietetica"
+        },
+        {
+          "id": "medico_chirurgo_direzione_medica_di_presidio_ospedaliero",
+          "label": "Direzione medica di presidio ospedaliero"
+        },
+        {
+          "id": "medico_chirurgo_organizzazione_dei_servizi_sanitari_di_base",
+          "label": "Organizzazione dei servizi sanitari di base"
+        },
+        {
+          "id": "medico_chirurgo_audiologia_e_foniatria",
+          "label": "Audiologia e foniatria"
+        },
+        {
+          "id": "medico_chirurgo_psicoterapia",
+          "label": "Psicoterapia"
+        },
+        {
+          "id": "medico_chirurgo_privo_di_specializzazione",
+          "label": "Privo di specializzazione"
+        },
+        {
+          "id": "medico_chirurgo_cure_palliative",
+          "label": "Cure palliative"
+        },
+        {
+          "id": "medico_chirurgo_epidemiologia",
+          "label": "Epidemiologia"
+        },
+        {
+          "id": "medico_chirurgo_medicina_di_comunita",
+          "label": "Medicina di comunità"
+        },
+        {
+          "id": "medico_chirurgo_medicina_subacquea_e_iperbarica",
+          "label": "Medicina subacquea e iperbarica"
+        }
+      ]
+    },
+    {
+      "id": "odontoiatra",
+      "label": "Odontoiatra",
+      "disciplines": [
+        {
+          "id": "odontoiatra_odontoiatria",
+          "label": "Odontoiatria"
+        }
+      ]
+    },
+    {
+      "id": "farmacista",
+      "label": "Farmacista",
+      "disciplines": [
+        {
+          "id": "farmacista_farmacista_pubblico_del_ssn",
+          "label": "Farmacista pubblico del SSN"
+        },
+        {
+          "id": "farmacista_farmacia_territoriale",
+          "label": "Farmacia territoriale"
+        }
+      ]
+    },
+    {
+      "id": "veterinario",
+      "label": "Veterinario",
+      "disciplines": [
+        {
+          "id": "veterinario_igiene_degli_allevamenti_e_delle_produzioni_zootecniche",
+          "label": "Igiene degli allevamenti e delle produzioni zootecniche"
+        },
+        {
+          "id": "veterinario_igiene_prod_trasf_commercial_conserv_e_tras_alimenti_di_origine_animale_e_derivati",
+          "label": "Igiene prod., trasf., commercial., conserv. E tras. Alimenti di origine animale e derivati"
+        },
+        {
+          "id": "veterinario_sanita_animale",
+          "label": "Sanità animale"
+        }
+      ]
+    },
+    {
+      "id": "psicologo",
+      "label": "Psicologo",
+      "disciplines": [
+        {
+          "id": "psicologo_psicoterapia",
+          "label": "Psicoterapia"
+        },
+        {
+          "id": "psicologo_psicologia",
+          "label": "Psicologia"
+        }
+      ]
+    },
+    {
+      "id": "biologo",
+      "label": "Biologo",
+      "disciplines": [
+        {
+          "id": "biologo_biologo",
+          "label": "Biologo"
+        }
+      ]
+    },
+    {
+      "id": "chimico",
+      "label": "Chimico",
+      "disciplines": [
+        {
+          "id": "chimico_chimica_analitica",
+          "label": "Chimica analitica"
+        }
+      ]
+    },
+    {
+      "id": "fisico",
+      "label": "Fisico",
+      "disciplines": [
+        {
+          "id": "fisico_fisica_sanitaria",
+          "label": "Fisica sanitaria"
+        }
+      ]
+    },
+    {
+      "id": "assistente_sanitario",
+      "label": "Assistente sanitario",
+      "disciplines": [
+        {
+          "id": "assistente_sanitario_assistente_sanitario",
+          "label": "Assistente sanitario"
+        }
+      ]
+    },
+    {
+      "id": "dietista",
+      "label": "Dietista",
+      "disciplines": [
+        {
+          "id": "dietista_dietista",
+          "label": "Dietista"
+        }
+      ]
+    },
+    {
+      "id": "educatore_professionale",
+      "label": "Educatore professionale",
+      "disciplines": [
+        {
+          "id": "educatore_professionale_educatore_professionale",
+          "label": "Educatore professionale"
+        }
+      ]
+    },
+    {
+      "id": "fisioterapista",
+      "label": "Fisioterapista",
+      "disciplines": [
+        {
+          "id": "fisioterapista_fisioterapista",
+          "label": "Fisioterapista"
+        }
+      ]
+    },
+    {
+      "id": "igienista_dentale",
+      "label": "Igienista dentale",
+      "disciplines": [
+        {
+          "id": "igienista_dentale_igienista_dentale",
+          "label": "Igienista dentale"
+        }
+      ]
+    },
+    {
+      "id": "infermiere",
+      "label": "Infermiere",
+      "disciplines": [
+        {
+          "id": "infermiere_infermiere",
+          "label": "Infermiere"
+        }
+      ]
+    },
+    {
+      "id": "infermiere_pediatrico",
+      "label": "Infermiere pediatrico",
+      "disciplines": [
+        {
+          "id": "infermiere_pediatrico_infermiere_pediatrico",
+          "label": "Infermiere pediatrico"
+        }
+      ]
+    },
+    {
+      "id": "logopedista",
+      "label": "Logopedista",
+      "disciplines": [
+        {
+          "id": "logopedista_logopedista",
+          "label": "Logopedista"
+        }
+      ]
+    },
+    {
+      "id": "ortottista_assistente_di_oftalmologia",
+      "label": "Ortottista/assistente di oftalmologia",
+      "disciplines": [
+        {
+          "id": "ortottista_assistente_di_oftalmologia_ortottista_assistente_di_oftalmologia",
+          "label": "Ortottista/assistente di oftalmologia"
+        }
+      ]
+    },
+    {
+      "id": "ostetrica_o",
+      "label": "Ostetrica/o",
+      "disciplines": [
+        {
+          "id": "ostetrica_o_ostetrica_o",
+          "label": "Ostetrica/o"
+        }
+      ]
+    },
+    {
+      "id": "podologo",
+      "label": "Podologo",
+      "disciplines": [
+        {
+          "id": "podologo_podologo",
+          "label": "Podologo"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_audiometrista",
+      "label": "Tecnico audiometrista",
+      "disciplines": [
+        {
+          "id": "tecnico_audiometrista_tecnico_audiometrista",
+          "label": "Tecnico audiometrista"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_audioprotesista",
+      "label": "Tecnico audioprotesista",
+      "disciplines": [
+        {
+          "id": "tecnico_audioprotesista_tecnico_audioprotesista",
+          "label": "Tecnico audioprotesista"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_della_fisiopatologia_cardiocircolatoria_e_perfusione_cardiovascolare",
+      "label": "Tecnico della fisiopatologia cardiocircolatoria e perfusione cardiovascolare",
+      "disciplines": [
+        {
+          "id": "tecnico_della_fisiopatologia_cardiocircolatoria_e_perfusione_cardiovascolare_tecnico_della_fisiopatologia_cardiocircolatoria_e_perfusione_cardiovascolare",
+          "label": "Tecnico della fisiopatologia cardiocircolatoria e perfusione cardiovascolare"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_della_prevenzione_nell_ambiente_e_nei_luoghi_di_lavoro",
+      "label": "Tecnico della prevenzione nell'ambiente e nei luoghi di lavoro",
+      "disciplines": [
+        {
+          "id": "tecnico_della_prevenzione_nell_ambiente_e_nei_luoghi_di_lavoro_tecnico_della_prevenzione_nell_ambiente_e_nei_luoghi_di_lavoro",
+          "label": "Tecnico della prevenzione nell'ambiente e nei luoghi di lavoro"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_della_riabilitazione_psichiatrica",
+      "label": "Tecnico della riabilitazione psichiatrica",
+      "disciplines": [
+        {
+          "id": "tecnico_della_riabilitazione_psichiatrica_tecnico_della_riabilitazione_psichiatrica",
+          "label": "Tecnico della riabilitazione psichiatrica"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_di_neurofisiopatologia",
+      "label": "Tecnico di neurofisiopatologia",
+      "disciplines": [
+        {
+          "id": "tecnico_di_neurofisiopatologia_tecnico_di_neurofisiopatologia",
+          "label": "Tecnico di neurofisiopatologia"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_ortopedico",
+      "label": "Tecnico ortopedico",
+      "disciplines": [
+        {
+          "id": "tecnico_ortopedico_tecnico_ortopedico",
+          "label": "Tecnico ortopedico"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_sanitario_di_radiologia_medica",
+      "label": "Tecnico sanitario di radiologia medica",
+      "disciplines": [
+        {
+          "id": "tecnico_sanitario_di_radiologia_medica_tecnico_sanitario_di_radiologia_medica",
+          "label": "Tecnico sanitario di radiologia medica"
+        }
+      ]
+    },
+    {
+      "id": "tecnico_sanitario_laboratorio_biomedico",
+      "label": "Tecnico sanitario laboratorio biomedico",
+      "disciplines": [
+        {
+          "id": "tecnico_sanitario_laboratorio_biomedico_tecnico_sanitario_laboratorio_biomedico",
+          "label": "Tecnico sanitario laboratorio biomedico"
+        }
+      ]
+    },
+    {
+      "id": "terapista_della_neuro_e_psicomotricita_dell_eta_evolutiva",
+      "label": "Terapista della neuro e psicomotricità dell'età evolutiva",
+      "disciplines": [
+        {
+          "id": "terapista_della_neuro_e_psicomotricita_dell_eta_evolutiva_terapista_della_neuro_e_psicomotricita_dell_eta_evolutiva",
+          "label": "Terapista della neuro e psicomotricità dell'età evolutiva"
+        }
+      ]
+    },
+    {
+      "id": "terapista_occupazionale",
+      "label": "Terapista occupazionale",
+      "disciplines": [
+        {
+          "id": "terapista_occupazionale_terapista_occupazionale",
+          "label": "Terapista occupazionale"
+        }
+      ]
+    }
+  ]
+}

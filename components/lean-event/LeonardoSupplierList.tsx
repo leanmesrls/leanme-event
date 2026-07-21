@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { LeonardoAddressFields } from "@/components/lean-event/LeonardoAddressFields";
 import { LeonardoBulkImport } from "@/components/lean-event/LeonardoBulkImport";
 import { LeonardoListPagination, LEONARDO_DEFAULT_PAGE_SIZE } from "@/components/lean-event/LeonardoListPagination";
 import { LeonardoListSortSelect } from "@/components/lean-event/LeonardoListSortSelect";
@@ -16,6 +17,7 @@ import { LeonardoRubricaNav } from "@/components/lean-event/LeonardoRubricaNav";
 import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoSupplierListTable } from "@/components/lean-event/LeonardoSupplierListTable";
 import { LeonardoSupplierSheetModal } from "@/components/lean-event/LeonardoSupplierSheetModal";
+import { DEFAULT_COUNTRY } from "@/lib/lean-event/geo-italy";
 import { paginateList, type LeonardoPageSize } from "@/lib/lean-event/list-pagination";
 import type { ListSortMode } from "@/lib/lean-event/list-sort";
 import { downloadSuppliersCsv } from "@/lib/lean-event/supplier-export";
@@ -63,7 +65,12 @@ export function LeonardoSupplierList({
     categoryId: "collaboratori" as LeonardoSupplierCategoryId,
     email: "",
     phone: "",
+    address: "",
     city: "",
+    province: "",
+    region: "",
+    postalCode: "",
+    country: DEFAULT_COUNTRY,
     contactPerson: "",
     vatNumber: "",
   });
@@ -211,7 +218,12 @@ export function LeonardoSupplierList({
       categoryId: "collaboratori",
       email: "",
       phone: "",
+      address: "",
       city: "",
+      province: "",
+      region: "",
+      postalCode: "",
+      country: DEFAULT_COUNTRY,
       contactPerson: "",
       vatNumber: "",
     });
@@ -406,14 +418,29 @@ export function LeonardoSupplierList({
               className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
             />
           </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-white/60">Città</span>
-            <input
-              value={form.city}
-              onChange={(event) => setForm({ ...form, city: event.target.value })}
-              className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
+          <div className="md:col-span-2">
+            <LeonardoAddressFields
+              value={{
+                address: form.address,
+                city: form.city,
+                province: form.province,
+                region: form.region,
+                postalCode: form.postalCode,
+                country: form.country,
+              }}
+              onChange={(address) =>
+                setForm({
+                  ...form,
+                  address: address.address,
+                  city: address.city,
+                  province: address.province,
+                  region: address.region,
+                  postalCode: address.postalCode,
+                  country: address.country,
+                })
+              }
             />
-          </label>
+          </div>
           <div className="md:col-span-2">
             <button
               type="submit"

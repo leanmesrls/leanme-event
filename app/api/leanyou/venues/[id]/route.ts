@@ -71,8 +71,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       city: body.city !== undefined ? body.city.trim() : venue.city,
       province:
         body.province !== undefined ? body.province.trim().toUpperCase() : venue.province,
+      region:
+        body.region !== undefined ? body.region.trim() : venue.region ?? "",
       postalCode:
         body.postalCode !== undefined ? body.postalCode.trim() : venue.postalCode,
+      country:
+        body.country !== undefined ? body.country.trim() : venue.country ?? "",
       phone: body.phone !== undefined ? body.phone.trim() : venue.phone,
       email: body.email !== undefined ? body.email.trim() : venue.email,
       website: body.website !== undefined ? body.website.trim() : venue.website,

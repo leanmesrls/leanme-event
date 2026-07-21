@@ -1,5 +1,7 @@
 import type { LeonardoVenue } from "@/types/lean-event";
 
+import { DEFAULT_COUNTRY, normalizeAddressFields } from "./geo-italy";
+
 function extractStarCategoryFromNotes(notes: string): string {
   const match = notes.match(/Categoria:\s*([^·]+)/i);
   return match?.[1]?.trim() ?? "";
@@ -9,9 +11,18 @@ export function normalizeVenue(venue: LeonardoVenue): LeonardoVenue {
   const notes = venue.notes ?? "";
   const starCategory =
     venue.starCategory?.trim() || extractStarCategoryFromNotes(notes);
+  const address = normalizeAddressFields({
+    address: venue.address,
+    city: venue.city,
+    province: venue.province,
+    region: venue.region,
+    postalCode: venue.postalCode,
+    country: venue.country || DEFAULT_COUNTRY,
+  });
 
   return {
     ...venue,
+    ...address,
     externalUrl: venue.externalUrl ?? "",
     coverImageUrl: venue.coverImageUrl ?? "",
     website: venue.website ?? "",

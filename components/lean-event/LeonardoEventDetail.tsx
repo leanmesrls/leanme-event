@@ -11,9 +11,14 @@ import { LeonardoEventRelatedEventsPanel } from "@/components/lean-event/Leonard
 import { LeonardoEventSuppliersPanel } from "@/components/lean-event/LeonardoEventSuppliersPanel";
 import { LeonardoEventChatPanel } from "@/components/lean-event/LeonardoEventChatPanel";
 import { LeonardoEventGuestsPanel } from "@/components/lean-event/LeonardoEventGuestsPanel";
+import { LeonardoEventFormationEcmPanel } from "@/components/lean-event/LeonardoEventFormationEcmPanel";
+import { LeonardoEventSponsorsPanel } from "@/components/lean-event/LeonardoEventSponsorsPanel";
 import { LeonardoEventPhaseNav } from "@/components/lean-event/LeonardoEventPhaseNav";
+import { LeonardoEventRegistrationForm } from "@/components/lean-event/LeonardoEventRegistrationForm";
+import { LeonardoScientificProgramForm } from "@/components/lean-event/LeonardoScientificProgramForm";
 import { LeonardoEventProjectTeamFields } from "@/components/lean-event/LeonardoEventProjectTeamFields";
 import { LeonardoEventPlaceholderPanel } from "@/components/lean-event/LeonardoEventPlaceholderPanel";
+import { LeonardoModuleUpgradePanel } from "@/components/lean-event/LeonardoModuleUpgradePanel";
 import {
   LeonardoEventReportPanel,
   type EventReportSubTab,
@@ -33,7 +38,15 @@ import { LeonardoDateInput } from "@/components/lean-event/LeonardoDateInput";
 import { buildAllotmentReport } from "@/lib/lean-event/allotment-report";
 import { formatEuropeanDate, isoDateToEuropeanDate, validateEventDateRange } from "@/lib/lean-event/dates";
 import { normalizeHotelBlocks } from "@/lib/lean-event/event-hotel";
-import { formatEventTaxonomySummary } from "@/lib/lean-event/event-taxonomy";
+import {
+  validateEventRequiredFields,
+  validateFormationEcmRequiredFields,
+} from "@/lib/lean-event/event-required";
+import { normalizeEcmGrid } from "@/lib/lean-event/ecm-grid";
+import {
+  formatEventTaxonomySummary,
+  isFormationCategory,
+} from "@/lib/lean-event/event-taxonomy";
 import { isHospitalitySheetIncomplete } from "@/lib/lean-event/hospitality";
 import {
   leanEventLeonardoEventiPath,
@@ -47,14 +60,28 @@ import {
   EVENT_NAV_TABS,
   getDefaultTabForPhase,
   getPhaseForTab,
+  isAnagrafichePeopleTab,
+  isEventModuleUnlocked,
   isEventTabAccessible,
   normalizeEventTabQuery,
   type EventNavBadges,
   type EventPhaseId,
   type EventTabId,
 } from "@/lib/lean-event/event-nav";
+import { normalizeEventRegistration } from "@/lib/lean-event/event-registration";
+import {
+  FORMATION_ECM_SECTIONS,
+  normalizeFormationEcmSection,
+  type FormationEcmSectionId,
+} from "@/lib/lean-event/formation-ecm-nav";
+import {
+  SCHEDA_TECNICA_SECTIONS,
+  normalizeSchedaTecnicaSection,
+  type SchedaTecnicaSectionId,
+} from "@/lib/lean-event/scheda-tecnica-nav";
 import type {
   LeanEventContact,
+  LeanEventLeonardoCapabilities,
   LeanEventSupplier,
   LeanEventTenantUserPublic,
   LeonardoEvent,
@@ -78,6 +105,7 @@ interface LeonardoEventDetailProps {
   ospitiEnabled: boolean;
   hotelEnabled: boolean;
   logisticaEnabled: boolean;
+  moduleCapabilities?: Partial<LeanEventLeonardoCapabilities>;
   currentUserName: string;
   currentUserEmail: string;
   /** Quando true, back torna all'elenco tab invece di navigare. */
@@ -99,6 +127,7 @@ export function LeonardoEventDetail({
   ospitiEnabled,
   hotelEnabled,
   logisticaEnabled,
+  moduleCapabilities = {},
   currentUserName,
   currentUserEmail,
   embedded = false,
@@ -117,6 +146,7 @@ export function LeonardoEventDetail({
     ospiti: ospitiEnabled,
     hotel: hotelEnabled,
     logistica: logisticaEnabled,
+    formazioneEcm: isFormationCategory(event.categoryId),
   };
   const [activePhase, setActivePhase] = useState<EventPhaseId>(
     getPhaseForTab(initialQuery.tab)
@@ -127,6 +157,13 @@ export function LeonardoEventDetail({
   );
   const [guestView, setGuestView] = useState<"insert" | "list">(
     searchParams.get("vista") === "insert" ? "insert" : "list"
+  );
+  const [formationSection, setFormationSection] =
+    useState<FormationEcmSectionId>(() =>
+      normalizeFormationEcmSection(searchParams.get("fe"))
+    );
+  const [schedaSection, setSchedaSection] = useState<SchedaTecnicaSectionId>(
+    () => normalizeSchedaTecnicaSection(searchParams.get("st"))
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -176,8 +213,11 @@ export function LeonardoEventDetail({
     EVENT_NAV_TABS.find((tab) => tab.id === activeTab) ?? EVENT_NAV_TABS[0];
   const tabBlocked =
     activeTabDef.implemented &&
-    activeTabDef.capability !== undefined &&
     !isEventTabAccessible(activeTabDef, capabilities);
+  const moduleLocked = !isEventModuleUnlocked(
+    activeTabDef,
+    moduleCapabilities
+  );
 
   const navBadges = useMemo<EventNavBadges>(() => {
     const reportRows = buildAllotmentReport(
@@ -208,6 +248,8 @@ export function LeonardoEventDetail({
     vista?: "insert" | "list";
     ospite?: string | null;
     fornitore?: string | null;
+    fe?: FormationEcmSectionId;
+    st?: SchedaTecnicaSectionId;
   }) {
     const params = new URLSearchParams();
     const tab = next.tab ?? activeTab;
@@ -215,12 +257,24 @@ export function LeonardoEventDetail({
     if (tab === "report") {
       params.set("report", next.report ?? reportSubTab);
     }
-    if (tab === "ospiti") {
+    if (tab === "formazione_ecm") {
+      params.set("fe", next.fe ?? formationSection);
+    }
+    if (tab === "evento") {
+      params.set("st", next.st ?? schedaSection);
+    }
+    if (
+      isAnagrafichePeopleTab(tab) ||
+      tab === "sponsor_gestione" ||
+      tab === "fornitori"
+    ) {
       params.set("vista", next.vista ?? guestView);
-      const ospite =
-        next.ospite !== undefined ? next.ospite : searchParams.get("ospite");
-      if (ospite) {
-        params.set("ospite", ospite);
+      if (isAnagrafichePeopleTab(tab)) {
+        const ospite =
+          next.ospite !== undefined ? next.ospite : searchParams.get("ospite");
+        if (ospite) {
+          params.set("ospite", ospite);
+        }
       }
     }
     if (tab === "fornitori") {
@@ -254,18 +308,50 @@ export function LeonardoEventDetail({
       searchParams.get("tab"),
       searchParams.get("report")
     );
+    // Legacy: Formazione ECM › Programma → menu 1° livello Programma
+    if (query.tab === "formazione_ecm" && searchParams.get("fe") === "programma") {
+      setActiveTab("programma");
+      setActivePhase("programma");
+      setFormationSection("griglia");
+      router.replace("?tab=programma", { scroll: false });
+      return;
+    }
     setActiveTab(query.tab);
     setActivePhase(getPhaseForTab(query.tab));
     if (query.reportSubTab) {
       setReportSubTab(query.reportSubTab);
     }
     setGuestView(searchParams.get("vista") === "insert" ? "insert" : "list");
-  }, [searchParams]);
+    setFormationSection(normalizeFormationEcmSection(searchParams.get("fe")));
+    setSchedaSection(normalizeSchedaTecnicaSection(searchParams.get("st")));
+  }, [searchParams, router]);
 
-  const deepLinkGuestId =
-    activeTab === "ospiti" ? searchParams.get("ospite") : null;
+  useEffect(() => {
+    if (
+      activeTab === "formazione_ecm" &&
+      !isFormationCategory(event.categoryId)
+    ) {
+      setActiveTab("evento");
+      setActivePhase("setup");
+      syncUrl({ tab: "evento", phase: "setup" });
+    }
+    // syncUrl is stable enough for this guard; avoid re-running on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, event.categoryId]);
+
+  const deepLinkGuestId = isAnagrafichePeopleTab(activeTab)
+    ? searchParams.get("ospite")
+    : null;
   const deepLinkSupplierLinkId =
     activeTab === "fornitori" ? searchParams.get("fornitore") : null;
+  const schedaSectionLabel =
+    SCHEDA_TECNICA_SECTIONS.find((item) => item.id === schedaSection)?.label ??
+    "";
+  const peopleRoleFilter = activeTabDef.roleFilter ?? "";
+  const peopleDefaultRole =
+    Array.isArray(peopleRoleFilter)
+      ? peopleRoleFilter[0] ?? "relatore"
+      : peopleRoleFilter || "ospite";
 
   async function saveAnagrafica() {
     setSaving(true);
@@ -278,6 +364,13 @@ export function LeonardoEventDetail({
       return;
     }
     setDateError(null);
+
+    const requiredError = validateEventRequiredFields(event);
+    if (requiredError) {
+      setMessage(requiredError);
+      setSaving(false);
+      return;
+    }
     const response = await fetch(`/api/lean-event/events/${event.id}`, {
       method: "PATCH",
       credentials: "same-origin",
@@ -288,12 +381,15 @@ export function LeonardoEventDetail({
         title: event.title,
         venueId: event.venueId ?? null,
         venue: event.venue,
+        venueDetails: event.venueDetails,
         startDate: event.startDate,
         endDate: event.endDate,
         categoryId: event.categoryId,
         healthAreaId: event.healthAreaId,
         ecmEnabled: event.ecmEnabled,
         ecmModality: event.ecmModality,
+        formationEventTypeId: event.formationEventTypeId ?? null,
+        formationStructureName: event.formationStructureName ?? null,
         status: event.status,
         notes: event.notes,
         projectLeaderUserId: event.projectLeaderUserId ?? null,
@@ -320,6 +416,176 @@ export function LeonardoEventDetail({
     }
     setEvent(payload.event);
     setMessage("Evento aggiornato.");
+  }
+
+  async function saveRegistration() {
+    setSaving(true);
+    setMessage(null);
+    const response = await fetch(`/api/lean-event/events/${event.id}`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        expectedRevision: event.revision ?? 1,
+        registration: normalizeEventRegistration(event.registration),
+      }),
+    });
+    const payload = (await response.json()) as {
+      error?: string;
+      event?: LeonardoEvent;
+      updatedBy?: string;
+      updatedAt?: string;
+    };
+    setSaving(false);
+    if (response.status === 409 && isRevisionConflictPayload(payload)) {
+      setConflict({
+        updatedBy: payload.updatedBy,
+        updatedAt: payload.updatedAt,
+      });
+      return;
+    }
+    if (!response.ok || !payload.event) {
+      setMessage(payload.error ?? "Salvataggio non riuscito.");
+      return;
+    }
+    setEvent(payload.event);
+    setMessage("Registrazione aggiornata.");
+  }
+
+  async function saveFormationEcm() {
+    setSaving(true);
+    setMessage(null);
+
+    const formationError = validateFormationEcmRequiredFields(event);
+    if (formationError) {
+      setMessage(formationError);
+      setSaving(false);
+      return;
+    }
+
+    const requiredError = validateEventRequiredFields(event);
+    if (requiredError) {
+      setMessage(requiredError);
+      setSaving(false);
+      return;
+    }
+
+    const response = await fetch(`/api/lean-event/events/${event.id}`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        expectedRevision: event.revision ?? 1,
+        cdc: event.cdc,
+        title: event.title,
+        venueId: event.venueId ?? null,
+        venue: event.venue,
+        venueDetails: event.venueDetails,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        categoryId: event.categoryId,
+        healthAreaId: event.healthAreaId,
+        ecmEnabled: event.ecmEnabled,
+        ecmModality: event.ecmModality,
+        formationEventTypeId: event.formationEventTypeId ?? null,
+        formationStructureName: event.formationStructureName ?? null,
+        ecmGrid: event.ecmGrid ?? null,
+        scientificProgram: event.scientificProgram ?? null,
+        eventSponsors: event.eventSponsors ?? [],
+        status: event.status,
+        notes: event.notes,
+        projectLeaderUserId: event.projectLeaderUserId ?? null,
+        projectManagerUserIds: event.projectManagerUserIds ?? [],
+      }),
+    });
+    const payload = (await response.json()) as {
+      error?: string;
+      event?: LeonardoEvent;
+      updatedBy?: string;
+      updatedAt?: string;
+    };
+    setSaving(false);
+    if (response.status === 409 && isRevisionConflictPayload(payload)) {
+      setConflict({
+        updatedBy: payload.updatedBy,
+        updatedAt: payload.updatedAt,
+      });
+      return;
+    }
+    if (!response.ok || !payload.event) {
+      setMessage(payload.error ?? "Salvataggio non riuscito.");
+      return;
+    }
+    setEvent(payload.event);
+    setMessage("Formazione e ECM aggiornati.");
+  }
+
+  async function saveProgramma() {
+    setSaving(true);
+    setMessage(null);
+    const response = await fetch(`/api/lean-event/events/${event.id}`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        expectedRevision: event.revision ?? 1,
+        scientificProgram: event.scientificProgram ?? null,
+      }),
+    });
+    const payload = (await response.json()) as {
+      error?: string;
+      event?: LeonardoEvent;
+      updatedBy?: string;
+      updatedAt?: string;
+    };
+    setSaving(false);
+    if (response.status === 409 && isRevisionConflictPayload(payload)) {
+      setConflict({
+        updatedBy: payload.updatedBy,
+        updatedAt: payload.updatedAt,
+      });
+      return;
+    }
+    if (!response.ok || !payload.event) {
+      setMessage(payload.error ?? "Salvataggio non riuscito.");
+      return;
+    }
+    setEvent(payload.event);
+    setMessage("Programma aggiornato.");
+  }
+
+  async function saveEventSponsors() {
+    setSaving(true);
+    setMessage(null);
+    const response = await fetch(`/api/lean-event/events/${event.id}`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        expectedRevision: event.revision ?? 1,
+        eventSponsors: event.eventSponsors ?? [],
+      }),
+    });
+    const payload = (await response.json()) as {
+      error?: string;
+      event?: LeonardoEvent;
+      updatedBy?: string;
+      updatedAt?: string;
+    };
+    setSaving(false);
+    if (response.status === 409 && isRevisionConflictPayload(payload)) {
+      setConflict({
+        updatedBy: payload.updatedBy,
+        updatedAt: payload.updatedAt,
+      });
+      return;
+    }
+    if (!response.ok || !payload.event) {
+      setMessage(payload.error ?? "Salvataggio non riuscito.");
+      return;
+    }
+    setEvent(payload.event);
+    setMessage("Sponsor aggiornati.");
   }
 
   return (
@@ -366,7 +632,18 @@ export function LeonardoEventDetail({
         </p>
         <p className="mt-2 text-[11px] uppercase tracking-[0.12em] text-white/35">
           {phaseLabel} › {tabLabel}
-          {activeTab === "ospiti"
+          {activeTab === "evento" && schedaSectionLabel
+            ? ` › ${schedaSectionLabel}`
+            : ""}
+          {activeTab === "formazione_ecm"
+            ? ` › ${
+                FORMATION_ECM_SECTIONS.find((item) => item.id === formationSection)
+                  ?.label ?? ""
+              }`
+            : ""}
+          {isAnagrafichePeopleTab(activeTab) ||
+          activeTab === "sponsor_gestione" ||
+          activeTab === "fornitori"
             ? ` › ${guestView === "insert" ? "Inserisci" : "Elenco"}`
             : ""}
           {activeTab === "report" ? ` › Report ${reportSubTab}` : ""}
@@ -377,179 +654,313 @@ export function LeonardoEventDetail({
         activePhase={activePhase}
         activeTab={activeTab}
         capabilities={capabilities}
+        moduleCapabilities={moduleCapabilities}
         badges={navBadges}
         onPhaseChange={handlePhaseChange}
         onTabChange={handleTabChange}
       />
 
       <div data-leonardo-canvas className="leonardo-canvas space-y-6">
-      {!activeTabDef.implemented ? (
+      {moduleLocked ? (
+        <LeonardoModuleUpgradePanel
+          moduleLabel={activeTabDef.label}
+          description={
+            activeTabDef.placeholderDescription ??
+            "Modulo non incluso nel pacchetto del tenant. Usabile standalone e collegato all'evento dopo l'upgrade."
+          }
+        />
+      ) : null}
+
+      {!moduleLocked && !activeTabDef.implemented ? (
         <LeonardoEventPlaceholderPanel tab={activeTabDef} />
       ) : null}
 
-      {tabBlocked ? (
+      {!moduleLocked && tabBlocked ? (
         <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-6">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-amber-100">
             {activeTabDef.label} non disponibile
           </h3>
           <p className="mt-3 text-sm text-white/70">
-            Attiva il pack LeanEvent corrispondente per usare questa sezione
-            nell&apos;evento.
+            {activeTab === "formazione_ecm"
+              ? "Seleziona una categoria di formazione (sanitaria o non sanitaria) nella scheda tecnica per attivare questa tab."
+              : "Attiva il pack LeanEvent corrispondente per usare questa sezione nell'evento."}
           </p>
         </section>
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "evento" ? (
+      {!moduleLocked &&
+      !tabBlocked &&
+      activeTabDef.implemented &&
+      activeTab === "evento" ? (
         <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
-          <LeonardoEventTaxonomyFields
-            value={{
-              categoryId: event.categoryId,
-              healthAreaId: event.healthAreaId,
-              ecmEnabled: event.ecmEnabled,
-              ecmModality: event.ecmModality,
-            }}
-            onChange={(taxonomy: EventTaxonomyFormState) =>
-              setEvent({
-                ...event,
-                ...taxonomy,
-              })
-            }
-          />
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-              Titolo
-            </span>
-            <input
-              value={event.title}
-              onChange={(e) => setEvent({ ...event, title: e.target.value })}
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-              CDC
-            </span>
-            <input
-              value={event.cdc}
-              onChange={(e) => setEvent({ ...event, cdc: e.target.value })}
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-          </label>
-          <LeonardoVenuePicker
-            tenantSlug={tenantSlug}
-            venues={venues}
-            venueId={event.venueId ?? null}
-            venueText={event.venue}
-            onChange={({ venueId, venue }) =>
-              setEvent({ ...event, venueId, venue })
-            }
-          />
-          <LeonardoEventProjectTeamFields
-            tenantUsers={tenantUsers}
-            projectLeaderUserId={event.projectLeaderUserId ?? null}
-            projectManagerUserIds={event.projectManagerUserIds ?? []}
-            onChange={({ projectLeaderUserId, projectManagerUserIds }) =>
-              setEvent({
-                ...event,
-                projectLeaderUserId,
-                projectManagerUserIds,
-              })
-            }
-          />
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-                Data inizio
-              </span>
-              <div className="mt-2">
-                <LeonardoDateInput
-                  value={isoDateToEuropeanDate(event.startDate) || event.startDate}
-                  onChange={(startDate) => {
-                    const endDate = event.endDate;
-                    const validation = validateEventDateRange(startDate, endDate);
-                    setDateError(validation.ok ? null : validation.message);
-                    setEvent({ ...event, startDate });
-                  }}
-                  className="w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-                />
-              </div>
-            </label>
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-                Data fine
-              </span>
-              <div className="mt-2">
-                <LeonardoDateInput
-                  value={isoDateToEuropeanDate(event.endDate) || event.endDate}
-                  onChange={(endDate) => {
-                    const validation = validateEventDateRange(event.startDate, endDate);
-                    setDateError(validation.ok ? null : validation.message);
-                    setEvent({ ...event, endDate });
-                  }}
-                  className="w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-                />
-              </div>
-            </label>
+          <div className="flex flex-wrap gap-1.5">
+            {SCHEDA_TECNICA_SECTIONS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setSchedaSection(item.id);
+                  syncUrl({ tab: "evento", st: item.id });
+                }}
+                className={`shrink-0 rounded-md px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px] ${
+                  schedaSection === item.id
+                    ? "bg-white text-black shadow-sm"
+                    : "border border-white/25 text-white/70 hover:border-white hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-          {dateError ? (
-            <p className="text-sm text-red-300">{dateError}</p>
+          <p className="text-xs leading-relaxed text-white/45">
+            {
+              SCHEDA_TECNICA_SECTIONS.find((item) => item.id === schedaSection)
+                ?.description
+            }
+          </p>
+
+          {schedaSection === "info_generali" ? (
+            <>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+                  Titolo *
+                </span>
+                <input
+                  required
+                  value={event.title}
+                  onChange={(e) => setEvent({ ...event, title: e.target.value })}
+                  className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <LeonardoVenuePicker
+                key={event.id}
+                tenantSlug={tenantSlug}
+                venues={venues}
+                venueId={event.venueId ?? null}
+                venueText={event.venue}
+                venueDetails={event.venueDetails}
+                nameRequired
+                onChange={({ venueId, venue, venueDetails }) =>
+                  setEvent({ ...event, venueId, venue, venueDetails })
+                }
+              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+                    Data inizio *
+                  </span>
+                  <div className="mt-2">
+                    <LeonardoDateInput
+                      value={
+                        isoDateToEuropeanDate(event.startDate) || event.startDate
+                      }
+                      onChange={(startDate) => {
+                        const endDate = event.endDate;
+                        const validation = validateEventDateRange(
+                          startDate,
+                          endDate
+                        );
+                        setDateError(validation.ok ? null : validation.message);
+                        setEvent({ ...event, startDate });
+                      }}
+                      className="w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+                    />
+                  </div>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+                    Data fine *
+                  </span>
+                  <div className="mt-2">
+                    <LeonardoDateInput
+                      value={isoDateToEuropeanDate(event.endDate) || event.endDate}
+                      onChange={(endDate) => {
+                        const validation = validateEventDateRange(
+                          event.startDate,
+                          endDate
+                        );
+                        setDateError(validation.ok ? null : validation.message);
+                        setEvent({ ...event, endDate });
+                      }}
+                      className="w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+                    />
+                  </div>
+                </label>
+              </div>
+              {dateError ? (
+                <p className="text-sm text-red-300">{dateError}</p>
+              ) : null}
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+                  CDC
+                </span>
+                <input
+                  value={event.cdc}
+                  onChange={(e) => setEvent({ ...event, cdc: e.target.value })}
+                  className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              <LeonardoEventTaxonomyFields
+                variant="category"
+                value={{
+                  categoryId: event.categoryId,
+                  healthAreaId: event.healthAreaId,
+                  ecmEnabled: event.ecmEnabled,
+                  ecmModality: event.ecmModality,
+                  formationEventTypeId: event.formationEventTypeId ?? null,
+                  formationStructureName: event.formationStructureName ?? null,
+                }}
+                onChange={(taxonomy: EventTaxonomyFormState) =>
+                  setEvent({
+                    ...event,
+                    ...taxonomy,
+                  })
+                }
+              />
+              <LeonardoEventProjectTeamFields
+                tenantUsers={tenantUsers}
+                projectLeaderUserId={event.projectLeaderUserId ?? null}
+                projectManagerUserIds={event.projectManagerUserIds ?? []}
+                onChange={({ projectLeaderUserId, projectManagerUserIds }) =>
+                  setEvent({
+                    ...event,
+                    projectLeaderUserId,
+                    projectManagerUserIds,
+                  })
+                }
+              />
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+                  Stato
+                </span>
+                <select
+                  value={event.status}
+                  onChange={(e) =>
+                    setEvent({
+                      ...event,
+                      status: e.target.value as LeonardoEvent["status"],
+                    })
+                  }
+                  className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+                >
+                  {eventsConfig.eventStatuses.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+                  Note
+                </span>
+                <textarea
+                  rows={4}
+                  value={event.notes}
+                  onChange={(e) => setEvent({ ...event, notes: e.target.value })}
+                  className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+                />
+              </label>
+              {message ? (
+                <p className="text-sm text-leanme-fuchsia">{message}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={saveAnagrafica}
+                disabled={saving || Boolean(dateError)}
+                className="rounded-full bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:opacity-60"
+              >
+                {saving ? "Salvataggio..." : "Salva evento"}
+              </button>
+              <LeonardoEntityVersionsPanel
+                entityType="event"
+                entityId={event.id}
+                currentRevision={event.revision}
+                onRestored={(entity) => {
+                  setEvent(entity as LeonardoEvent);
+                  router.refresh();
+                }}
+              />
+            </>
           ) : null}
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-              Stato
-            </span>
-            <select
-              value={event.status}
-              onChange={(e) =>
-                setEvent({
-                  ...event,
-                  status: e.target.value as LeonardoEvent["status"],
-                })
-              }
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-            >
-              {eventsConfig.eventStatuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-              Note
-            </span>
-            <textarea
-              rows={4}
-              value={event.notes}
-              onChange={(e) => setEvent({ ...event, notes: e.target.value })}
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-            />
-          </label>
+
+          {schedaSection === "registrazione" ? (
+            <>
+              <LeonardoEventRegistrationForm
+                value={event.registration}
+                onChange={(registration) =>
+                  setEvent({ ...event, registration })
+                }
+              />
+              {message ? (
+                <p className="text-sm text-leanme-fuchsia">{message}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void saveRegistration()}
+                disabled={saving}
+                className="rounded-full bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:opacity-60"
+              >
+                {saving ? "Salvataggio..." : "Salva registrazione"}
+              </button>
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
+      {!moduleLocked && !tabBlocked &&
+      activeTabDef.implemented &&
+      activeTab === "formazione_ecm" ? (
+        <LeonardoEventFormationEcmPanel
+          event={event}
+          contacts={contacts}
+          section={formationSection}
+          onSectionChange={(next) => {
+            setFormationSection(next);
+            syncUrl({ tab: "formazione_ecm", fe: next });
+          }}
+          onEventChange={setEvent}
+          onSave={() => void saveFormationEcm()}
+          saving={saving}
+          message={message}
+        />
+      ) : null}
+
+      {!moduleLocked && !tabBlocked &&
+      activeTabDef.implemented &&
+      activeTab === "programma" ? (
+        <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
+          <LeonardoScientificProgramForm
+            value={event.scientificProgram}
+            accreditedMinutes={(() => {
+              const grid = normalizeEcmGrid(event.ecmGrid);
+              const minutes =
+                (grid.effectiveDurationHours ?? 0) * 60 +
+                (grid.effectiveDurationMinutes ?? 0);
+              return minutes > 0 ? minutes : null;
+            })()}
+            onChange={(scientificProgram) =>
+              setEvent({ ...event, scientificProgram })
+            }
+          />
           {message ? (
             <p className="text-sm text-leanme-fuchsia">{message}</p>
           ) : null}
           <button
             type="button"
-            onClick={saveAnagrafica}
-            disabled={saving || Boolean(dateError)}
+            onClick={() => void saveProgramma()}
+            disabled={saving}
             className="rounded-full bg-leanme-fuchsia px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-leanme-fuchsia-dark disabled:opacity-60"
           >
-            {saving ? "Salvataggio..." : "Salva evento"}
+            {saving ? "Salvataggio..." : "Salva programma"}
           </button>
-          <LeonardoEntityVersionsPanel
-            entityType="event"
-            entityId={event.id}
-            currentRevision={event.revision}
-            onRestored={(entity) => {
-              setEvent(entity as LeonardoEvent);
-              router.refresh();
-            }}
-          />
         </section>
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "ospiti" && ospitiEnabled ? (
+      {!moduleLocked && !tabBlocked &&
+      activeTabDef.implemented &&
+      isAnagrafichePeopleTab(activeTab) &&
+      ospitiEnabled ? (
         <LeonardoEventGuestsPanel
           tenantSlug={tenantSlug}
           eventId={event.id}
@@ -561,6 +972,17 @@ export function LeonardoEventDetail({
           otherEvents={otherEvents}
           guestView={guestView}
           initialGuestId={deepLinkGuestId}
+          lockedRoleFilter={peopleRoleFilter}
+          defaultRoleCategory={peopleDefaultRole}
+          panelTitle={activeTabDef.label}
+          insertTabLabel={
+            activeTab === "sponsors_ruoli"
+              ? "Inserisci sponsor"
+              : activeTab === "vedi_tutti"
+                ? "Inserisci"
+                : `Inserisci ${activeTabDef.label.toLowerCase()}`
+          }
+          listTabLabel="Visualizza elenco"
           onGuestViewChange={(vista) => {
             setGuestView(vista);
             syncUrl({ vista, ospite: deepLinkGuestId });
@@ -570,7 +992,7 @@ export function LeonardoEventDetail({
         />
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "allotment" && hotelEnabled ? (
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "allotment" && hotelEnabled ? (
         <LeonardoEventAllotmentPanel
           tenantSlug={tenantSlug}
           event={event}
@@ -592,7 +1014,7 @@ export function LeonardoEventDetail({
         />
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "eventi_correlati" ? (
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "eventi_correlati" ? (
         <LeonardoEventRelatedEventsPanel
           tenantSlug={tenantSlug}
           event={event}
@@ -601,18 +1023,41 @@ export function LeonardoEventDetail({
         />
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "fornitori" ? (
+      {!moduleLocked && !tabBlocked &&
+      activeTabDef.implemented &&
+      activeTab === "sponsor_gestione" ? (
+        <LeonardoEventSponsorsPanel
+          sponsors={event.eventSponsors ?? []}
+          onChange={(eventSponsors) => setEvent({ ...event, eventSponsors })}
+          onSave={() => void saveEventSponsors()}
+          saving={saving}
+          message={message}
+          panelTitle="Gestione sponsor"
+          view={guestView}
+          onViewChange={(vista) => {
+            setGuestView(vista);
+            syncUrl({ tab: "sponsor_gestione", vista });
+          }}
+        />
+      ) : null}
+
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "fornitori" ? (
         <LeonardoEventSuppliersPanel
           tenantSlug={tenantSlug}
           eventId={event.id}
           initialLinks={initialSupplierLinks}
           rubricaSuppliers={rubricaSuppliers}
           initialLinkId={deepLinkSupplierLinkId}
+          supplierView={guestView}
+          onSupplierViewChange={(vista) => {
+            setGuestView(vista);
+            syncUrl({ tab: "fornitori", vista });
+          }}
           onLinkSheetChange={(fornitore) => syncUrl({ fornitore })}
         />
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "report" ? (
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "report" ? (
         <LeonardoEventReportPanel
           tenantSlug={tenantSlug}
           event={event}
@@ -628,7 +1073,7 @@ export function LeonardoEventDetail({
         />
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "chat" ? (
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "chat" ? (
         <LeonardoEventChatPanel
           eventId={event.id}
           tenantSlug={tenantSlug}
@@ -637,7 +1082,7 @@ export function LeonardoEventDetail({
         />
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "stampati" ? (
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "stampati" ? (
         <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-leanme-fuchsia">
             Stampati
@@ -660,7 +1105,7 @@ export function LeonardoEventDetail({
         </section>
       ) : null}
 
-      {!tabBlocked && activeTabDef.implemented && activeTab === "verbali" ? (
+      {!moduleLocked && !tabBlocked && activeTabDef.implemented && activeTab === "verbali" ? (
         <section className={`${LEONARDO_CANVAS_SURFACE} space-y-4`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-white/60">

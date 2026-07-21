@@ -22,10 +22,9 @@ export function LeonardoEventPlaceholderPanel({
         {tab.placeholderDescription ??
           "Sezione pianificata nella roadmap Leonardo. La struttura di navigazione è già pronta."}
       </p>
-      <LeanAgentAiPoweredBy
-        capability={tab.aiCapability ?? "ai_assistant"}
-        className="mt-4"
-      />
+      {tab.aiCapability ? (
+        <LeanAgentAiPoweredBy capability={tab.aiCapability} className="mt-4" />
+      ) : null}
       <p className="mt-4 text-xs text-white/40">
         Fase navigazione configurata — implementazione funzionale prossima release.
       </p>

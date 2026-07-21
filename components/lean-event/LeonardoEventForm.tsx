@@ -7,18 +7,30 @@ import {
   LeonardoEventTaxonomyFields,
   type EventTaxonomyFormState,
 } from "@/components/lean-event/LeonardoEventTaxonomyFields";
+import { LeonardoEventProjectTeamFields } from "@/components/lean-event/LeonardoEventProjectTeamFields";
 import { LeonardoVenuePicker } from "@/components/lean-event/LeonardoVenuePicker";
 import { LeonardoDateInput } from "@/components/lean-event/LeonardoDateInput";
 import { validateEventDateRange } from "@/lib/lean-event/dates";
+import { validateEventRequiredFields } from "@/lib/lean-event/event-required";
+import { emptyVenueDetails } from "@/lib/lean-event/venue-display";
 import { leanEventLeonardoEventPath } from "@/lib/lean-event/paths";
-import type { LeonardoVenue } from "@/types/lean-event";
+import type {
+  LeanEventTenantUserPublic,
+  LeonardoEventVenueDetails,
+  LeonardoVenue,
+} from "@/types/lean-event";
 
 interface LeonardoEventFormProps {
   tenantSlug: string;
   venues: LeonardoVenue[];
+  tenantUsers: LeanEventTenantUserPublic[];
 }
 
-export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps) {
+export function LeonardoEventForm({
+  tenantSlug,
+  venues,
+  tenantUsers,
+}: LeonardoEventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,15 +40,20 @@ export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps
     title: "",
     venueId: null as string | null,
     venue: "",
+    venueDetails: emptyVenueDetails() as LeonardoEventVenueDetails,
     startDate: "",
     endDate: "",
     notes: "",
+    projectLeaderUserId: null as string | null,
+    projectManagerUserIds: [] as string[],
   });
   const [taxonomy, setTaxonomy] = useState<EventTaxonomyFormState>({
     categoryId: "evento_aziendale",
     healthAreaId: null,
     ecmEnabled: false,
     ecmModality: null,
+    formationEventTypeId: null,
+    formationStructureName: null,
   });
 
   async function handleSubmit(event: React.FormEvent) {
@@ -51,6 +68,26 @@ export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps
       return;
     }
     setDateError(null);
+
+    const requiredError = validateEventRequiredFields({
+      title: form.title,
+      venue: form.venue,
+      venueDetails: form.venueDetails,
+      startDate: form.startDate,
+      endDate: form.endDate || form.startDate,
+      categoryId: taxonomy.categoryId,
+      healthAreaId: taxonomy.healthAreaId,
+      ecmEnabled: taxonomy.ecmEnabled,
+      ecmModality: taxonomy.ecmModality,
+      formationEventTypeId: taxonomy.formationEventTypeId,
+      formationStructureName: taxonomy.formationStructureName,
+      projectLeaderUserId: form.projectLeaderUserId,
+    });
+    if (requiredError) {
+      setError(requiredError);
+      setLoading(false);
+      return;
+    }
 
     const response = await fetch("/api/lean-event/events", {
       method: "POST",
@@ -79,11 +116,9 @@ export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps
       <div>
         <h2 className="text-lg font-bold">Nuovo evento</h2>
         <p className="mt-1 text-sm text-white/60">
-          CDC libero, date singolo giorno o range (dal / al).
+          Obbligatori: titolo, sede, date, tipologia e Project Leader.
         </p>
       </div>
-
-      <LeonardoEventTaxonomyFields value={taxonomy} onChange={setTaxonomy} />
 
       <label className="block">
         <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
@@ -97,31 +132,27 @@ export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps
         />
       </label>
 
-      <label className="block">
-        <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-          CDC (centro di costo)
-        </span>
-        <input
-          value={form.cdc}
-          onChange={(e) => setForm({ ...form, cdc: e.target.value })}
-          className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
-        />
-      </label>
-
       <LeonardoVenuePicker
         tenantSlug={tenantSlug}
         venues={venues}
         venueId={form.venueId}
         venueText={form.venue}
-        onChange={({ venueId, venue }) =>
-          setForm((current) => ({ ...current, venueId, venue }))
+        venueDetails={form.venueDetails}
+        nameRequired
+        onChange={({ venueId, venue, venueDetails }) =>
+          setForm((current) => ({
+            ...current,
+            venueId,
+            venue,
+            venueDetails,
+          }))
         }
       />
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-            Data inizio (gg/mm/aaaa)
+            Data inizio (gg/mm/aaaa) *
           </span>
           <div className="mt-2">
             <LeonardoDateInput
@@ -137,7 +168,7 @@ export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps
         </label>
         <label className="block">
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-            Data fine (gg/mm/aaaa)
+            Data fine (gg/mm/aaaa) *
           </span>
           <div className="mt-2">
             <LeonardoDateInput
@@ -154,6 +185,36 @@ export function LeonardoEventForm({ tenantSlug, venues }: LeonardoEventFormProps
       </div>
 
       {dateError ? <p className="text-sm text-red-300">{dateError}</p> : null}
+
+      <label className="block">
+        <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
+          CDC (centro di costo)
+        </span>
+        <input
+          value={form.cdc}
+          onChange={(e) => setForm({ ...form, cdc: e.target.value })}
+          className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
+        />
+      </label>
+
+      <LeonardoEventTaxonomyFields
+        variant="category"
+        value={taxonomy}
+        onChange={setTaxonomy}
+      />
+
+      <LeonardoEventProjectTeamFields
+        tenantUsers={tenantUsers}
+        projectLeaderUserId={form.projectLeaderUserId}
+        projectManagerUserIds={form.projectManagerUserIds}
+        onChange={({ projectLeaderUserId, projectManagerUserIds }) =>
+          setForm((current) => ({
+            ...current,
+            projectLeaderUserId,
+            projectManagerUserIds,
+          }))
+        }
+      />
 
       <label className="block">
         <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">

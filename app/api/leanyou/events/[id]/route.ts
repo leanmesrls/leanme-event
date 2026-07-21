@@ -12,6 +12,7 @@ import {
 import { sessionUserId } from "@/lib/lean-event/entity-lifecycle";
 import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
 import {
+  isFormationCategory,
   isHealthFormationCategory,
   normalizeLeonardoEvent,
   validateEventTaxonomy,
@@ -20,7 +21,11 @@ import type { LeonardoEvent, LeonardoEventHotelBlock } from "@/types/lean-event"
 import { deleteEvent, getEvent, saveEvent } from "@/lib/lean-event/events";
 import { reconcileEventAssignmentsWithHotelBlocks } from "@/lib/lean-event/event-assignments";
 import { resolveEventVenueFields } from "@/lib/lean-event/event-venue";
+import { validateEventRequiredFields } from "@/lib/lean-event/event-required";
+import { normalizeEcmGrid } from "@/lib/lean-event/ecm-grid";
+import { normalizeEventRegistration } from "@/lib/lean-event/event-registration";
 import { normalizeHotelBlocks } from "@/lib/lean-event/event-hotel";
+import { normalizeScientificProgram } from "@/lib/lean-event/scientific-program";
 import {
   listPublicTenantUsersByTenantId,
   sanitizeEventProjectTeam,
@@ -79,12 +84,22 @@ export async function PATCH(request: Request, context: RouteContext) {
       body.ecmEnabled !== undefined ? body.ecmEnabled : event.ecmEnabled;
     const ecmModality =
       body.ecmModality !== undefined ? body.ecmModality : event.ecmModality;
+    const formationEventTypeId =
+      body.formationEventTypeId !== undefined
+        ? body.formationEventTypeId
+        : event.formationEventTypeId ?? null;
+    const formationStructureName =
+      body.formationStructureName !== undefined
+        ? body.formationStructureName
+        : event.formationStructureName ?? null;
 
     const taxonomyError = validateEventTaxonomy({
       categoryId,
       healthAreaId,
       ecmEnabled,
       ecmModality,
+      formationEventTypeId,
+      formationStructureName,
     });
     if (taxonomyError) {
       return NextResponse.json({ error: taxonomyError }, { status: 400 });
@@ -93,6 +108,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     const venueFields = await resolveEventVenueFields(session.tenantId, {
       venueId: body.venueId !== undefined ? body.venueId : event.venueId ?? null,
       venue: body.venue !== undefined ? body.venue : event.venue,
+      venueDetails:
+        body.venueDetails !== undefined
+          ? body.venueDetails
+          : event.venueDetails,
     });
 
     const tenantUsers = await listPublicTenantUsersByTenantId(session.tenantId);
@@ -120,6 +139,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       title: body.title !== undefined ? body.title.trim() : event.title,
       venue: venueFields.venue,
       venueId: venueFields.venueId,
+      venueDetails: venueFields.venueDetails,
       startDate:
         body.startDate !== undefined
           ? normalizeMeetingDateInput(body.startDate)
@@ -131,10 +151,30 @@ export async function PATCH(request: Request, context: RouteContext) {
       categoryId,
       healthAreaId: isHealthFormationCategory(categoryId) ? healthAreaId : null,
       ecmEnabled: isHealthFormationCategory(categoryId) ? ecmEnabled : false,
-      ecmModality:
-        isHealthFormationCategory(categoryId) && ecmEnabled
-          ? ecmModality
-          : null,
+      ecmModality: isFormationCategory(categoryId) ? ecmModality : null,
+      formationEventTypeId: isFormationCategory(categoryId)
+        ? formationEventTypeId
+        : null,
+      formationStructureName: isFormationCategory(categoryId)
+        ? formationStructureName
+        : null,
+      ecmGrid: isFormationCategory(categoryId)
+        ? body.ecmGrid !== undefined
+          ? normalizeEcmGrid(body.ecmGrid)
+          : normalizeEcmGrid(event.ecmGrid)
+        : null,
+      registration:
+        body.registration !== undefined
+          ? normalizeEventRegistration(body.registration)
+          : normalizeEventRegistration(event.registration),
+      scientificProgram:
+        body.scientificProgram !== undefined
+          ? normalizeScientificProgram(body.scientificProgram)
+          : normalizeScientificProgram(event.scientificProgram),
+      eventSponsors:
+        body.eventSponsors !== undefined
+          ? body.eventSponsors
+          : event.eventSponsors ?? [],
       status: body.status ?? event.status,
       notes: body.notes !== undefined ? body.notes.trim() : event.notes,
       hotelBlocks:
@@ -148,6 +188,11 @@ export async function PATCH(request: Request, context: RouteContext) {
       projectLeaderUserId: projectTeam.projectLeaderUserId,
       projectManagerUserIds: projectTeam.projectManagerUserIds,
     });
+
+    const requiredError = validateEventRequiredFields(next);
+    if (requiredError) {
+      return NextResponse.json({ error: requiredError }, { status: 400 });
+    }
 
     const saved = await saveEvent(next, {
       expectedRevision: body.expectedRevision,

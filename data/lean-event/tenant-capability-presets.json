@@ -30,7 +30,8 @@
       "payments_paypal": false,
       "ai_writing": true,
       "ai_graphics": true,
-      "ai_assistant": true
+      "ai_assistant": true,
+      "ai_translations": false
     }
   }
 }

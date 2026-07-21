@@ -17,10 +17,12 @@ export interface LeanEventLeonardoCapabilities {
   clienti: boolean;
   /** Sidebar — report budget aggregato agenzia */
   finance: boolean;
-  /** Sidebar — Lean.Human (supporto umano LMI) */
+  /** Sidebar — Lean.Studio (supporto umano / sviluppo personalizzato) */
   lean_human: boolean;
-  /** Sidebar — Government (società scientifiche), servizio separato */
+  /** @deprecated Rimosso dal catalogo moduli — tenuto per compatibilità tenant */
   government: boolean;
+  /** Intelligence — Traduzioni AI */
+  ai_translations: boolean;
   /** Tab evento — hotel (allotment, camere) */
   hotel: boolean;
   /** Tab evento — viaggi, transfer, hospitality */
@@ -163,7 +165,156 @@ export type LeonardoEcmModality =
   | "blended_res_fsc"
   | "res_fad";
 
+/** Tipologia di evento formativo (congresso, tavola rotonda, corso, …). */
+export type LeonardoFormationEventTypeId =
+  | "congresso_simposio_conferenza_seminario"
+  | "tavola_rotonda"
+  | "conferenze_clinico_patologiche"
+  | "consensus_meeting_interaziendali"
+  | "corso_aggiornamento_tecnologico"
+  | "corso_pratico_sviluppo_professionale"
+  | "corso_pratico_organizzativo_gestionale"
+  | "frequenza_clinica_tutore"
+  | "corso_aggiornamento"
+  | "corso_addestramento"
+  | "tirocinio_frequenza_strutture"
+  | "tirocinio_frequenza_tutoriale"
+  | "corsi_percorsi_diagnostici_terapeutici"
+  | "videoconferenza";
+
 export type LeonardoEventStatus = "draft" | "active" | "completed" | "archived";
+
+/** Sede evento strutturata (rubrica o testo libero — stessi campi). */
+export interface LeonardoEventVenueDetails {
+  name: string;
+  address: string;
+  city: string;
+  /** Regione (IT) — usata se nazione Italia */
+  region?: string;
+  province: string;
+  postalCode: string;
+  /** Nazione (default Italia) */
+  country?: string;
+  /** Sede online (FAD / webinar) — al posto dell'indirizzo fisico */
+  isOnline?: boolean;
+  /** Link di riferimento (piattaforma / meeting) se sede online */
+  onlineUrl?: string;
+  /** Es. nome sala, piano, indicazioni aggiuntive */
+  notes: string;
+}
+
+/** Persona in griglia ECM (segreteria / responsabile scientifico) — contactId opzionale. */
+export interface LeonardoEcmGridPerson {
+  contactId?: string | null;
+  lastName: string;
+  firstName: string;
+  fiscalCode: string;
+  phone?: string;
+  mobile?: string;
+  email?: string;
+  qualification?: string;
+}
+
+export interface LeonardoEcmProfessionTarget {
+  professionId: string;
+  disciplineId: string;
+  professionLabel?: string;
+  disciplineLabel?: string;
+}
+
+/** Riga finanziamento/sponsor in griglia ECM (nome, modalità, importo). */
+export interface LeonardoEcmGridSponsor {
+  id: string;
+  /** Collegamento a gestione sponsor evento (fase Sponsor). */
+  eventSponsorId?: string | null;
+  company: string;
+  amount: string;
+  modality: string;
+}
+
+/**
+ * Griglia tecnica accreditamento ECM (modello MO7304 RES — base anche per altre modalità).
+ * Campi tipologia evento / formazione restano su LeonardoEvent.
+ */
+export interface LeonardoEcmGrid {
+  isCorporateTrainingProject: boolean | null;
+  concernsInfantNutrition: boolean | null;
+  effectiveDurationHours: number | null;
+  effectiveDurationMinutes: number | null;
+  formativeObjectiveCode: number | null;
+  skillsTechnicalProfessional: string;
+  skillsProcess: string;
+  skillsSystem: string;
+  workshopInsideCongress: boolean | null;
+  interactiveResidentialTraining: boolean | null;
+  interactiveDurationHours: number | null;
+  /** @deprecated Non usato in UI — la compilazione è a carico della segreteria. */
+  organizationalSecretary?: LeonardoEcmGridPerson;
+  professionTargets: LeonardoEcmProfessionTarget[];
+  /** Responsabili scientifici */
+  scientificLeads: LeonardoEcmGridPerson[];
+  /** Comitato scientifico (opzionale) */
+  scientificCommittee?: LeonardoEcmGridPerson[];
+  facultyRelevance: "nazionale" | "internazionale" | null;
+  teachingMethodIds: string[];
+  italianOnly: boolean | null;
+  foreignLanguages: string;
+  simultaneousTranslation: boolean | null;
+  /** Se la partecipazione è a pagamento */
+  participationPaid?: boolean | null;
+  participationFee: string;
+  expectedParticipants: number | null;
+  onlineRegistration: boolean | null;
+  directRecruitment: "si" | "no" | "parziale" | null;
+  participantProvenance:
+    | "locale"
+    | "regionale"
+    | "nazionale"
+    | "internazionale"
+    | null;
+  presenceVerificationIds: string[];
+  learningVerificationId: string | null;
+  durableMaterial: string;
+  isSponsored: boolean | null;
+  otherFunding: boolean | null;
+  sponsors: LeonardoEcmGridSponsor[];
+  otherFundingEntries?: LeonardoEcmGridSponsor[];
+  hasPartner: boolean | null;
+  partners?: LeonardoEcmGridSponsor[];
+  /** @deprecated Usare partners[] */
+  partnerName?: string;
+}
+
+/** Gestione sponsor evento (fase L1 Sponsor — contratti/accordi). */
+export interface LeonardoEventSponsorRecord {
+  id: string;
+  contactId?: string | null;
+  companyName: string;
+  contactName?: string;
+  agreementSummary?: string;
+  contractRef?: string;
+  sponsorshipType?: string;
+  amount?: string;
+  notes?: string;
+}
+
+/** Sessione o pausa del programma scientifico. */
+export interface LeonardoScientificProgramSession {
+  id: string;
+  kind: "session" | "break";
+  /** Data giorno (gg/mm/aaaa o ISO) se evento multi-giorno */
+  dayDate?: string;
+  startTime: string;
+  endTime: string;
+  title: string;
+  moderators: string;
+  speakers: string;
+  otherSpeakers: string;
+}
+
+export interface LeonardoScientificProgram {
+  sessions: LeonardoScientificProgramSession[];
+}
 
 export interface LeonardoEvent {
   id: string;
@@ -171,10 +322,12 @@ export interface LeonardoEvent {
   createdBy: string;
   cdc: string;
   title: string;
-  /** Snapshot testuale sede (da rubrica o libero) */
+  /** Snapshot testuale sede (da rubrica o libero) — compatibilità elenchi/export */
   venue: string;
   /** Rubrica sedi tenant — opzionale */
   venueId?: string | null;
+  /** Campi sede strutturati (precompilati da rubrica o editabili a mano) */
+  venueDetails?: LeonardoEventVenueDetails;
   startDate: string;
   endDate: string;
   /** Tipologia evento (anagrafica) */
@@ -183,8 +336,23 @@ export interface LeonardoEvent {
   healthAreaId: string | null;
   /** Solo per formazione sanitaria — null finché non risposto */
   ecmEnabled: boolean | null;
-  /** Obbligatorio se ecmEnabled === true */
+  /** Tipologia di formazione (RES/FAD/…) — formazione sanitaria e non sanitaria */
   ecmModality: LeonardoEcmModality | null;
+  /**
+   * Tipologia di evento formativo (congresso, tavola rotonda, corso, …).
+   * Solo formazione sanitaria / non sanitaria.
+   */
+  formationEventTypeId?: LeonardoFormationEventTypeId | null;
+  /** Struttura assistenziale/formativa — se richiesto dalla tipologia */
+  formationStructureName?: string | null;
+  /** Registrazione e quote iscrizione */
+  registration?: LeonardoEventRegistration | null;
+  /** Griglia tecnica ECM (MO7304 e affini) */
+  ecmGrid?: LeonardoEcmGrid | null;
+  /** Programma scientifico (sessioni / pause) */
+  scientificProgram?: LeonardoScientificProgram | null;
+  /** Anagrafica commerciale sponsor dell'evento (fase Sponsor) */
+  eventSponsors?: LeonardoEventSponsorRecord[];
   /** @deprecated Usare categoryId + campi ECM */
   type?: LeonardoEventType;
   status: LeonardoEventStatus;
@@ -416,20 +584,65 @@ export interface LeanEventContactPhone {
   number: string;
 }
 
+export interface LeanEventContactEmail {
+  label: string;
+  address: string;
+}
+
+/** Consenso privacy tracciato sull’anagrafica contatto. */
+export interface LeanEventContactPrivacyConsent {
+  /** Prefissati: data_processing, newsletter, marketing, third_party — oppure id custom */
+  id: string;
+  label: string;
+  granted: boolean;
+  grantedAt?: string | null;
+}
+
 export interface LeanEventContact {
   id: string;
   tenantId: string;
+  /** Es. Egregio, Gentilissima */
+  vocative?: string;
+  /** Titolo professionale (Dottore, Prof., Ing., …) */
+  honorificTitle?: string;
   firstName: string;
   lastName: string;
+  /** Email primaria (allineata a emails[0] se presente) */
   email: string;
+  /** Email aggiuntive (personale, istituzionale, segreteria, …) */
+  emails?: LeanEventContactEmail[];
   /** Per area riservata partecipante (accesso multi-evento) */
   fiscalCode?: string;
   phones: LeanEventContactPhone[];
-  /** Etichette libere per filtri rubrica (es. docente, sponsor, BO) */
+  /** Data di nascita (ISO yyyy-mm-dd o gg/mm/aaaa normalizzata) */
+  birthDate?: string;
+  /** Residenza */
+  address?: string;
+  city?: string;
+  province?: string;
+  region?: string;
+  postalCode?: string;
+  country?: string;
+  /** Ente / azienda */
   organization: string;
+  organizationAddress?: string;
+  organizationCity?: string;
   /** Provincia ente / azienda di appartenenza (sigla, es. BO) */
   organizationProvince?: string;
+  organizationRegion?: string;
+  organizationPostalCode?: string;
+  organizationCountry?: string;
+  /** Ruolo aziendale (lista aperta + custom) */
+  organizationRole?: string;
+  /** Etichette libere / categorie di appartenenza */
   tags: string[];
+  /** Preferenze alimentari / intolleranze */
+  dietaryNotes?: string;
+  mobilityNotes?: string;
+  /** Altre richieste personali */
+  personalRequests?: string;
+  /** Consensi privacy autorizzati */
+  privacyConsents?: LeanEventContactPrivacyConsent[];
   notes: string;
   revision?: number;
   updatedBy?: string;
@@ -502,6 +715,9 @@ export interface LeanEventSupplier {
   address: string;
   city: string;
   province: string;
+  region?: string;
+  postalCode?: string;
+  country?: string;
   vatNumber: string;
   contactPerson: string;
   notes: string;
@@ -609,7 +825,9 @@ export interface LeonardoVenue {
   city: string;
   /** Sigla provincia (es. BO, MI) o nome esteso */
   province: string;
+  region?: string;
   postalCode: string;
+  country?: string;
   phone: string;
   email: string;
   website: string;
@@ -646,24 +864,64 @@ export interface LeanEventImportResult {
 }
 
 export type ContactImportFieldKey =
+  | "vocative"
+  | "honorificTitle"
   | "firstName"
   | "lastName"
   | "email"
   | "fiscalCode"
   | "organization"
+  | "organizationRole"
+  | "organizationAddress"
+  | "organizationCity"
+  | "organizationProvince"
+  | "organizationRegion"
+  | "organizationPostalCode"
+  | "organizationCountry"
+  | "address"
+  | "city"
+  | "province"
+  | "region"
+  | "postalCode"
+  | "country"
+  | "birthDate"
+  | "dietaryNotes"
+  | "mobilityNotes"
+  | "personalRequests"
   | "tags"
   | "notes"
-  | "phones";
+  | "phones"
+  | "emails";
 
 export type ContactImportFieldAction = "keep" | "overwrite" | "merge";
 
 export interface ContactImportDraft {
   rowNumber: number;
+  vocative: string;
+  honorificTitle: string;
   firstName: string;
   lastName: string;
   email: string;
+  emails: LeanEventContactEmail[];
   fiscalCode: string;
+  birthDate: string;
+  address: string;
+  city: string;
+  province: string;
+  region: string;
+  postalCode: string;
+  country: string;
   organization: string;
+  organizationAddress: string;
+  organizationCity: string;
+  organizationProvince: string;
+  organizationRegion: string;
+  organizationPostalCode: string;
+  organizationCountry: string;
+  organizationRole: string;
+  dietaryNotes: string;
+  mobilityNotes: string;
+  personalRequests: string;
   tags: string[];
   notes: string;
   phones: LeanEventContactPhone[];
@@ -709,6 +967,9 @@ export type LeonardoEventRoleCategory =
   | "ospite"
   | "docente"
   | "relatore"
+  | "moderatore"
+  | "chair"
+  | "discussant"
   | "segreteria_scientifica"
   | "pt"
   | "delegazione"
@@ -718,6 +979,27 @@ export type LeonardoEventRoleCategory =
   | "staff_esterno"
   /** @deprecated Migrato in staff_interno */
   | "staff";
+
+/** Voce di quota iscrizione (può cambiare avvicinandosi all'evento). */
+export interface LeonardoEventRegistrationFee {
+  id: string;
+  /** Es. Specializzandi, Medici, Under 40 */
+  label: string;
+  amount: string;
+  /** Inizio validità quota (gg/mm/aaaa o ISO) */
+  validFrom: string;
+  /** Fine validità quota */
+  validTo: string;
+  notes?: string;
+}
+
+/** Registrazione / quote iscrizione evento (scheda tecnica › Registrazione). */
+export interface LeonardoEventRegistration {
+  paid: boolean | null;
+  fees: LeonardoEventRegistrationFee[];
+  refundsEnabled: boolean | null;
+  refundRules: string;
+}
 
 export interface LeonardoEventContactAssignment {
   id: string;
@@ -746,6 +1028,8 @@ export interface LeanEventNavItem {
   segment?: string;
   module?: LeanEventModule;
   capability?: keyof LeanEventLeonardoCapabilities;
+  /** Intestazione di gruppo in sidebar (Starter / Pro / Intelligence) */
+  navGroup?: boolean;
   icon?:
     | "dashboard"
     | "leonardo"

@@ -80,6 +80,16 @@ export async function PATCH(request: Request, context: RouteContext) {
         body.province !== undefined
           ? body.province.trim().toUpperCase()
           : supplier.province,
+      region:
+        body.region !== undefined ? body.region.trim() : supplier.region ?? "",
+      postalCode:
+        body.postalCode !== undefined
+          ? body.postalCode.trim()
+          : supplier.postalCode ?? "",
+      country:
+        body.country !== undefined
+          ? body.country.trim()
+          : supplier.country ?? "",
       vatNumber:
         body.vatNumber !== undefined ? body.vatNumber.trim() : supplier.vatNumber,
       contactPerson:

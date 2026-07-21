@@ -48,9 +48,10 @@ export function LeonardoEventProjectTeamFields({
 
       <label className="block">
         <span className="text-xs font-semibold uppercase tracking-[0.1em] text-white/55">
-          Project Leader
+          Project Leader *
         </span>
         <select
+          required
           value={projectLeaderUserId ?? ""}
           onChange={(event) => {
             const nextLeader = event.target.value || null;

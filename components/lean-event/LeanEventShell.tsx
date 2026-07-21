@@ -9,17 +9,20 @@ import configData from "@/data/lean-event/config.json";
 import {
   getSessionLeonardoCapabilities,
   LEONARDO_UPGRADE_HINT,
-  leonardoUpgradeMailto,
 } from "@/lib/lean-event/capabilities";
 import { LeanEventRailChevron } from "@/components/lean-event/LeanEventRailChevron";
 import { LeanEventUpgradeHint } from "@/components/lean-event/LeanEventUpgradeHint";
+import { LeonardoNotificationsBell } from "@/components/lean-event/LeonardoNotificationsBell";
 import { LeonardoTeresaRail } from "@/components/lean-event/LeonardoTeresaRail";
 import { LeonardoWorkTabBar } from "@/components/lean-event/LeonardoWorkTabBar";
 import { LeonardoWorkTabsProvider } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoWorkTabsRouteSync } from "@/components/lean-event/LeonardoWorkTabsRouteSync";
 import { LeonardoWorkTabHost } from "@/components/lean-event/LeonardoWorkTabHost";
 import {
+  leanEventLeonardoAccountPath,
   leanEventLeonardoCestinoPath,
+  leanEventLeonardoFeedbackPath,
+  leanEventLeonardoHelpCenterPath,
   leanEventLeonardoPath,
   leanEventLeonardoProfiloPath,
   leanEventLoginPath,
@@ -109,6 +112,7 @@ function mapNavEntry(
     segment: item.segment,
     module: item.module,
     capability: item.capability,
+    navGroup: item.navGroup,
     icon: item.icon,
     href,
     enabled,
@@ -158,7 +162,7 @@ function NavIcon({ icon }: { icon: NonNullable<LeanEventNavItem["icon"]> }) {
   );
 }
 
-type FooterNavIcon = "trash" | "profile";
+type FooterNavIcon = "trash" | "profile" | "account" | "help" | "feedback";
 
 function FooterNavIconGlyph({ icon }: { icon: FooterNavIcon }) {
   const paths: Record<FooterNavIcon, string> = {
@@ -166,13 +170,18 @@ function FooterNavIconGlyph({ icon }: { icon: FooterNavIcon }) {
       "M4 7h16M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2M9 11v6M15 11v6M10 7l1 12h2l1-12",
     profile:
       "M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 8a7 7 0 0 1 14 0H5Z",
+    account:
+      "M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z",
+    help: "M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm0 13.5A1.25 1.25 0 1 1 13.25 15.25 1.25 1.25 0 0 1 12 16.5Zm1.6-5.35-.55.35A1.7 1.7 0 0 0 12.3 13h-1.1v-.4a2.5 2.5 0 0 1 1.15-2.1l.75-.5a1.2 1.2 0 1 0-1.9-1 1 1 0 0 1-1.9-.4 3.2 3.2 0 1 1 4.4 2.95Z",
+    feedback:
+      "M12 3 14.1 8.2 19.8 9l-4.1 3.8 1.1 5.5L12 15.8 7.2 18.3l1.1-5.5L4.2 9l5.7-.8L12 3Z",
   };
 
   return (
     <svg
       aria-hidden
       viewBox="0 0 24 24"
-      className="h-4 w-4 shrink-0"
+      className="h-3.5 w-3.5 shrink-0"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
@@ -202,10 +211,10 @@ function FooterNavLink({
       href={href}
       onClick={onNavigate}
       className={cn(
-        "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
+        "flex min-h-8 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium tracking-[0.02em] transition",
         active
           ? "bg-leanme-fuchsia/15 text-white"
-          : "text-white/65 hover:bg-white/[0.04] hover:text-white"
+          : "text-white/55 hover:bg-white/[0.04] hover:text-white/80"
       )}
     >
       <FooterNavIconGlyph icon={icon} />
@@ -214,53 +223,167 @@ function FooterNavLink({
   );
 }
 
-function SidebarFooter({
+function userInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "?";
+  }
+  if (parts.length === 1) {
+    return parts[0]!.slice(0, 2).toUpperCase();
+  }
+  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
+}
+
+function UserAccountMenu({
   tenantSlug,
+  userName,
   pathname,
   onNavigate,
+  compact = false,
 }: {
   tenantSlug: string;
+  userName: string;
   pathname: string;
   onNavigate?: () => void;
+  /** Solo icona (colonna moduli compressa) */
+  compact?: boolean;
 }) {
-  return (
-    <div className="shrink-0 space-y-1 border-t border-white/10 pt-4">
-      <FooterNavLink
-        href={leanEventLeonardoCestinoPath(tenantSlug)}
-        label="Cestino"
-        icon="trash"
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
-      <FooterNavLink
-        href={leanEventLeonardoProfiloPath(tenantSlug)}
-        label="Profilo"
-        icon="profile"
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
-    </div>
-  );
-}
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const initials = userInitials(userName);
 
-function LogoutButton({ className }: { className?: string }) {
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function onPointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+    window.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  function handleNavigate() {
+    setOpen(false);
+    onNavigate?.();
+  }
+
+  async function handleLogout() {
+    setOpen(false);
+    await fetch("/api/lean-event/auth/logout", { method: "POST" });
+    window.location.href = leanEventLoginPath();
+  }
+
   return (
-    <button
-      type="button"
-      onClick={() => logout()}
+    <div
+      ref={rootRef}
       className={cn(
-        "w-full rounded-lg border border-white/15 px-3 py-2.5 text-left text-sm text-white/70 transition hover:border-white/30 hover:text-white",
-        className
+        "relative shrink-0 border-t border-white/10",
+        compact ? "flex justify-center px-1 py-3" : "pt-3"
       )}
     >
-      Esci
-    </button>
-  );
-}
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className={cn(
+          "inline-flex items-center justify-center rounded-full border border-white/20 bg-zinc-900 text-[11px] font-bold tracking-wide text-white transition hover:border-leanme-fuchsia/60 hover:bg-leanme-fuchsia/15",
+          compact ? "h-9 w-9" : "h-10 w-10",
+          open ? "border-leanme-fuchsia text-leanme-fuchsia" : ""
+        )}
+        aria-label="Menu account"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        title={userName}
+      >
+        {initials}
+      </button>
 
-async function logout() {
-  await fetch("/api/lean-event/auth/logout", { method: "POST" });
-  window.location.href = leanEventLoginPath();
+      {open ? (
+        <div
+          role="menu"
+          className={cn(
+            "absolute z-40 min-w-[11.5rem] rounded-lg border border-white/15 bg-zinc-950 p-1.5 shadow-2xl",
+            compact
+              ? "bottom-2 left-full ml-2"
+              : "bottom-[calc(100%+0.5rem)] left-0 right-0"
+          )}
+        >
+          <p className="truncate px-2.5 py-1.5 text-[10px] text-white/40">
+            {userName}
+          </p>
+          <FooterNavLink
+            href={leanEventLeonardoAccountPath(tenantSlug)}
+            label="Account"
+            icon="account"
+            pathname={pathname}
+            onNavigate={handleNavigate}
+          />
+          <FooterNavLink
+            href={leanEventLeonardoProfiloPath(tenantSlug)}
+            label="Profilo"
+            icon="profile"
+            pathname={pathname}
+            onNavigate={handleNavigate}
+          />
+          <FooterNavLink
+            href={leanEventLeonardoCestinoPath(tenantSlug)}
+            label="Cestino"
+            icon="trash"
+            pathname={pathname}
+            onNavigate={handleNavigate}
+          />
+          <FooterNavLink
+            href={leanEventLeonardoHelpCenterPath(tenantSlug)}
+            label="Help Center"
+            icon="help"
+            pathname={pathname}
+            onNavigate={handleNavigate}
+          />
+          <FooterNavLink
+            href={leanEventLeonardoFeedbackPath(tenantSlug)}
+            label="Feedback"
+            icon="feedback"
+            pathname={pathname}
+            onNavigate={handleNavigate}
+          />
+          <div className="my-1 border-t border-white/10" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => void handleLogout()}
+            className="flex min-h-8 w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-[11px] font-medium tracking-[0.02em] text-white/55 transition hover:bg-white/[0.04] hover:text-white/80"
+          >
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              className="h-3.5 w-3.5 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            >
+              <path
+                d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M15 16l4-4-4-4M19 12H9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Esci</span>
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function isNavEnabled(session: LeanEventSession, item: LeanEventNavItem): boolean {
@@ -294,8 +417,8 @@ function NavLink({
 
   if (!item.enabled) {
     return (
-      <a
-        href={leonardoUpgradeMailto(`LeanEvent - Upgrade ${item.label}`)}
+      <Link
+        href={item.href}
         onClick={onNavigate}
         className={cn(
           "flex min-h-10 items-start gap-3 px-3 py-2 text-sm transition",
@@ -305,6 +428,9 @@ function NavLink({
         )}
         title={LEONARDO_UPGRADE_HINT}
       >
+        {item.icon && !nested ? (
+          <NavIcon icon={item.icon === "locked" ? "dashboard" : item.icon} />
+        ) : null}
         <span className="min-w-0 flex-1">
           <span
             className={cn(
@@ -316,7 +442,7 @@ function NavLink({
           </span>
           <LeanEventUpgradeHint className="mt-1.5" iconSize={16} />
         </span>
-      </a>
+      </Link>
     );
   }
 
@@ -381,8 +507,95 @@ function LeonardoNav({
 
   return (
     <nav aria-label="Moduli" className="space-y-1">
-      <div className="space-y-1 rounded-xl border border-white/10 bg-zinc-950 p-2">
+      <div className="space-y-3 rounded-xl border border-white/10 bg-zinc-950 p-2">
         {navigation.map((item) => {
+          if (item.navGroup && item.children?.length) {
+            return (
+              <div key={item.id} className="space-y-1">
+                <p className="px-3 pb-1 pt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
+                  {item.label}
+                </p>
+                <div className="space-y-1">
+                  {item.children.map((child) => {
+                    if (child.children?.length) {
+                      const groupActive = child.children.some((nested) =>
+                        isNavActive(pathname, nested.href, leonardoBase)
+                      );
+                      const collapsed = isGroupCollapsed(child);
+                      return (
+                        <div key={child.id} className="space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => toggleGroup(child.id)}
+                            aria-expanded={!collapsed}
+                            className={cn(
+                              "flex min-h-10 w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition",
+                              groupActive
+                                ? "bg-leanme-fuchsia text-white"
+                                : "border border-leanme-fuchsia/40 text-leanme-fuchsia hover:border-leanme-fuchsia hover:bg-leanme-fuchsia/10"
+                            )}
+                          >
+                            {child.icon ? (
+                              <NavIcon
+                                icon={
+                                  child.icon === "locked"
+                                    ? "dashboard"
+                                    : child.icon
+                                }
+                              />
+                            ) : null}
+                            <span className="flex-1">{child.label}</span>
+                            <svg
+                              aria-hidden
+                              viewBox="0 0 24 24"
+                              className={cn(
+                                "h-4 w-4 shrink-0 transition-transform",
+                                collapsed ? "" : "rotate-180"
+                              )}
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                            >
+                              <path
+                                d="M6 9l6 6 6-6"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                          {!collapsed ? (
+                            <div className="ml-2 flex flex-col gap-1 border-l border-white/10 pl-2">
+                              {child.children.map((nested) => (
+                                <NavLink
+                                  key={nested.id}
+                                  item={nested}
+                                  pathname={pathname}
+                                  leonardoBase={leonardoBase}
+                                  onNavigate={onNavigate}
+                                  nested
+                                />
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <NavLink
+                        key={child.id}
+                        item={child}
+                        pathname={pathname}
+                        leonardoBase={leonardoBase}
+                        onNavigate={onNavigate}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
+
           if (item.children?.length) {
             const groupActive = item.children.some((child) =>
               isNavActive(pathname, child.href, leonardoBase)
@@ -564,6 +777,10 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 pt-0.5 sm:gap-3">
+            <LeonardoNotificationsBell
+              tenantSlug={session.tenantSlug}
+              userEmail={session.userEmail}
+            />
             <div className="text-right">
               <h1 className="text-base font-bold tracking-[0.04em] sm:text-xl md:text-2xl">
                 {config.leonardo.title}
@@ -604,23 +821,34 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
           ) : null}
 
           {!modulesOpen ? (
-            <button
-              type="button"
-              onClick={() => setModulesOpen(true)}
-              className="flex h-full flex-col items-center gap-3 px-2 py-4 text-white/60 transition hover:text-white"
-              aria-label="Apri colonna Moduli"
-              title="Moduli"
-            >
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/15">
-                <LeanEventRailChevron direction="right" />
-              </span>
-              <span
-                className="text-[10px] font-semibold uppercase tracking-[0.12em]"
-                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+            <div className="flex h-full flex-col">
+              <button
+                type="button"
+                onClick={() => setModulesOpen(true)}
+                className="flex min-h-0 flex-1 flex-col items-center gap-3 px-2 py-4 text-white/60 transition hover:text-white"
+                aria-label="Apri colonna Moduli"
+                title="Moduli"
               >
-                Moduli
-              </span>
-            </button>
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/15">
+                  <LeanEventRailChevron direction="right" />
+                </span>
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.12em]"
+                  style={{
+                    writingMode: "vertical-rl",
+                    transform: "rotate(180deg)",
+                  }}
+                >
+                  Moduli
+                </span>
+              </button>
+              <UserAccountMenu
+                tenantSlug={session.tenantSlug}
+                userName={session.userName}
+                pathname={pathname}
+                compact
+              />
+            </div>
           ) : (
             <div className="relative flex min-h-0 flex-1 flex-col px-5 py-6">
               <button
@@ -646,8 +874,11 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
                   />
                 </div>
 
-                <SidebarFooter tenantSlug={session.tenantSlug} pathname={pathname} />
-                <LogoutButton className="mt-3 shrink-0" />
+                <UserAccountMenu
+                  tenantSlug={session.tenantSlug}
+                  userName={session.userName}
+                  pathname={pathname}
+                />
               </div>
             </div>
           )}
@@ -717,14 +948,12 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
                   onNavigate={() => setMobileOpen(false)}
                 />
               </div>
-              <SidebarFooter
+              <UserAccountMenu
                 tenantSlug={session.tenantSlug}
+                userName={session.userName}
                 pathname={pathname}
                 onNavigate={() => setMobileOpen(false)}
               />
-            </div>
-            <div className="shrink-0 border-t border-white/10 p-4">
-              <LogoutButton className="py-3" />
             </div>
           </div>
         </div>

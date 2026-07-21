@@ -195,10 +195,12 @@ Gli **assignment** (eventi collegati a un contatto) **non** hanno tetto numerico
 
 | Tipo | Chiavi tipiche |
 |------|----------------|
-| `event` | `title`, `cdc`, `startDate`, `endDate`, `venueId`, `projectLeaderUserId`, `projectManagerUserIds[]` |
-| `contact` | `firstName`, `lastName`, `email`, `organization`, `organizationProvince`, `tags[]`, `phones[]` |
-| `venue` | `name`, `city` |
-| `supplier` | `name`, `email` |
+| `event` | `title`, `cdc`, `startDate`, `endDate`, `categoryId`, Scheda › Registrazione: `registration` (`paid`, `fees[]` label/amount/validFrom/validTo, `refundsEnabled`, `refundRules`), Formazione ECM: `ecmModality`, `formationEventTypeId`, `ecmGrid` (faculty in `scientificResponsible` / `scientificCommittee`), `scientificProgram` (fase Programma L1), `eventSponsors[]` (fase Sponsor L1), `venueDetails`, REF/PM |
+| `contact` | `vocative`, `honorificTitle`, `firstName`, `lastName`, `email`, `emails[]` (`label`, `address`), `birthDate`, residenza (`country`, `address`, `city`, `province`, `region`, `postalCode`), ente (`organization*`), `organizationRole`, `tags[]`, `phones[]`, `dietaryNotes`, `mobilityNotes`, `personalRequests`, `privacyConsents[]` |
+| `venue` | `name`, `country`, `address`, `city`, `province`, `region`, `postalCode` |
+| `supplier` | `name`, `email`, `country`, `address`, `city`, `province`, `region`, `postalCode` |
+
+> **Indirizzi:** stesso set di campi ovunque. In UI **Nazione è il primo campo**, poi indirizzo/città/provincia/regione(IT)/CAP. Persistenza in `payload` JSONB (vedi `docs/sql/004_lean_event_address_geo.sql` per indici).
 | `assignment` | `eventId`, `contactId` |
 | `workspace` | `title`, `linkedEventId` |
 | `teresa_chat` | `userId`, `userEmail`, `userName`, `title`, `messages[]` (`role`, `content`, `createdAt`, `contextLabel`) |
@@ -265,11 +267,104 @@ SELECT
   deleted_at IS NOT NULL AS in_trash,
   payload->>'title' AS title,
   payload->>'cdc' AS cdc,
+  payload->>'categoryId' AS category_id,
+  payload->>'ecmModality' AS formation_modality,
+  payload->>'formationEventTypeId' AS formation_event_type,
+  payload->>'formationStructureName' AS formation_structure,
   updated_at
 FROM lean_event_entities
 WHERE entity_type = 'event'
   AND tenant_id = 'demo'
 ORDER BY updated_at DESC;
+```
+
+### 3.3b Eventi formazione per tipologia di evento
+
+```sql
+SELECT
+  id,
+  tenant_id,
+  payload->>'title' AS title,
+  payload->>'categoryId' AS category_id,
+  payload->>'formationEventTypeId' AS formation_event_type,
+  payload->>'formationStructureName' AS formation_structure,
+  payload->>'ecmModality' AS formation_modality,
+  payload->'ecmGrid'->>'formativeObjectiveCode' AS obiettivo_formativo,
+  payload->'ecmGrid'->>'expectedParticipants' AS partecipanti_previsti,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'event'
+  AND deleted_at IS NULL
+  AND tenant_id = 'demo'
+  AND payload->>'categoryId' IN (
+    'formazione_sanitaria',
+    'formazione_non_sanitaria'
+  )
+ORDER BY updated_at DESC;
+```
+
+### 3.3c Griglia ECM — dettaglio payload
+
+```sql
+SELECT
+  id,
+  payload->>'title' AS title,
+  payload->'ecmGrid' AS ecm_grid
+FROM lean_event_entities
+WHERE entity_type = 'event'
+  AND deleted_at IS NULL
+  AND tenant_id = 'demo'
+  AND id = 'INCOLLA-EVENT-ID';
+```
+
+### 3.3d Registrazione / quote iscrizione
+
+```sql
+SELECT
+  id,
+  payload->>'title' AS title,
+  payload->'registration'->>'paid' AS quota_pagamento,
+  jsonb_array_length(COALESCE(payload->'registration'->'fees', '[]'::jsonb)) AS n_quote,
+  payload->'registration'->>'refundsEnabled' AS rimborsi,
+  payload->'registration'->>'refundRules' AS regole_rimborso,
+  payload->'registration'->'fees' AS fees
+FROM lean_event_entities
+WHERE entity_type = 'event'
+  AND deleted_at IS NULL
+  AND tenant_id = 'demo'
+ORDER BY updated_at DESC
+LIMIT 50;
+```
+
+Dettaglio evento:
+
+```sql
+SELECT
+  id,
+  payload->>'title' AS title,
+  payload->'registration' AS registration
+FROM lean_event_entities
+WHERE entity_type = 'event'
+  AND deleted_at IS NULL
+  AND tenant_id = 'demo'
+  AND id = 'INCOLLA-EVENT-ID';
+```
+
+### 3.3e Assignment per ruolo (anagrafiche evento)
+
+```sql
+SELECT
+  id,
+  payload->>'eventId' AS event_id,
+  payload->>'contactId' AS contact_id,
+  payload->>'roleCategory' AS role_category,
+  updated_at
+FROM lean_event_entities
+WHERE entity_type = 'assignment'
+  AND deleted_at IS NULL
+  AND tenant_id = 'demo'
+  AND payload->>'eventId' = 'INCOLLA-EVENT-ID'
+ORDER BY payload->>'roleCategory', updated_at DESC;
 ```
 
 ### 3.4 Cerca evento per titolo
@@ -309,6 +404,36 @@ WHERE entity_type = 'contact'
     OR payload->>'email' ILIKE '%@leanme.it%'
   )
 ORDER BY payload->>'lastName', payload->>'firstName';
+```
+
+```sql
+-- Indirizzo completo (residenza + ente) per persona — es. Alessandro Lupinetti
+SELECT
+  tenant_id,
+  id,
+  payload->>'firstName' AS nome,
+  payload->>'lastName' AS cognome,
+  payload->>'email' AS email,
+  payload->>'country' AS nazione,
+  payload->>'address' AS indirizzo,
+  payload->>'city' AS citta,
+  payload->>'province' AS provincia,
+  payload->>'region' AS regione,
+  payload->>'postalCode' AS cap,
+  payload->>'organization' AS ente,
+  payload->>'organizationCountry' AS nazione_ente,
+  payload->>'organizationAddress' AS indirizzo_ente,
+  payload->>'organizationCity' AS citta_ente,
+  payload->>'organizationProvince' AS provincia_ente,
+  payload->>'organizationRegion' AS regione_ente,
+  payload->>'organizationPostalCode' AS cap_ente
+FROM lean_event_entities
+WHERE entity_type = 'contact'
+  AND deleted_at IS NULL
+  AND payload->>'lastName' ILIKE '%lupinetti%'
+  AND payload->>'firstName' ILIKE '%alessandro%'
+ORDER BY updated_at DESC;
+-- Opzionale: AND tenant_id = 'demo'
 ```
 
 ### 3.6 Contatto per ID
@@ -489,7 +614,7 @@ WHERE entity_type = 'workspace'
 ### 3.16 Teresa chat (`entity_type = 'teresa_chat'`)
 
 **Nota:** non esiste una tabella `teresa_*`. I thread sono righe in `lean_event_entities`.  
-UI supervisione globale LeanMe: `/lean-event/{tenant}/lean-human` (solo email `@leanme.it` / allowlist).  
+UI supervisione globale LeanMe: `/lean-event/{tenant}/lean-studio` (solo email `@leanme.it` / allowlist; legacy `/lean-human` → redirect).  
 API: `GET /api/lean-event/teresa/supervise` · chat utente: `/api/lean-event/teresa/chat`.
 
 ```sql
@@ -616,6 +741,59 @@ SELECT ts, tenant_id, user_email, action, resource_type, resource_id, meta
 FROM lean_event_audit_events
 WHERE action = 'teresa_turn'
 ORDER BY ts DESC
+LIMIT 50;
+```
+
+### 3.17 Indirizzi / nazione (`country`, `region`)
+
+Schema SQL indici: `docs/sql/004_lean_event_address_geo.sql`  
+Apply: `npm.cmd run lean-event:apply-neon-004`  
+
+Dettaglio indirizzo per persona: vedi anche **§3.5** (query Alessandro Lupinetti / cognome+nome).
+
+```sql
+-- Contatti per nazione di residenza
+SELECT tenant_id, id,
+  payload->>'lastName' AS cognome,
+  payload->>'firstName' AS nome,
+  payload->>'country' AS nazione,
+  payload->>'city' AS citta,
+  payload->>'region' AS regione
+FROM lean_event_entities
+WHERE entity_type = 'contact'
+  AND deleted_at IS NULL
+  AND payload->>'country' = 'Italia'
+ORDER BY updated_at DESC
+LIMIT 50;
+```
+
+```sql
+-- Contatti esteri (nazione ≠ Italia)
+SELECT tenant_id, id,
+  payload->>'lastName' AS cognome,
+  payload->>'country' AS nazione,
+  payload->>'city' AS citta,
+  payload->>'province' AS provincia
+FROM lean_event_entities
+WHERE entity_type = 'contact'
+  AND deleted_at IS NULL
+  AND COALESCE(payload->>'country', '') <> ''
+  AND payload->>'country' <> 'Italia'
+ORDER BY updated_at DESC
+LIMIT 50;
+```
+
+```sql
+-- Eventi per nazione sede (venueDetails)
+SELECT tenant_id, id,
+  payload->>'title' AS titolo,
+  payload->'venueDetails'->>'country' AS nazione_sede,
+  payload->'venueDetails'->>'city' AS citta_sede
+FROM lean_event_entities
+WHERE entity_type = 'event'
+  AND deleted_at IS NULL
+  AND payload->'venueDetails'->>'country' IS NOT NULL
+ORDER BY updated_at DESC
 LIMIT 50;
 ```
 

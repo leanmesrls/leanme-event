@@ -1,8 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import type { LeanEventContact, LeanEventContactPhone, LeanEventSession } from "@/types/lean-event";
+import type {
+  LeanEventContact,
+  LeanEventContactEmail,
+  LeanEventContactPhone,
+  LeanEventSession,
+} from "@/types/lean-event";
 
 import { normalizeTagsList } from "./contact-tags";
+import { normalizeContactFields } from "./contact-privacy";
 import {
   isEntityActive,
   markEntityDeleted,
@@ -29,10 +35,9 @@ import {
 } from "./audit-log";
 
 function normalizeContact(contact: LeanEventContact): LeanEventContact {
-  return withLifecycleDefaults({
-    ...contact,
-    organizationProvince: contact.organizationProvince?.trim().toUpperCase() ?? "",
-  }) as LeanEventContact;
+  return withLifecycleDefaults(
+    normalizeContactFields(contact)
+  ) as LeanEventContact;
 }
 
 export async function listContacts(tenantId: string): Promise<LeanEventContact[]> {
@@ -203,10 +208,30 @@ export function createContact(
     firstName: string;
     lastName: string;
     email: string;
+    emails?: LeanEventContactEmail[];
     fiscalCode?: string;
     phones?: LeanEventContactPhone[];
+    vocative?: string;
+    honorificTitle?: string;
+    birthDate?: string;
+    address?: string;
+    city?: string;
+    province?: string;
+    region?: string;
+    postalCode?: string;
+    country?: string;
     organization?: string;
+    organizationAddress?: string;
+    organizationCity?: string;
     organizationProvince?: string;
+    organizationRegion?: string;
+    organizationPostalCode?: string;
+    organizationCountry?: string;
+    organizationRole?: string;
+    dietaryNotes?: string;
+    mobilityNotes?: string;
+    personalRequests?: string;
+    privacyConsents?: LeanEventContact["privacyConsents"];
     tags?: string[];
     notes?: string;
   }
@@ -217,13 +242,33 @@ export function createContact(
   const draft: LeanEventContact = {
     id: randomUUID(),
     tenantId: session.tenantId,
+    vocative: input.vocative?.trim() ?? "",
+    honorificTitle: input.honorificTitle?.trim() ?? "",
     firstName: input.firstName.trim(),
     lastName: input.lastName.trim(),
     email: input.email.trim(),
+    emails: input.emails,
     fiscalCode: input.fiscalCode?.trim().toUpperCase() || undefined,
     phones: input.phones ?? [],
+    birthDate: input.birthDate?.trim() ?? "",
+    address: input.address?.trim() ?? "",
+    city: input.city?.trim() ?? "",
+    province: input.province?.trim().toUpperCase() ?? "",
+    region: input.region?.trim() ?? "",
+    postalCode: input.postalCode?.trim() ?? "",
+    country: input.country?.trim() ?? "",
     organization: input.organization?.trim() ?? "",
+    organizationAddress: input.organizationAddress?.trim() ?? "",
+    organizationCity: input.organizationCity?.trim() ?? "",
     organizationProvince: input.organizationProvince?.trim().toUpperCase() ?? "",
+    organizationRegion: input.organizationRegion?.trim() ?? "",
+    organizationPostalCode: input.organizationPostalCode?.trim() ?? "",
+    organizationCountry: input.organizationCountry?.trim() ?? "",
+    organizationRole: input.organizationRole?.trim() ?? "",
+    dietaryNotes: input.dietaryNotes?.trim() ?? "",
+    mobilityNotes: input.mobilityNotes?.trim() ?? "",
+    personalRequests: input.personalRequests?.trim() ?? "",
+    privacyConsents: input.privacyConsents,
     tags: normalizeTagsList(input.tags ?? []),
     notes: input.notes?.trim() ?? "",
     createdAt: now,

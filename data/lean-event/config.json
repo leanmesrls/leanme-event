@@ -1,6 +1,6 @@
 {
   "productName": "Lean Event",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "leonardo": {
     "title": "LeanEvent",
     "subtitle": "Powered by Lean.Agent.AI",
@@ -28,90 +28,159 @@
       "icon": "dashboard"
     },
     {
-      "id": "eventi",
-      "label": "Eventi",
-      "segment": "eventi",
-      "module": "events",
-      "capability": "eventi",
-      "icon": "events"
-    },
-    {
-      "id": "rubrica",
-      "label": "Rubrica",
-      "icon": "contacts",
+      "id": "group-starter",
+      "label": "Starter",
+      "navGroup": true,
       "children": [
         {
-          "id": "contatti",
-          "label": "Contatti",
-          "segment": "contatti",
-          "module": "events",
-          "capability": "contatti",
-          "icon": "contacts"
-        },
-        {
-          "id": "sedi",
-          "label": "Sedi",
-          "segment": "sedi",
+          "id": "eventi",
+          "label": "Eventi",
+          "segment": "eventi",
           "module": "events",
           "capability": "eventi",
           "icon": "events"
         },
         {
-          "id": "fornitori",
-          "label": "Fornitori",
-          "segment": "fornitori",
-          "module": "events",
-          "capability": "fornitori",
-          "icon": "contacts"
+          "id": "rubrica",
+          "label": "Rubrica",
+          "icon": "contacts",
+          "children": [
+            {
+              "id": "contatti",
+              "label": "Contatti",
+              "segment": "contatti",
+              "module": "events",
+              "capability": "contatti",
+              "icon": "contacts"
+            },
+            {
+              "id": "sedi",
+              "label": "Sedi",
+              "segment": "sedi",
+              "module": "events",
+              "capability": "eventi",
+              "icon": "events"
+            },
+            {
+              "id": "fornitori",
+              "label": "Fornitori",
+              "segment": "fornitori",
+              "module": "events",
+              "capability": "fornitori",
+              "icon": "contacts"
+            },
+            {
+              "id": "clienti",
+              "label": "Clienti",
+              "segment": "clienti",
+              "module": "events",
+              "capability": "clienti",
+              "icon": "contacts"
+            }
+          ]
         },
         {
-          "id": "clienti",
-          "label": "Clienti",
-          "segment": "clienti",
+          "id": "finance",
+          "label": "Finance",
+          "segment": "finance",
           "module": "events",
-          "capability": "clienti",
-          "icon": "contacts"
+          "capability": "finance",
+          "icon": "finance"
+        },
+        {
+          "id": "documenti",
+          "label": "Documenti",
+          "segment": "documenti",
+          "module": "events",
+          "capability": "eventi",
+          "icon": "settings"
         }
       ]
     },
     {
-      "id": "verbali",
-      "label": "Verbali AI",
-      "segment": "verbali",
-      "module": "leonardo",
-      "capability": "verbali",
-      "icon": "leonardo"
+      "id": "group-pro",
+      "label": "Pro",
+      "navGroup": true,
+      "children": [
+        {
+          "id": "forms",
+          "label": "Forms",
+          "segment": "forms",
+          "capability": "survey",
+          "icon": "settings"
+        },
+        {
+          "id": "engagements",
+          "label": "Engagements",
+          "segment": "engagements",
+          "capability": "connect",
+          "icon": "events"
+        },
+        {
+          "id": "comunicazioni",
+          "label": "Comunicazioni",
+          "segment": "comunicazioni",
+          "capability": "comunicazioni",
+          "icon": "contacts"
+        },
+        {
+          "id": "web",
+          "label": "Web",
+          "segment": "web",
+          "capability": "public_site",
+          "icon": "events"
+        }
+      ]
     },
     {
-      "id": "documenti",
-      "label": "Documenti",
-      "segment": "documenti",
-      "module": "events",
-      "capability": "eventi",
-      "icon": "settings"
+      "id": "group-intelligence",
+      "label": "Intelligence",
+      "navGroup": true,
+      "children": [
+        {
+          "id": "verbali",
+          "label": "Verbali AI",
+          "segment": "verbali",
+          "module": "leonardo",
+          "capability": "verbali",
+          "icon": "leonardo"
+        },
+        {
+          "id": "writer-ai",
+          "label": "Writer AI",
+          "segment": "writer-ai",
+          "capability": "ai_writing",
+          "icon": "leonardo"
+        },
+        {
+          "id": "designer-ai",
+          "label": "Designer AI",
+          "segment": "designer-ai",
+          "capability": "ai_graphics",
+          "icon": "leonardo"
+        },
+        {
+          "id": "traduzioni-ai",
+          "label": "Traduzioni AI",
+          "segment": "traduzioni-ai",
+          "capability": "ai_translations",
+          "icon": "leonardo"
+        }
+      ]
     },
     {
-      "id": "finance",
-      "label": "Finance",
-      "segment": "finance",
-      "module": "events",
-      "capability": "finance",
-      "icon": "finance"
-    },
-    {
-      "id": "government",
-      "label": "Government",
-      "segment": "government",
-      "module": "government",
-      "capability": "government",
-      "icon": "government"
-    },
-    {
-      "id": "lean-human",
-      "label": "Lean.Human",
-      "segment": "lean-human",
-      "capability": "lean_human",
-      "icon": "support"
+      "id": "group-extra",
+      "label": "Extra",
+      "navGroup": true,
+      "children": [
+        {
+          "id": "lean-studio",
+          "label": "Lean.Studio",
+          "segment": "lean-studio",
+          "capability": "lean_human",
+          "icon": "support"
+        }
+      ]
     }
   ]
 }

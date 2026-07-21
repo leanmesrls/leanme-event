@@ -1,2 +1,2 @@
-﻿Nome;Cognome;Email;Codice fiscale;Telefono;Etichetta telefono;Telefono 2;Etichetta telefono 2;Organizzazione;Tag;Note
-Mario;Rossi;mario.rossi@esempio.it;RSSMRA80A01H501Z;+39 051 1234567;Principale;;;I&C srl;docente, sponsor;Riga di esempio — puoi eliminarla
+﻿Vocativo;Titolo;Cognome;Nome;Email;Etichetta email;Email 2;Etichetta email 2;Codice fiscale;Telefono;Etichetta telefono;Telefono 2;Etichetta telefono 2;Data di nascita;Tag;Indirizzo;Città;Provincia;Regione;CAP;Nazione;Organizzazione;Indirizzo ente;Città ente;Provincia ente;Regione ente;CAP ente;Nazione ente;Ruolo aziendale;Preferenze alimentari;Mobilità ridotta;Richieste personali;Note
+Egregio;Dottore;Rossi;Mario;mario.rossi@esempio.it;Principale;;;RSSMRA80A01H501Z;+39 051 1234567;Principale;;;01/01/1980;docente, sponsor;Via Roma 1;Bologna;BO;Emilia-Romagna;40121;Italia;I&C srl;Via dell'Industria 10;Bologna;BO;Emilia-Romagna;40127;Italia;Dirigente;Vegetariano;;;Riga di esempio — puoi eliminarla

@@ -1,0 +1,70 @@
+{
+  "facultyRelevance": [
+    { "id": "nazionale", "label": "Nazionale" },
+    { "id": "internazionale", "label": "Internazionale" }
+  ],
+  "teachingMethods": [
+    { "id": "lezioni_magistrali", "label": "Lezioni magistrali" },
+    {
+      "id": "serie_relazioni_tema",
+      "label": "Serie di relazioni su tema preordinato"
+    },
+    {
+      "id": "tavole_rotonde_dibattito",
+      "label": "Tavole rotonde con dibattito tra esperti"
+    },
+    {
+      "id": "esperto_risponde",
+      "label": "Confronto/dibattito tra pubblico ed esperto/i guidato da un conduttore (\"L'esperto risponde\")"
+    },
+    {
+      "id": "dimostrazioni_tecniche",
+      "label": "Dimostrazioni tecniche senza esecuzione diretta da parte dei partecipanti"
+    },
+    {
+      "id": "casi_clinici_plenaria",
+      "label": "Presentazione di problemi o di casi clinici in seduta plenaria (non a piccoli gruppi)"
+    },
+    {
+      "id": "lavoro_piccoli_gruppi",
+      "label": "Lavoro a piccoli gruppi su problemi e casi clinici con produzione di rapporto finale da discutere con esperto"
+    },
+    {
+      "id": "esecuzione_diretta_pratica",
+      "label": "Esecuzione diretta da parte di tutti i partecipanti di attività pratiche o tecniche"
+    },
+    { "id": "role_playing", "label": "Role-playing" }
+  ],
+  "directRecruitment": [
+    { "id": "si", "label": "Sì" },
+    { "id": "no", "label": "No" },
+    { "id": "parziale", "label": "Parzialmente diretto" }
+  ],
+  "participantProvenance": [
+    { "id": "locale", "label": "Locale" },
+    { "id": "regionale", "label": "Regionale" },
+    { "id": "nazionale", "label": "Nazionale" },
+    { "id": "internazionale", "label": "Internazionale" }
+  ],
+  "presenceVerification": [
+    { "id": "firma", "label": "Firma di presenza" },
+    { "id": "badge_elettronico", "label": "Sistema elettronico a badges" }
+  ],
+  "learningVerification": [
+    { "id": "questionario", "label": "Con questionario" },
+    { "id": "esame_orale", "label": "Con esame orale" },
+    { "id": "esame_pratico", "label": "Con esame pratico" },
+    { "id": "prova_scritta", "label": "Con prova scritta" },
+    { "id": "questionario_online", "label": "Con questionario online" },
+    {
+      "id": "non_prevista",
+      "label": "Non prevista (solo in caso di convegni con più di 200 partecipanti)"
+    }
+  ],
+  "facultyRoles": [
+    { "id": "docente", "label": "Docente" },
+    { "id": "tutor", "label": "Tutor" },
+    { "id": "relatore", "label": "Relatore" },
+    { "id": "moderatore", "label": "Moderatore" }
+  ]
+}

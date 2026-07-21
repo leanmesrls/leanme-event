@@ -6,6 +6,7 @@ import type {
   ContactImportFieldKey,
   ContactImportPreview,
   LeanEventContact,
+  LeanEventContactEmail,
   LeanEventContactPhone,
   LeanEventImportResult,
   LeanEventSession,
@@ -26,25 +27,66 @@ import {
   parseTagsRaw,
   tagsDiffer,
 } from "./contact-tags";
+import { primaryEmailFromList } from "./contact-privacy";
 import { cell, isContactTemplateExampleRow, rowHasImportData } from "./spreadsheet-import";
 
 export const CONTACT_IMPORT_FIELD_LABELS: Record<ContactImportFieldKey, string> = {
+  vocative: "Vocativo",
+  honorificTitle: "Titolo",
   firstName: "Nome",
   lastName: "Cognome",
   email: "Email",
+  emails: "Email aggiuntive",
   fiscalCode: "Codice fiscale",
+  birthDate: "Data di nascita",
+  address: "Indirizzo",
+  city: "Città",
+  province: "Provincia",
+  region: "Regione",
+  postalCode: "CAP",
+  country: "Nazione",
   organization: "Organizzazione",
+  organizationAddress: "Indirizzo ente",
+  organizationCity: "Città ente",
+  organizationProvince: "Provincia ente",
+  organizationRegion: "Regione ente",
+  organizationPostalCode: "CAP ente",
+  organizationCountry: "Nazione ente",
+  organizationRole: "Ruolo aziendale",
+  dietaryNotes: "Preferenze alimentari",
+  mobilityNotes: "Mobilità ridotta",
+  personalRequests: "Richieste personali",
   tags: "Tag",
   notes: "Note",
   phones: "Telefoni",
 };
 
 const FIELD_KEYS: ContactImportFieldKey[] = [
+  "vocative",
+  "honorificTitle",
   "firstName",
   "lastName",
   "email",
+  "emails",
   "fiscalCode",
+  "birthDate",
+  "address",
+  "city",
+  "province",
+  "region",
+  "postalCode",
+  "country",
   "organization",
+  "organizationAddress",
+  "organizationCity",
+  "organizationProvince",
+  "organizationRegion",
+  "organizationPostalCode",
+  "organizationCountry",
+  "organizationRole",
+  "dietaryNotes",
+  "mobilityNotes",
+  "personalRequests",
   "tags",
   "notes",
   "phones",
@@ -61,6 +103,19 @@ function formatPhonesDisplay(phones: LeanEventContactPhone[]): string {
   return phones
     .map((phone) => (phone.label ? `${phone.label}: ${phone.number}` : phone.number))
     .join(" · ");
+}
+
+function formatEmailsDisplay(emails: LeanEventContactEmail[]): string {
+  if (!emails.length) {
+    return "";
+  }
+  return emails
+    .map((item) => (item.label ? `${item.label}: ${item.address}` : item.address))
+    .join(" · ");
+}
+
+function normalizeEmailAddress(address: string): string {
+  return address.trim().toLowerCase();
 }
 
 export function rowToContactDraft(
@@ -94,15 +149,51 @@ export function rowToContactDraft(
     });
   }
 
+  const emails: LeanEventContactEmail[] = [];
+  const email1 = cell(row, "Email");
+  if (email1) {
+    emails.push({
+      label: cell(row, "Etichetta email") || "Principale",
+      address: email1,
+    });
+  }
+  const email2 = cell(row, "Email 2");
+  if (email2) {
+    emails.push({
+      label: cell(row, "Etichetta email 2") || "Secondaria",
+      address: email2,
+    });
+  }
+
   const fiscalCodeRaw = cell(row, "Codice fiscale");
 
   return {
     rowNumber,
+    vocative: cell(row, "Vocativo"),
+    honorificTitle: cell(row, "Titolo"),
     firstName,
     lastName,
-    email: cell(row, "Email"),
+    email: email1 || primaryEmailFromList(emails),
+    emails,
     fiscalCode: fiscalCodeRaw ? fiscalCodeRaw.toUpperCase() : "",
+    birthDate: cell(row, "Data di nascita"),
+    address: cell(row, "Indirizzo"),
+    city: cell(row, "Città"),
+    province: cell(row, "Provincia"),
+    region: cell(row, "Regione"),
+    postalCode: cell(row, "CAP"),
+    country: cell(row, "Nazione"),
     organization: cell(row, "Organizzazione"),
+    organizationAddress: cell(row, "Indirizzo ente"),
+    organizationCity: cell(row, "Città ente"),
+    organizationProvince: cell(row, "Provincia ente"),
+    organizationRegion: cell(row, "Regione ente"),
+    organizationPostalCode: cell(row, "CAP ente"),
+    organizationCountry: cell(row, "Nazione ente"),
+    organizationRole: cell(row, "Ruolo aziendale"),
+    dietaryNotes: cell(row, "Preferenze alimentari"),
+    mobilityNotes: cell(row, "Mobilità ridotta"),
+    personalRequests: cell(row, "Richieste personali"),
     tags: parseTagsRaw(cell(row, "Tag")),
     notes: cell(row, "Note"),
     phones,
@@ -110,13 +201,40 @@ export function rowToContactDraft(
 }
 
 function contactToDraft(contact: LeanEventContact, rowNumber: number): ContactImportDraft {
+  const emails =
+    contact.emails && contact.emails.length > 0
+      ? contact.emails
+      : contact.email
+        ? [{ label: "Principale", address: contact.email }]
+        : [];
+
   return {
     rowNumber,
+    vocative: contact.vocative ?? "",
+    honorificTitle: contact.honorificTitle ?? "",
     firstName: contact.firstName,
     lastName: contact.lastName,
     email: contact.email,
+    emails,
     fiscalCode: contact.fiscalCode ?? "",
+    birthDate: contact.birthDate ?? "",
+    address: contact.address ?? "",
+    city: contact.city ?? "",
+    province: contact.province ?? "",
+    region: contact.region ?? "",
+    postalCode: contact.postalCode ?? "",
+    country: contact.country ?? "",
     organization: contact.organization,
+    organizationAddress: contact.organizationAddress ?? "",
+    organizationCity: contact.organizationCity ?? "",
+    organizationProvince: contact.organizationProvince ?? "",
+    organizationRegion: contact.organizationRegion ?? "",
+    organizationPostalCode: contact.organizationPostalCode ?? "",
+    organizationCountry: contact.organizationCountry ?? "",
+    organizationRole: contact.organizationRole ?? "",
+    dietaryNotes: contact.dietaryNotes ?? "",
+    mobilityNotes: contact.mobilityNotes ?? "",
+    personalRequests: contact.personalRequests ?? "",
     tags: contact.tags ?? [],
     notes: contact.notes,
     phones: contact.phones,
@@ -130,10 +248,13 @@ function fieldValue(
   if (field === "phones") {
     return formatPhonesDisplay(draft.phones);
   }
+  if (field === "emails") {
+    return formatEmailsDisplay(draft.emails);
+  }
   if (field === "tags") {
     return formatTagsDisplay(draft.tags);
   }
-  return draft[field] || "";
+  return (draft[field] as string) || "";
 }
 
 function valuesDiffer(
@@ -152,6 +273,21 @@ function valuesDiffer(
       return false;
     }
     return incomingNorm.some((number) => !existingNorm.has(number));
+  }
+
+  if (field === "emails") {
+    const existingNorm = new Set(
+      existing.emails
+        .map((item) => normalizeEmailAddress(item.address))
+        .filter(Boolean)
+    );
+    const incomingNorm = incoming.emails
+      .map((item) => normalizeEmailAddress(item.address))
+      .filter(Boolean);
+    if (incomingNorm.length === 0 && existing.emails.length === 0) {
+      return false;
+    }
+    return incomingNorm.some((address) => !existingNorm.has(address));
   }
 
   if (field === "tags") {
@@ -243,6 +379,40 @@ export function applyFieldAction(
     return { phones: merged };
   }
 
+  if (field === "emails") {
+    const existingEmails =
+      existing.emails && existing.emails.length > 0
+        ? existing.emails
+        : existing.email
+          ? [{ label: "Principale", address: existing.email }]
+          : [];
+    if (action === "keep") {
+      return { emails: existingEmails };
+    }
+    if (action === "overwrite") {
+      const emails = incoming.emails;
+      return {
+        emails,
+        email: primaryEmailFromList(emails) || existing.email,
+      };
+    }
+    const seen = new Set(
+      existingEmails.map((item) => normalizeEmailAddress(item.address))
+    );
+    const merged = [...existingEmails];
+    for (const item of incoming.emails) {
+      const key = normalizeEmailAddress(item.address);
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        merged.push(item);
+      }
+    }
+    return {
+      emails: merged,
+      email: primaryEmailFromList(merged) || existing.email,
+    };
+  }
+
   if (field === "tags") {
     const existingTags = existing.tags ?? [];
     if (action === "keep") {
@@ -255,8 +425,10 @@ export function applyFieldAction(
   }
 
   const existingVal =
-    field === "fiscalCode" ? (existing.fiscalCode ?? "") : (existing[field] as string);
-  const incomingVal = incoming[field] as string;
+    field === "fiscalCode"
+      ? (existing.fiscalCode ?? "")
+      : String((existing[field as keyof LeanEventContact] as string | undefined) ?? "");
+  const incomingVal = String(incoming[field] ?? "");
 
   if (action === "keep") {
     if (field === "fiscalCode") {
@@ -475,11 +647,31 @@ export async function applyContactsImport(
     }
 
     const contact = createContact(session, {
+      vocative: draft.vocative,
+      honorificTitle: draft.honorificTitle,
       firstName: draft.firstName,
       lastName: draft.lastName,
       email: draft.email,
+      emails: draft.emails,
       phones: draft.phones,
+      birthDate: draft.birthDate,
+      address: draft.address,
+      city: draft.city,
+      province: draft.province,
+      region: draft.region,
+      postalCode: draft.postalCode,
+      country: draft.country,
       organization: draft.organization,
+      organizationAddress: draft.organizationAddress,
+      organizationCity: draft.organizationCity,
+      organizationProvince: draft.organizationProvince,
+      organizationRegion: draft.organizationRegion,
+      organizationPostalCode: draft.organizationPostalCode,
+      organizationCountry: draft.organizationCountry,
+      organizationRole: draft.organizationRole,
+      dietaryNotes: draft.dietaryNotes,
+      mobilityNotes: draft.mobilityNotes,
+      personalRequests: draft.personalRequests,
       tags: draft.tags,
       notes: draft.notes,
     });

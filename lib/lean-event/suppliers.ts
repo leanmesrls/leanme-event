@@ -17,6 +17,7 @@ import {
   withLifecycleDefaults,
 } from "./entity-lifecycle";
 import { isValidSupplierCategory } from "./supplier-categories";
+import { DEFAULT_COUNTRY, normalizeAddressFields } from "./geo-italy";
 import {
   getStoredSupplier,
   listStoredSuppliers,
@@ -157,8 +158,17 @@ export async function restoreSupplier(
 }
 
 export function normalizeSupplier(supplier: LeanEventSupplier): LeanEventSupplier {
+  const address = normalizeAddressFields({
+    address: supplier.address,
+    city: supplier.city,
+    province: supplier.province,
+    region: supplier.region,
+    postalCode: supplier.postalCode,
+    country: supplier.country || DEFAULT_COUNTRY,
+  });
   return {
     ...supplier,
+    ...address,
     agreements: supplier.agreements ?? [],
   };
 }
@@ -173,6 +183,9 @@ export function createSupplier(
     address?: string;
     city?: string;
     province?: string;
+    region?: string;
+    postalCode?: string;
+    country?: string;
     vatNumber?: string;
     contactPerson?: string;
     notes?: string;
@@ -184,6 +197,15 @@ export function createSupplier(
     ? input.categoryId
     : "collaboratori";
 
+  const address = normalizeAddressFields({
+    address: input.address,
+    city: input.city,
+    province: input.province,
+    region: input.region,
+    postalCode: input.postalCode,
+    country: input.country || DEFAULT_COUNTRY,
+  });
+
   const draft: LeanEventSupplier = {
     id: randomUUID(),
     tenantId: session.tenantId,
@@ -191,9 +213,7 @@ export function createSupplier(
     categoryId,
     email: input.email?.trim() ?? "",
     phone: input.phone?.trim() ?? "",
-    address: input.address?.trim() ?? "",
-    city: input.city?.trim() ?? "",
-    province: input.province?.trim().toUpperCase() ?? "",
+    ...address,
     vatNumber: input.vatNumber?.trim() ?? "",
     contactPerson: input.contactPerson?.trim() ?? "",
     notes: input.notes?.trim() ?? "",

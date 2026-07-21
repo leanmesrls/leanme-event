@@ -128,5 +128,66 @@
       "id": "res_fad",
       "label": "RES (RESIDENZIALE) / FAD (FORMAZIONE A DISTANZA)"
     }
+  ],
+  "formationEventTypes": [
+    {
+      "id": "congresso_simposio_conferenza_seminario",
+      "label": "CONGRESSO/SIMPOSIO/CONFERENZA/SEMINARIO"
+    },
+    {
+      "id": "tavola_rotonda",
+      "label": "TAVOLA ROTONDA"
+    },
+    {
+      "id": "conferenze_clinico_patologiche",
+      "label": "CONFERENZE CLINICO-PATOLOGICHE VOLTE ALLA PRESENTAZIONE E DISCUSSIONE EPICRITICA INTERDISCIPLINARE DI SPECIFICI CASI CLINICI"
+    },
+    {
+      "id": "consensus_meeting_interaziendali",
+      "label": "CONSENSUS MEETING INTERAZIENDALI FINALIZZATI ALLA REVISIONE DELLE STATICHE PER LA STANDARDIZZAZIONE DI PROTOCOLLI E PROCEDURE OPERATIVE ED ALLA PIANIFICAZIONE E SVOLGIMENTO DI ATTIVITÀ LEGATE A PROGETTI DI RICERCA FINALIZZATA"
+    },
+    {
+      "id": "corso_aggiornamento_tecnologico",
+      "label": "CORSO DI AGGIORNAMENTO TECNOLOGICO E STRUMENTALE"
+    },
+    {
+      "id": "corso_pratico_sviluppo_professionale",
+      "label": "CORSO PRATICO FINALIZZATO ALLO SVILUPPO CONTINUO PROFESSIONALE"
+    },
+    {
+      "id": "corso_pratico_organizzativo_gestionale",
+      "label": "CORSO PRATICO PER LO SVILUPPO DI ESPERIENZE ORGANIZZATIVO-GESTIONALI"
+    },
+    {
+      "id": "frequenza_clinica_tutore",
+      "label": "FREQUENZA CLINICA CON ASSISTENZA DI TUTORE E PROGRAMMA FORMATIVO PRESSO UNA STRUTTURA ASSISTENZIALE",
+      "requiresStructure": true
+    },
+    {
+      "id": "corso_aggiornamento",
+      "label": "CORSO DI AGGIORNAMENTO"
+    },
+    {
+      "id": "corso_addestramento",
+      "label": "CORSO DI ADDESTRAMENTO"
+    },
+    {
+      "id": "tirocinio_frequenza_strutture",
+      "label": "TIROCINIO/FREQUENZA PRESSO STRUTTURE ASSISTENZIALI O FORMATIVE",
+      "requiresStructure": true
+    },
+    {
+      "id": "tirocinio_frequenza_tutoriale",
+      "label": "TIROCINIO/FREQUENZA CON METODICHE TUTORIALI E PRESSO UNA STRUTTURA ASSISTENZIALE O FORMATIVA",
+      "requiresStructure": true
+    },
+    {
+      "id": "corsi_percorsi_diagnostici_terapeutici",
+      "label": "CORSI DI FORMAZIONE E/O APPLICAZIONE IN MATERIA DI COSTRUZIONE, DISSEMINAZIONE ED IMPLEMENTAZIONE DI PERCORSI DIAGNOSTICI TERAPEUTICI"
+    },
+    {
+      "id": "videoconferenza",
+      "label": "VIDEOCONFERENZA"
+    }
   ]
 }

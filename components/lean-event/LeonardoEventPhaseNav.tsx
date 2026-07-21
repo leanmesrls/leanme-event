@@ -4,17 +4,20 @@ import {
   EVENT_NAV_PHASES,
   formatTabBadge,
   getTabsForPhase,
+  isEventModuleUnlocked,
   isEventTabAccessible,
   type EventNavBadges,
   type EventNavCapabilities,
   type EventPhaseId,
   type EventTabId,
 } from "@/lib/lean-event/event-nav";
+import type { LeanEventLeonardoCapabilities } from "@/types/lean-event";
 
 interface LeonardoEventPhaseNavProps {
   activePhase: EventPhaseId;
   activeTab: EventTabId;
   capabilities: EventNavCapabilities;
+  moduleCapabilities?: Partial<LeanEventLeonardoCapabilities>;
   badges?: EventNavBadges;
   onPhaseChange: (phase: EventPhaseId) => void;
   onTabChange: (tab: EventTabId) => void;
@@ -24,6 +27,7 @@ export function LeonardoEventPhaseNav({
   activePhase,
   activeTab,
   capabilities,
+  moduleCapabilities = {},
   badges = {},
   onPhaseChange,
   onTabChange,
@@ -32,15 +36,14 @@ export function LeonardoEventPhaseNav({
 
   return (
     <div className="space-y-3">
-      {/* Livello 1: fasi — bottoni squadrati fucsia, dentro il riquadro */}
       <div className="rounded-xl border border-white/10 bg-zinc-950 p-2 sm:p-3">
-        <div className="-mx-0.5 flex gap-2 overflow-x-auto px-0.5 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex flex-wrap gap-1.5">
           {EVENT_NAV_PHASES.map((phase) => (
             <button
               key={phase.id}
               type="button"
               onClick={() => onPhaseChange(phase.id)}
-              className={`shrink-0 rounded-md px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] transition sm:text-xs ${
+              className={`rounded-md px-3 py-2 text-[10px] font-bold uppercase tracking-[0.08em] transition sm:px-3.5 sm:text-[11px] ${
                 activePhase === phase.id
                   ? "bg-leanme-fuchsia text-white shadow-sm"
                   : "border border-leanme-fuchsia/45 text-leanme-fuchsia hover:border-leanme-fuchsia hover:bg-leanme-fuchsia/10"
@@ -52,28 +55,35 @@ export function LeonardoEventPhaseNav({
         </div>
       </div>
 
-      {/* Livello 2: tab — stessi angoli squadrati del L1, bianchi, fuori dal riquadro */}
       <div className="flex flex-wrap gap-1.5 px-0.5">
         {phaseTabs.map((tab) => {
-          const disabled =
+          const hardDisabled =
             tab.implemented && !isEventTabAccessible(tab, capabilities);
-          const planned = !tab.implemented;
+          const moduleLocked = !isEventModuleUnlocked(tab, moduleCapabilities);
+          const planned = !tab.implemented && !moduleLocked;
           const badge = formatTabBadge(tab, badges);
           return (
             <button
               key={tab.id}
               type="button"
-              disabled={disabled}
+              disabled={hardDisabled}
               onClick={() => onTabChange(tab.id)}
-              className={`shrink-0 rounded-md px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px] ${
+              className={`shrink-0 rounded-md px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:text-[11px] ${
                 activeTab === tab.id
                   ? "bg-white text-black shadow-sm"
-                  : disabled
+                  : hardDisabled
                     ? "cursor-not-allowed border border-white/10 text-white/25"
-                    : planned
-                      ? "border border-dashed border-white/25 text-white/50 hover:border-white/50 hover:text-white/70"
-                      : "border border-white/25 text-white/70 hover:border-white hover:bg-white/10 hover:text-white"
+                    : moduleLocked
+                      ? "border border-dashed border-amber-400/35 text-amber-100/70 hover:border-amber-300/50 hover:text-amber-50"
+                      : planned
+                        ? "border border-dashed border-white/25 text-white/50 hover:border-white/50 hover:text-white/70"
+                        : "border border-white/25 text-white/70 hover:border-white hover:bg-white/10 hover:text-white"
               }`}
+              title={
+                moduleLocked
+                  ? "Modulo non incluso nel pacchetto — richiede upgrade"
+                  : undefined
+              }
             >
               {tab.label}
               {badge ? (
@@ -87,7 +97,7 @@ export function LeonardoEventPhaseNav({
                   {badge}
                 </span>
               ) : null}
-              {planned ? " ·" : ""}
+              {moduleLocked ? " ·" : planned ? " ·" : ""}
             </button>
           );
         })}
