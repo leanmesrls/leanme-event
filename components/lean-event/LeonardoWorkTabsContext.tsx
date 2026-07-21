@@ -29,6 +29,7 @@ interface LeonardoWorkTabsContextValue {
     kind: LeonardoWorkTabKind;
     entityId: string;
     title: string;
+    contextId?: string;
   }) => void;
   closeTab: (tabId: string) => void;
   focusTab: (tabId: string) => void;
@@ -150,14 +151,24 @@ export function LeonardoWorkTabsProvider({
       kind: LeonardoWorkTabKind;
       entityId: string;
       title: string;
+      contextId?: string;
     }) => {
-      const next = createWorkTab(input.kind, input.entityId, input.title);
+      const next = createWorkTab(
+        input.kind,
+        input.entityId,
+        input.title,
+        input.contextId
+      );
       setTabs((current) => {
         const existing = current.find((tab) => tab.id === next.id);
         if (existing) {
           return current.map((tab) =>
             tab.id === next.id
-              ? { ...tab, title: next.title || tab.title }
+              ? {
+                  ...tab,
+                  title: next.title || tab.title,
+                  contextId: next.contextId ?? tab.contextId,
+                }
               : tab
           );
         }

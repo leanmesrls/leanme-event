@@ -13,6 +13,7 @@ interface LeonardoGuestListTableProps {
   assignments: EventAssignmentWithContact[];
   hotelBlocks: LeonardoEventHotelBlock[];
   activeSheetId: string | null;
+  onOpenContact?: (contactId: string, contactName: string) => void;
   onOpenSheet: (assignmentId: string) => void;
   onRemove: (assignmentId: string) => void;
   removingAssignmentId?: string | null;
@@ -39,6 +40,7 @@ export function LeonardoGuestListTable({
   assignments,
   hotelBlocks,
   activeSheetId,
+  onOpenContact,
   onOpenSheet,
   onRemove,
   removingAssignmentId = null,
@@ -64,6 +66,7 @@ export function LeonardoGuestListTable({
               assignment={assignment}
               hotelBlocks={hotelBlocks}
               isActive={activeSheetId === assignment.id}
+              onOpenContact={onOpenContact}
               onOpenSheet={onOpenSheet}
               onRemove={onRemove}
               removing={removingAssignmentId === assignment.id}
@@ -88,6 +91,7 @@ export function LeonardoGuestListTable({
                 assignment={assignment}
                 hotelBlocks={hotelBlocks}
                 isActive={activeSheetId === assignment.id}
+                onOpenContact={onOpenContact}
                 onOpenSheet={onOpenSheet}
                 onRemove={onRemove}
                 removing={removingAssignmentId === assignment.id}

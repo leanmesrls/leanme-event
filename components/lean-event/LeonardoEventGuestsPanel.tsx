@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import eventsConfig from "@/data/lean-event/events-config.json";
 import { LeonardoEventBulkAssign } from "@/components/lean-event/LeonardoEventBulkAssign";
 import { LeonardoEventGuestListImport } from "@/components/lean-event/LeonardoEventGuestListImport";
 import { LeonardoGuestListTable } from "@/components/lean-event/LeonardoGuestListTable";
 import { LeonardoGuestSheetModal } from "@/components/lean-event/LeonardoGuestSheetModal";
+import { useLeonardoWorkTabsOptional } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoSubSectionNav } from "@/components/lean-event/LeonardoSubSectionNav";
 import { LEONARDO_PANEL_TITLE } from "@/components/lean-event/leonardo-ui";
 import { formatContactName } from "@/lib/lean-event/contact-display";
@@ -84,6 +85,7 @@ export function LeonardoEventGuestsPanel({
   onGuestSheetChange,
   onAssignmentsChange,
 }: LeonardoEventGuestsPanelProps) {
+  const workTabs = useLeonardoWorkTabsOptional();
   const speakerRoles = Array.isArray(lockedRoleFilter)
     ? lockedRoleFilter
     : null;
@@ -148,7 +150,29 @@ export function LeonardoEventGuestsPanel({
     return null;
   }
 
+  function openContactTab(contactId: string, contactName: string) {
+    if (workTabs) {
+      workTabs.openTab({
+        kind: "contact",
+        entityId: contactId,
+        title: contactName,
+      });
+    }
+  }
+
   function openGuestSheet(assignmentId: string) {
+    const row = assignments.find((item) => item.id === assignmentId);
+    if (workTabs) {
+      workTabs.openTab({
+        kind: "assignment",
+        entityId: assignmentId,
+        title: row?.contactName ?? "Scheda ospite",
+        contextId: eventId,
+      });
+      // Non lasciare `?ospite=` in URL: al ritorno sulla tab evento riaprirebbe la scheda.
+      onGuestSheetChange?.(null);
+      return;
+    }
     setSheetAssignmentId(assignmentId);
     onGuestSheetChange?.(assignmentId);
   }
@@ -262,14 +286,22 @@ export function LeonardoEventGuestsPanel({
     [assignments, sheetAssignmentId]
   );
 
+  const openedDeepLinkGuestRef = useRef<string | null>(null);
   useEffect(() => {
     if (!initialGuestId) {
       return;
     }
-    const exists = assignments.some((item) => item.id === initialGuestId);
-    if (exists) {
-      setSheetAssignmentId(initialGuestId);
+    if (openedDeepLinkGuestRef.current === initialGuestId) {
+      return;
     }
+    const exists = assignments.some((item) => item.id === initialGuestId);
+    if (!exists) {
+      return;
+    }
+    openedDeepLinkGuestRef.current = initialGuestId;
+    openGuestSheet(initialGuestId);
+    // Solo deep-link iniziale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGuestId, assignments]);
 
   useEffect(() => {
@@ -734,7 +766,14 @@ export function LeonardoEventGuestsPanel({
             tenantSlug={tenantSlug}
             assignments={paginatedAssignments}
             hotelBlocks={hotelBlocks}
-            activeSheetId={sheetAssignmentId}
+            activeSheetId={
+              workTabs &&
+              !workTabs.isListActive &&
+              workTabs.activeId.startsWith("assignment:")
+                ? workTabs.activeId.slice("assignment:".length)
+                : sheetAssignmentId
+            }
+            onOpenContact={workTabs ? openContactTab : undefined}
             onOpenSheet={openGuestSheet}
             onRemove={handleRemove}
             removingAssignmentId={removingAssignmentId}
@@ -790,7 +829,7 @@ export function LeonardoEventGuestsPanel({
         </div>
       )}
 
-      {sheetAssignment ? (
+      {!workTabs && sheetAssignment ? (
         <LeonardoGuestSheetModal
           tenantSlug={tenantSlug}
           eventId={eventId}

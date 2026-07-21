@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 
 import { LeonardoContactSheetContent } from "@/components/lean-event/LeonardoContactSheetContent";
 import { LeonardoEventDetail } from "@/components/lean-event/LeonardoEventDetail";
+import { LeonardoGuestSheetModal } from "@/components/lean-event/LeonardoGuestSheetModal";
 import { useLeonardoWorkTabs } from "@/components/lean-event/LeonardoWorkTabsContext";
 import { LeonardoSupplierSheetContent } from "@/components/lean-event/LeonardoSupplierSheetContent";
 import { LeonardoVenueSheetContent } from "@/components/lean-event/LeonardoVenueSheetContent";
 import { formatContactName } from "@/lib/lean-event/contact-display";
+import { buildGuestRemovalConfirmation } from "@/lib/lean-event/guest-removal";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type { EventSupplierWithSupplier } from "@/lib/lean-event/event-suppliers";
 import { resolveSectionListFromPath } from "@/lib/lean-event/work-tabs";
@@ -17,7 +19,9 @@ import type {
   LeanEventLeonardoCapabilities,
   LeanEventSupplier,
   LeanEventTenantUserPublic,
+  LeonardoAssignmentHospitality,
   LeonardoEvent,
+  LeonardoRelatedEventParticipation,
   LeonardoVenue,
   LeonardoWorkspace,
 } from "@/types/lean-event";
@@ -406,6 +410,176 @@ function SupplierTabPanel({
   );
 }
 
+function AssignmentTabPanel({
+  tenantSlug,
+  assignmentId,
+  eventId,
+  title,
+}: {
+  tenantSlug: string;
+  assignmentId: string;
+  eventId: string;
+  title: string;
+}) {
+  const { focusList, closeTab, renameTab } = useLeonardoWorkTabs();
+  const [event, setEvent] = useState<LeonardoEvent | null>(null);
+  const [assignments, setAssignments] = useState<EventAssignmentWithContact[]>(
+    []
+  );
+  const [venues, setVenues] = useState<LeonardoVenue[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [sheetError, setSheetError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const assignment =
+    assignments.find((item) => item.id === assignmentId) ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+    setEvent(null);
+    setAssignments([]);
+    setVenues([]);
+    setError(null);
+    setSheetError(null);
+    void (async () => {
+      const response = await fetch(
+        `/api/lean-event/events/${eventId}/workspace`,
+        { credentials: "same-origin" }
+      );
+      const data = (await response.json()) as {
+        error?: string;
+        event?: LeonardoEvent;
+        venues?: LeonardoVenue[];
+        assignments?: EventAssignmentWithContact[];
+      };
+      if (cancelled) {
+        return;
+      }
+      if (!response.ok || !data.event) {
+        setError(data.error ?? "Caricamento scheda ospite non riuscito.");
+        return;
+      }
+      const rows = data.assignments ?? [];
+      const row = rows.find((item) => item.id === assignmentId);
+      if (!row) {
+        setError("Assegnazione non trovata su questo evento.");
+        return;
+      }
+      renameTab(`assignment:${assignmentId}`, row.contactName);
+      setEvent(data.event);
+      setAssignments(rows);
+      setVenues(data.venues ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [assignmentId, eventId, renameTab]);
+
+  async function handleSave(payload: {
+    hospitality: LeonardoAssignmentHospitality;
+    relatedParticipations: LeonardoRelatedEventParticipation[];
+  }) {
+    if (!assignment) {
+      return;
+    }
+    setSaving(true);
+    setSheetError(null);
+    const response = await fetch(
+      `/api/lean-event/events/${eventId}/assignments/${assignmentId}`,
+      {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...payload,
+          expectedRevision: assignment.revision ?? 1,
+        }),
+      }
+    );
+    const result = (await response.json()) as {
+      error?: string;
+      assignment?: EventAssignmentWithContact;
+      updatedBy?: string;
+    };
+    setSaving(false);
+
+    if (response.status === 409 && result.error === "REVISION_CONFLICT") {
+      setSheetError(
+        `Conflitto: ${result.updatedBy ?? "un altro utente"} ha salvato prima di te. Ricarica la scheda.`
+      );
+      return;
+    }
+    if (!response.ok || !result.assignment) {
+      setSheetError(result.error ?? "Salvataggio scheda non riuscito.");
+      return;
+    }
+
+    setAssignments((current) =>
+      current.map((item) =>
+        item.id === assignmentId ? result.assignment! : item
+      )
+    );
+    renameTab(`assignment:${assignmentId}`, result.assignment.contactName);
+    closeTab(`assignment:${assignmentId}`);
+  }
+
+  async function handleRemove() {
+    if (!assignment) {
+      return;
+    }
+    if (!window.confirm(buildGuestRemovalConfirmation(assignment, assignments))) {
+      return;
+    }
+    setRemoving(true);
+    setSheetError(null);
+    const response = await fetch(
+      `/api/lean-event/events/${eventId}/assignments/${assignmentId}`,
+      {
+        method: "DELETE",
+        credentials: "same-origin",
+      }
+    );
+    setRemoving(false);
+    if (!response.ok) {
+      const payload = (await response.json()) as { error?: string };
+      setSheetError(payload.error ?? "Rimozione non riuscita.");
+      return;
+    }
+    closeTab(`assignment:${assignmentId}`);
+  }
+
+  return (
+    <MobileChrome
+      title={title}
+      onBack={focusList}
+      onClose={() => closeTab(`assignment:${assignmentId}`)}
+    >
+      {error ? <ErrorState message={error} /> : null}
+      {!error && (!event || !assignment) ? (
+        <LoadingState label="Caricamento scheda ospite…" />
+      ) : null}
+      {event && assignment ? (
+        <LeonardoGuestSheetModal
+          presentation="panel"
+          tenantSlug={tenantSlug}
+          eventId={eventId}
+          assignment={assignment}
+          allAssignments={assignments}
+          hotelBlocks={event.hotelBlocks ?? []}
+          venues={venues}
+          relatedEvents={event.relatedEvents ?? []}
+          saving={saving || removing}
+          error={sheetError}
+          onClose={() => closeTab(`assignment:${assignmentId}`)}
+          onSave={handleSave}
+          onRemove={handleRemove}
+        />
+      ) : null}
+    </MobileChrome>
+  );
+}
+
 export function LeonardoWorkTabHost({
   tenantSlug,
   children,
@@ -493,6 +667,17 @@ export function LeonardoWorkTabHost({
               supplierId={activeTab.entityId}
               title={activeTab.title}
             />
+          ) : null}
+          {activeTab.kind === "assignment" && activeTab.contextId ? (
+            <AssignmentTabPanel
+              tenantSlug={tenantSlug}
+              assignmentId={activeTab.entityId}
+              eventId={activeTab.contextId}
+              title={activeTab.title}
+            />
+          ) : null}
+          {activeTab.kind === "assignment" && !activeTab.contextId ? (
+            <ErrorState message="Scheda ospite incompleta: riaprila dall’evento." />
           ) : null}
         </div>
       ) : null}

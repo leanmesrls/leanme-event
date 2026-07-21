@@ -2,13 +2,16 @@ export type LeonardoWorkTabKind =
   | "event"
   | "contact"
   | "venue"
-  | "supplier";
+  | "supplier"
+  | "assignment";
 
 export interface LeonardoWorkTab {
   id: string;
   kind: LeonardoWorkTabKind;
   entityId: string;
   title: string;
+  /** Per `assignment`: id evento proprietario della scheda ospite. */
+  contextId?: string;
 }
 
 /** Elenco di sezione (Eventi, Contatti…) — navigabile senza perdere le altre. */
@@ -38,13 +41,15 @@ export function buildSectionListTabId(segment: string): string {
 export function createWorkTab(
   kind: LeonardoWorkTabKind,
   entityId: string,
-  title: string
+  title: string,
+  contextId?: string
 ): LeonardoWorkTab {
   return {
     id: buildWorkTabId(kind, entityId),
     kind,
     entityId,
     title: title.trim() || entityId.slice(0, 8),
+    ...(contextId ? { contextId } : {}),
   };
 }
 
@@ -63,7 +68,7 @@ const SECTION_LABELS: Record<string, string> = {
   clienti: "Clienti",
   finance: "Finance",
   "lean-studio": "Lean.Studio",
-  "lean-human": "Lean.Studio",
+  "lean-human": "Lean.Human",
   forms: "Forms",
   engagements: "Engagements",
   comunicazioni: "Comunicazioni",

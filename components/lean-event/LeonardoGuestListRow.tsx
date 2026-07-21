@@ -22,6 +22,7 @@ interface LeonardoGuestListRowProps {
   assignment: EventAssignmentWithContact;
   hotelBlocks: LeonardoEventHotelBlock[];
   isActive: boolean;
+  onOpenContact?: (contactId: string, contactName: string) => void;
   onOpenSheet: (assignmentId: string) => void;
   onRemove: (assignmentId: string) => void;
   removing?: boolean;
@@ -33,6 +34,7 @@ export function LeonardoGuestListRow({
   assignment,
   hotelBlocks,
   isActive,
+  onOpenContact,
   onOpenSheet,
   onRemove,
   removing = false,
@@ -53,14 +55,28 @@ export function LeonardoGuestListRow({
   const cells = (
     <>
       <td className={`px-3 py-2.5 ${LEONARDO_LIST_NAME_CELL}`}>
-        <Link
-          href={leanEventLeonardoContactPath(tenantSlug, assignment.contactId)}
-          title={assignment.contactName}
-          className={LEONARDO_LIST_NAME_LINK}
-          onClick={(event) => event.stopPropagation()}
-        >
-          {assignment.contactName}
-        </Link>
+        {onOpenContact ? (
+          <button
+            type="button"
+            title={assignment.contactName}
+            className={`${LEONARDO_LIST_NAME_LINK} text-left`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenContact(assignment.contactId, assignment.contactName);
+            }}
+          >
+            {assignment.contactName}
+          </button>
+        ) : (
+          <Link
+            href={leanEventLeonardoContactPath(tenantSlug, assignment.contactId)}
+            title={assignment.contactName}
+            className={LEONARDO_LIST_NAME_LINK}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {assignment.contactName}
+          </Link>
+        )}
         <LeonardoEntityId id={assignment.contactId} />
         <p className="truncate text-xs text-white/45 sm:hidden">
           {assignment.roleLabel}

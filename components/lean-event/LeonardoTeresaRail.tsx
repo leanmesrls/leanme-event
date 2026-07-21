@@ -108,7 +108,9 @@ function useTeresaContext() {
         ? "Contatto"
         : active.kind === "venue"
           ? "Sede"
-          : "Fornitore";
+          : active.kind === "assignment"
+            ? "Ospite"
+            : "Fornitore";
   return {
     label: `Contesto: ${kindLabel} · ${active.title}`,
     kind: active.kind,
