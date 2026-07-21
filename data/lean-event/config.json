@@ -179,6 +179,13 @@
           "segment": "lean-studio",
           "capability": "lean_human",
           "icon": "support"
+        },
+        {
+          "id": "lean-human",
+          "label": "Lean.Human",
+          "segment": "lean-human",
+          "platformOperatorOnly": true,
+          "icon": "support"
         }
       ]
     }

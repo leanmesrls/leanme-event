@@ -31,6 +31,7 @@ import {
   listStoredEventSupplierLinks,
   saveStoredEventSupplierLink,
 } from "./event-supplier-storage";
+import { readManagedEntityListByPayloadEq } from "./entity-read";
 import { saveEntityVersionSnapshot } from "./version-storage";
 
 export interface EventSupplierWithSupplier extends LeonardoEventSupplierLink {
@@ -49,11 +50,19 @@ export async function listEventSupplierLinks(
   tenantId: string,
   eventId: string
 ): Promise<LeonardoEventSupplierLink[]> {
-  const links = await listStoredEventSupplierLinks(tenantId);
+  const links = await readManagedEntityListByPayloadEq<LeonardoEventSupplierLink>(
+    tenantId,
+    "event_supplier_link",
+    "eventId",
+    eventId,
+    async () => {
+      const all = await listStoredEventSupplierLinks(tenantId);
+      return all.filter((link) => link.eventId === eventId);
+    }
+  );
   return links
     .map(normalizeStoredLink)
     .filter(isEntityActive)
-    .filter((link) => link.eventId === eventId)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 

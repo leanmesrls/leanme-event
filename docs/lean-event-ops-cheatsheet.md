@@ -168,8 +168,52 @@ Tutto il dominio strutturato sta in **3 tabelle**:
 | `lean_event_documents` | Registry documenti binari (se applicato `002`) |
 | `lean_event_audit_events` | Audit strutturato (se applicato `002`) |
 
-**Non** esistono tabelle separate `contacts` / `events` / `teresa_chats`.  
-Il tipo è in `entity_type`; i campi sono in `payload` (JSONB).
+**Legacy SoT (pre-cutover):** una riga in `lean_event_entities` con `entity_type` + `payload` JSONB.  
+**Target SoT (cutover N):** tabelle tipizzate + FK — `lean_event_events`, `lean_event_contacts`, …  
+Doc: `docs/lean-event-normalized-cutover.md` · DDL `docs/sql/006_lean_event_normalized.sql`  
+```powershell
+npm run lean-event:apply-neon-006
+npm run lean-event:migrate-normalized
+npm run lean-event:verify-normalized
+npm run lean-event:smoke-normalized
+npm run lean-event:apply-neon-007   # FK documents NOT VALID (opzionale)
+```
+
+Env cutover:
+| Flag | Ruolo |
+|------|--------|
+| `LEAN_EVENT_NORMALIZED_SOT=1` | Write tipizzato (N2) |
+| `LEAN_EVENT_READ_NORMALIZED=1` | Read tipizzato (N3) |
+| `LEAN_EVENT_LEGACY_ENTITY_MIRROR=1` | Mirror JSONB (rollback); `0` = N4 chiuso |
+
+### Tabelle tipizzate (query rapide)
+
+```sql
+-- Eventi
+SELECT id, title, start_date, status, is_favorite, revision, updated_at
+FROM lean_event_events
+WHERE tenant_id = 'demo' AND deleted_at IS NULL
+ORDER BY start_date DESC NULLS LAST;
+
+-- Contatti
+SELECT id, first_name, last_name, email, organization, updated_at
+FROM lean_event_contacts
+WHERE tenant_id = 'demo' AND deleted_at IS NULL
+ORDER BY last_name, first_name;
+
+-- Assignment con FK
+SELECT a.id, a.role_category, e.title AS event_title,
+       c.last_name || ' ' || c.first_name AS contact_name
+FROM lean_event_assignments a
+JOIN lean_event_events e ON e.tenant_id = a.tenant_id AND e.id = a.event_id
+JOIN lean_event_contacts c ON c.tenant_id = a.tenant_id AND c.id = a.contact_id
+WHERE a.tenant_id = 'demo' AND a.deleted_at IS NULL
+ORDER BY a.updated_at DESC;
+
+-- Preferiti
+SELECT id, title FROM lean_event_events
+WHERE tenant_id = 'demo' AND deleted_at IS NULL AND is_favorite = true;
+```
 
 ### Tipi `entity_type`
 
@@ -195,12 +239,13 @@ Gli **assignment** (eventi collegati a un contatto) **non** hanno tetto numerico
 
 | Tipo | Chiavi tipiche |
 |------|----------------|
-| `event` | `title`, `cdc`, `startDate`, `endDate`, `categoryId`, Scheda › Registrazione: `registration` (`paid`, `fees[]` label/amount/validFrom/validTo, `refundsEnabled`, `refundRules`), Formazione ECM: `ecmModality`, `formationEventTypeId`, `ecmGrid` (faculty in `scientificResponsible` / `scientificCommittee`), `scientificProgram` (fase Programma L1), `eventSponsors[]` (fase Sponsor L1), `venueDetails`, REF/PM |
+| `event` | `title`, `cdc`, `startDate`, `endDate`, `categoryId`, **`isFavorite`** (stellina; colonna L2 `is_favorite` se applicato `005`), Scheda › Registrazione: `registration` (`paid`, `fees[]` label/amount/validFrom/validTo, `refundsEnabled`, `refundRules`), Formazione ECM: `ecmModality`, `formationEventTypeId`, `ecmGrid` (faculty in `scientificResponsible` / `scientificCommittee`), `scientificProgram` (fase Programma L1), `eventSponsors[]` (fase Sponsor L1), `venueDetails`, REF/PM |
 | `contact` | `vocative`, `honorificTitle`, `firstName`, `lastName`, `email`, `emails[]` (`label`, `address`), `birthDate`, residenza (`country`, `address`, `city`, `province`, `region`, `postalCode`), ente (`organization*`), `organizationRole`, `tags[]`, `phones[]`, `dietaryNotes`, `mobilityNotes`, `personalRequests`, `privacyConsents[]` |
 | `venue` | `name`, `country`, `address`, `city`, `province`, `region`, `postalCode` |
 | `supplier` | `name`, `email`, `country`, `address`, `city`, `province`, `region`, `postalCode` |
 
-> **Indirizzi:** stesso set di campi ovunque. In UI **Nazione è il primo campo**, poi indirizzo/città/provincia/regione(IT)/CAP. Persistenza in `payload` JSONB (vedi `docs/sql/004_lean_event_address_geo.sql` per indici).
+> **Indirizzi:** stesso set di campi ovunque. In UI **Nazione è il primo campo**, poi indirizzo/città/provincia/regione(IT)/CAP. Persistenza in `payload` JSONB (vedi `docs/sql/004_lean_event_address_geo.sql` per indici).  
+> **Filtri a scala:** catalogo + escalation L1–L4 in `docs/lean-event-filter-index-catalog.md` · migrazione preferiti `docs/sql/005_lean_event_filter_promotion.sql` (`npm run lean-event:apply-neon-005`).
 | `assignment` | `eventId`, `contactId` |
 | `workspace` | `title`, `linkedEventId` |
 | `teresa_chat` | `userId`, `userEmail`, `userName`, `title`, `messages[]` (`role`, `content`, `createdAt`, `contextLabel`) |
@@ -271,10 +316,40 @@ SELECT
   payload->>'ecmModality' AS formation_modality,
   payload->>'formationEventTypeId' AS formation_event_type,
   payload->>'formationStructureName' AS formation_structure,
+  COALESCE(is_favorite, false) AS is_favorite,
+  payload->>'isFavorite' AS is_favorite_payload,
   updated_at
 FROM lean_event_entities
 WHERE entity_type = 'event'
   AND tenant_id = 'demo'
+ORDER BY updated_at DESC;
+```
+
+### 3.3a Eventi preferiti (stellina · L2)
+
+Richiede migrazione `005` (`is_favorite` + `idx_lean_event_events_favorite`).
+
+```sql
+-- Conteggio preferiti per tenant
+SELECT COUNT(*)::int AS n_favorites
+FROM lean_event_entities
+WHERE tenant_id = 'demo'
+  AND entity_type = 'event'
+  AND deleted_at IS NULL
+  AND is_favorite = true;
+
+-- Elenco preferiti
+SELECT
+  id,
+  payload->>'title' AS title,
+  payload->>'cdc' AS cdc,
+  payload->>'startDate' AS start_date,
+  updated_at
+FROM lean_event_entities
+WHERE tenant_id = 'demo'
+  AND entity_type = 'event'
+  AND deleted_at IS NULL
+  AND is_favorite = true
 ORDER BY updated_at DESC;
 ```
 

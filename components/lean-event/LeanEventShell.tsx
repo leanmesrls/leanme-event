@@ -10,6 +10,7 @@ import {
   getSessionLeonardoCapabilities,
   LEONARDO_UPGRADE_HINT,
 } from "@/lib/lean-event/capabilities";
+import { isLeanMePlatformOperator } from "@/lib/lean-event/platform-operator";
 import { LeanEventRailChevron } from "@/components/lean-event/LeanEventRailChevron";
 import { LeanEventUpgradeHint } from "@/components/lean-event/LeanEventUpgradeHint";
 import { LeonardoNotificationsBell } from "@/components/lean-event/LeonardoNotificationsBell";
@@ -81,6 +82,7 @@ interface LeanEventShellProps {
 type NavEntry = Omit<LeanEventNavItem, "href" | "children"> & {
   href: string;
   enabled: boolean;
+  platformOperatorOnly?: boolean;
   children?: NavEntry[];
 };
 
@@ -97,10 +99,19 @@ function mapNavEntry(
   tenantBase: string,
   leonardoBase: string,
   session: LeanEventSession
-): NavEntry {
-  const children = item.children?.map((child) =>
-    mapNavEntry(child, tenantBase, leonardoBase, session)
-  );
+): NavEntry | null {
+  if (item.platformOperatorOnly && !isLeanMePlatformOperator(session)) {
+    return null;
+  }
+
+  const children = item.children
+    ?.map((child) => mapNavEntry(child, tenantBase, leonardoBase, session))
+    .filter((child): child is NavEntry => child !== null);
+
+  if (item.navGroup && children && children.length === 0) {
+    return null;
+  }
+
   const href = resolveNavHref(item, tenantBase, leonardoBase);
   const enabled = children?.length
     ? children.some((child) => child.enabled)
@@ -112,6 +123,7 @@ function mapNavEntry(
     segment: item.segment,
     module: item.module,
     capability: item.capability,
+    platformOperatorOnly: item.platformOperatorOnly,
     navGroup: item.navGroup,
     icon: item.icon,
     href,
@@ -387,6 +399,10 @@ function UserAccountMenu({
 }
 
 function isNavEnabled(session: LeanEventSession, item: LeanEventNavItem): boolean {
+  if (item.platformOperatorOnly) {
+    return isLeanMePlatformOperator(session);
+  }
+
   const capabilities = getSessionLeonardoCapabilities(session);
 
   if (item.capability) {
@@ -682,9 +698,9 @@ export function LeanEventShell({ session, children }: LeanEventShellProps) {
   const [modulesWidth, setModulesWidth] = useState(MODULES_RAIL_DEFAULT_WIDTH);
   const modulesDragging = useRef(false);
 
-  const navigation = config.navigation.map((item) =>
-    mapNavEntry(item, tenantBase, leonardoBase, session)
-  );
+  const navigation = config.navigation
+    .map((item) => mapNavEntry(item, tenantBase, leonardoBase, session))
+    .filter((item): item is NavEntry => item !== null);
 
   useEffect(() => {
     const stored = readModulesRail();

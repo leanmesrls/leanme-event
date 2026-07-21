@@ -4,10 +4,8 @@ import {
   LeonardoPageHeader,
   LEONARDO_PAGE_ACTION_BUTTON,
 } from "@/components/lean-event/LeonardoPageHeader";
-import { LeonardoTeresaSupervisePanel } from "@/components/lean-event/LeonardoTeresaSupervisePanel";
 import {
   findTenantBySlug,
-  isLeanMePlatformOperator,
   tenantHasLeonardoCapability,
 } from "@/lib/lean-event/auth";
 import { createPageMetadata } from "@/lib/metadata";
@@ -47,15 +45,8 @@ export default async function LeonardoLeanStudioPage({ params }: PageProps) {
     redirect(leanEventLoginPath());
   }
 
-  const isPlatformOp = isLeanMePlatformOperator(session);
-  const hasStudio = tenantHasLeonardoCapability(session, "lean_human");
-
-  if (!isPlatformOp && !hasStudio) {
+  if (!tenantHasLeonardoCapability(session, "lean_human")) {
     redirect(leanEventLeonardoPath(tenantSlug));
-  }
-
-  if (isPlatformOp) {
-    return <LeonardoTeresaSupervisePanel />;
   }
 
   return (

@@ -135,9 +135,9 @@ export function leanEventLeonardoSupportoPath(tenantSlug: string): string {
   return leanEventLeonardoLeanStudioPath(tenantSlug);
 }
 
-/** @deprecated → lean-studio */
+/** Supervisione Teresa — operatori piattaforma LeanMe */
 export function leanEventLeonardoLeanHumanPath(tenantSlug: string): string {
-  return leanEventLeonardoLeanStudioPath(tenantSlug);
+  return `${leanEventLeonardoPath(tenantSlug)}/lean-human`;
 }
 
 export function leanEventLeonardoLeanStudioPath(tenantSlug: string): string {

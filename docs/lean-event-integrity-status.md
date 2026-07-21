@@ -38,6 +38,8 @@
 10. **Upload binari privati** (travel, chat, supplier docs) con stream autenticato
 11. **Criteri retention** (`docs/lean-event-retention-criteria.md`)
 12. Schema indici scala: `docs/sql/003_lean_event_indexes_solidity.sql`
+13. Filtri sostenibili L1/L2: `docs/lean-event-filter-index-catalog.md` + `docs/sql/005_lean_event_filter_promotion.sql` (`is_favorite`, `startDate`)
+14. **Cutover normalizzato:** `docs/lean-event-normalized-cutover.md` + `docs/sql/006_lean_event_normalized.sql` (tabelle + FK; ETL da `entities`)
 
 ---
 

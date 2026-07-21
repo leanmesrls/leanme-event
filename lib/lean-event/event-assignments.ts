@@ -36,6 +36,7 @@ import {
   listStoredAssignments,
   saveStoredAssignment,
 } from "./event-assignment-storage";
+import { readManagedEntityListByPayloadEq } from "./entity-read";
 import { saveEntityVersionSnapshot } from "./version-storage";
 import { upsertManagedEntityToNeon } from "./entity-db";
 import {
@@ -103,13 +104,15 @@ export async function listAssignmentsForEvent(
   tenantId: string,
   eventId: string
 ): Promise<LeonardoEventContactAssignment[]> {
-  const assignments = await listStoredAssignments(tenantId);
+  const assignments = await readManagedEntityListByPayloadEq<
+    LeonardoEventContactAssignment
+  >(tenantId, "assignment", "eventId", eventId, async () => {
+    const all = await listStoredAssignments(tenantId);
+    return all.filter((assignment) => assignment.eventId === eventId);
+  });
   return assignments
     .map((assignment) => normalizeAssignment(assignment))
-    .filter(
-      (assignment) =>
-        assignment.eventId === eventId && isEntityActive(assignment)
-    )
+    .filter((assignment) => isEntityActive(assignment))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -117,13 +120,15 @@ export async function listAssignmentsForContact(
   tenantId: string,
   contactId: string
 ): Promise<LeonardoEventContactAssignment[]> {
-  const assignments = await listStoredAssignments(tenantId);
+  const assignments = await readManagedEntityListByPayloadEq<
+    LeonardoEventContactAssignment
+  >(tenantId, "assignment", "contactId", contactId, async () => {
+    const all = await listStoredAssignments(tenantId);
+    return all.filter((assignment) => assignment.contactId === contactId);
+  });
   return assignments
     .map((assignment) => normalizeAssignment(assignment))
-    .filter(
-      (assignment) =>
-        assignment.contactId === contactId && isEntityActive(assignment)
-    )
+    .filter((assignment) => isEntityActive(assignment))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 

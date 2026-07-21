@@ -25,13 +25,21 @@ Tutto il dominio Lean Event deve essere salvato su **database Postgres (Neon)** 
 
 Schema e indici devono rispettare multi-tenant (`tenant_id` in PK / indici), optimistic locking (`revision`), soft delete, versioni.
 
-Fonte: `docs/leanyou-data-resilience.md`, `docs/sql/001_lean_event_schema.sql`.
+Fonte: `docs/leanyou-data-resilience.md`, `docs/lean-event-normalized-cutover.md`, `docs/sql/006_lean_event_normalized.sql`.
+
+## Modello SoT (cutover 2026-07-21)
+
+- **Target:** tabelle tipizzate + **FK** composite `(tenant_id, …)` — non più `lean_event_entities.payload` come SoT.
+- DDL: `docs/sql/006_lean_event_normalized.sql` · apply `lean-event:apply-neon-006` · migrate `lean-event:migrate-normalized`.
+- Env: `LEAN_EVENT_NORMALIZED_SOT`, `LEAN_EVENT_READ_NORMALIZED`, `LEAN_EVENT_LEGACY_ENTITY_MIRROR`.
+- Eccezione JSONB: solo `workspaces.structured` (output AI schemaless).
 
 ## Stato implementazione
 
 - Fase A: Blob + lifecycle (ponte) ✅
 - Fase B: Neon schema + dual-write + cutover letture ✅
 - Fase C: backup/export/audit/document registry (in corso)
+- **Fase N:** schema normalizzato + ETL + dual-write tipizzato (in corso) — `docs/lean-event-normalized-cutover.md`
 - **Patto commerciale 2026-07-16:** vendibile a moduli, zero perdita — `docs/lean-event-commercial-pact.md`
-- Non dichiarare “su DB” finché le write path non passano da Postgres
+- Non dichiarare “su DB tipizzato” finché N3 (read normalized) non è firmato
 - Non dichiarare “enterprise-ready” finché backup + audit write + registry documenti operativi non sono chiusi

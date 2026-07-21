@@ -14,6 +14,11 @@ import {
   isLeanEventDatabaseEnabled,
   isLeanEventDatabaseStrict,
 } from "@/lib/lean-event/db";
+import {
+  isLeanEventLegacyEntityMirror,
+  isLeanEventNormalizedSot,
+} from "@/lib/lean-event/normalized-flags";
+import { upsertNormalizedManagedEntity } from "@/lib/lean-event/normalized/write";
 
 export interface LeanEventDbEntityRow {
   id: string;
@@ -53,7 +58,11 @@ async function reportDbError(context: string, error: unknown): Promise<void> {
   }
 }
 
-/** Upsert entità completa (payload JSONB = snapshot corrente). */
+/**
+ * Upsert entità su Neon.
+ * - Default / legacy: `lean_event_entities` JSONB
+ * - Con `LEAN_EVENT_NORMALIZED_SOT=1`: tabelle tipizzate (+ mirror JSONB se abilitato)
+ */
 export async function upsertManagedEntityToNeon(
   entityType: LeanEventManagedEntityType,
   entity: LeanEventDbEntityRow
@@ -61,6 +70,22 @@ export async function upsertManagedEntityToNeon(
   if (!isLeanEventDatabaseEnabled()) {
     return;
   }
+
+  const normalizedSot = isLeanEventNormalizedSot();
+  if (normalizedSot) {
+    await upsertNormalizedManagedEntity(
+      entityType,
+      entity as unknown as import("@/lib/lean-event/normalized/write").NormalizedEntityInput,
+      { force: true }
+    );
+  }
+
+  const writeLegacy =
+    !normalizedSot || isLeanEventLegacyEntityMirror();
+  if (!writeLegacy) {
+    return;
+  }
+
   const sql = getLeanEventSql();
   if (!sql) {
     return;
@@ -241,6 +266,13 @@ type NeonReadResult<T> =
   | { ok: true; data: T }
   | { ok: false; reason: "disabled" | "error" };
 
+/** Chiavi payload ammesse per liste SQL-scoped (anti-injection + indici noti). */
+export type LeanEventPayloadEqKey =
+  | "eventId"
+  | "contactId"
+  | "supplierId"
+  | "linkedEventId";
+
 /** Lista entità (inclusi record in cestino) dal payload JSONB. */
 export async function listManagedEntitiesFromNeon<T>(
   tenantId: string,
@@ -268,6 +300,154 @@ export async function listManagedEntitiesFromNeon<T>(
     return { ok: true, data };
   } catch (error) {
     await reportDbError(`list:${entityType}:${tenantId}`, error);
+    return { ok: false, reason: "error" };
+  }
+}
+
+/**
+ * Lista filtrata su una chiave payload (usa indici L1 expression).
+ * Di default solo record attivi (`deleted_at IS NULL`).
+ */
+export async function listManagedEntitiesByPayloadEqFromNeon<T>(
+  tenantId: string,
+  entityType: LeanEventManagedEntityType,
+  payloadKey: LeanEventPayloadEqKey,
+  payloadValue: string,
+  options?: { includeDeleted?: boolean }
+): Promise<NeonReadResult<T[]>> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return { ok: false, reason: "disabled" };
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  const includeDeleted = options?.includeDeleted === true;
+
+  try {
+    let rows: Array<{ payload: unknown }> = [];
+    switch (payloadKey) {
+      case "eventId":
+        rows = (includeDeleted
+          ? await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND payload->>'eventId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `
+          : await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND deleted_at IS NULL
+                AND payload->>'eventId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `) as Array<{ payload: unknown }>;
+        break;
+      case "contactId":
+        rows = (includeDeleted
+          ? await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND payload->>'contactId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `
+          : await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND deleted_at IS NULL
+                AND payload->>'contactId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `) as Array<{ payload: unknown }>;
+        break;
+      case "supplierId":
+        rows = (includeDeleted
+          ? await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND payload->>'supplierId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `
+          : await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND deleted_at IS NULL
+                AND payload->>'supplierId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `) as Array<{ payload: unknown }>;
+        break;
+      case "linkedEventId":
+        rows = (includeDeleted
+          ? await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND payload->>'linkedEventId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `
+          : await sql`
+              SELECT payload FROM lean_event_entities
+              WHERE tenant_id = ${tenantId}
+                AND entity_type = ${entityType}
+                AND deleted_at IS NULL
+                AND payload->>'linkedEventId' = ${payloadValue}
+              ORDER BY updated_at DESC
+            `) as Array<{ payload: unknown }>;
+        break;
+      default: {
+        const _exhaustive: never = payloadKey;
+        void _exhaustive;
+        return { ok: false, reason: "error" };
+      }
+    }
+
+    const data = rows
+      .map((row) => row.payload as T)
+      .filter((entity): entity is T => Boolean(entity));
+    return { ok: true, data };
+  } catch (error) {
+    await reportDbError(
+      `listBy:${entityType}:${payloadKey}:${tenantId}`,
+      error
+    );
+    return { ok: false, reason: "error" };
+  }
+}
+
+/** Eventi preferiti (colonna L2 `is_favorite` — richiede migrazione 005). */
+export async function listFavoriteEventsFromNeon<T>(
+  tenantId: string
+): Promise<NeonReadResult<T[]>> {
+  if (!isLeanEventDatabaseEnabled()) {
+    return { ok: false, reason: "disabled" };
+  }
+  const sql = getLeanEventSql();
+  if (!sql) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  try {
+    const rows = await sql`
+      SELECT payload
+      FROM lean_event_entities
+      WHERE tenant_id = ${tenantId}
+        AND entity_type = 'event'
+        AND deleted_at IS NULL
+        AND is_favorite = true
+      ORDER BY updated_at DESC
+    `;
+    const data = rows
+      .map((row) => row.payload as T)
+      .filter((entity): entity is T => Boolean(entity));
+    return { ok: true, data };
+  } catch (error) {
+    await reportDbError(`listFavorites:event:${tenantId}`, error);
     return { ok: false, reason: "error" };
   }
 }

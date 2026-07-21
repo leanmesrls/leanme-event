@@ -193,6 +193,7 @@ I prompt sono in `data/lean-event/prompts.json`.
 - Coda job asincrona (Inngest) per riunioni lunghe
 - Export DOCX nativo
 - ~~Storage persistente cloud~~ → Vercel Blob (v1.1)
+- ~~**Lista eventi — filtro preferiti (stellina)**~~ — `isFavorite` + UI stellina / “Solo preferiti”; L2 Neon in `005` (`docs/lean-event-filter-index-catalog.md`)
 
 ## Roadmap moduli tenant I&C srl (`iec`)
 
