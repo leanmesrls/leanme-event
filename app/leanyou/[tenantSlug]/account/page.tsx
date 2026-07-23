@@ -64,7 +64,7 @@ export default async function LeonardoAccountPage({ params }: PageProps) {
             Comunicazioni, Web
           </li>
           <li>
-            <span className="text-white/85">Intelligence</span> — Verbali AI,
+            <span className="text-white/85">Business</span> — Verbali AI,
             Writer AI, Designer AI, Traduzioni AI
           </li>
           <li>

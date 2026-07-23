@@ -1,7 +1,7 @@
 import { writeLeanEventAuditEvent } from "@/lib/lean-event/audit-log";
 import { createEvent, listEvents, saveEvent } from "@/lib/lean-event/events";
 import { rowHasImportData } from "@/lib/lean-event/spreadsheet-import";
-import type { LeanEventSession, LeonardoEventStatus } from "@/types/lean-event";
+import type { LeanEventSession, TenantEventStatus } from "@/types/lean-event";
 
 export interface EventImportResult {
   created: number;
@@ -13,7 +13,7 @@ function cell(row: Record<string, string>, key: string): string {
   return (row[key] ?? "").trim();
 }
 
-function parseStatus(raw: string): LeonardoEventStatus {
+function parseStatus(raw: string): TenantEventStatus {
   const value = raw.toLowerCase();
   if (value === "active" || value === "attivo") {
     return "active";

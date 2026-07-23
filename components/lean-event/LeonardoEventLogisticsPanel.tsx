@@ -16,7 +16,7 @@ import {
 import { TRAVEL_DIRECTION_LABELS, TRAVEL_MODE_LABELS } from "@/lib/lean-event/hospitality";
 import { leanEventLeonardoContactPath } from "@/lib/lean-event/paths";
 import type {
-  LeonardoEvent,
+  TenantEvent,
   LeonardoTravelDirection,
   LeonardoTravelMode,
   LeonardoVenue,
@@ -24,7 +24,7 @@ import type {
 
 interface LeonardoEventLogisticsPanelProps {
   tenantSlug: string;
-  event: LeonardoEvent;
+  event: TenantEvent;
   venues: LeonardoVenue[];
   assignments: EventAssignmentWithContact[];
 }

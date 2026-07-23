@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const DEFAULT_PUBLIC_TENANT_SLUG = "iec";
 const SESSION_COOKIE = "lean_event_session";
-const LEGACY_SESSION_COOKIE = "leanyou_session";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -19,12 +18,13 @@ function leanEventHubPath(tenantSlug: string): string {
 }
 
 function getSessionSecret(): string {
-  return (
-    process.env.LEAN_EVENT_SESSION_SECRET?.trim() ||
-    process.env.LEANYOU_SESSION_SECRET?.trim() ||
-    process.env.NEXTAUTH_SECRET?.trim() ||
-    "dev-only-change-me-before-production"
-  );
+  const secret = process.env.LEAN_EVENT_SESSION_SECRET?.trim();
+  if (!secret) {
+    throw new Error(
+      "LEAN_EVENT_SESSION_SECRET is required (fail-closed; no legacy fallbacks)"
+    );
+  }
+  return secret;
 }
 
 function decodeBase64Url(value: string): Uint8Array {
@@ -88,7 +88,7 @@ async function readSessionToken(token: string): Promise<MiddlewareSession | null
 async function readSessionFromRequest(
   request: NextRequest
 ): Promise<MiddlewareSession | null> {
-  for (const name of [SESSION_COOKIE, LEGACY_SESSION_COOKIE]) {
+  for (const name of [SESSION_COOKIE]) {
     const token = request.cookies.get(name)?.value;
     if (!token) {
       continue;

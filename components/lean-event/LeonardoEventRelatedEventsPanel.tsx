@@ -13,7 +13,7 @@ import {
 } from "@/lib/lean-event/related-events";
 import { isRevisionConflictPayload } from "@/lib/lean-event/revision-conflict";
 import type {
-  LeonardoEvent,
+  TenantEvent,
   LeonardoRelatedEvent,
   LeonardoRelatedEventKind,
   LeonardoVenue,
@@ -25,9 +25,9 @@ function uid(): string {
 
 interface LeonardoEventRelatedEventsPanelProps {
   tenantSlug: string;
-  event: LeonardoEvent;
+  event: TenantEvent;
   venues: LeonardoVenue[];
-  onEventSaved: (event: LeonardoEvent) => void;
+  onEventSaved: (event: TenantEvent) => void;
 }
 
 export function LeonardoEventRelatedEventsPanel({
@@ -104,7 +104,7 @@ export function LeonardoEventRelatedEventsPanel({
 
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       updatedBy?: string;
       updatedAt?: string;
     };

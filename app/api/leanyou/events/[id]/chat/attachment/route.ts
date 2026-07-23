@@ -2,11 +2,11 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { get } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 import { tenantHasLeonardoCapability, tenantHasModule } from "@/lib/lean-event/auth";
 import { getEvent } from "@/lib/lean-event/events";
+import { readLegacyBinaryFromPostgres } from "@/lib/lean-event/legacy-binary-postgres";
 import {
   forbiddenResponse,
   handleLeanEventRouteError,
@@ -24,6 +24,13 @@ async function readAttachmentBuffer(input: {
   eventId: string;
   filename: string;
 }): Promise<Buffer | null> {
+  const pathname = `lean-event/event-chat/${input.tenantId}/${input.eventId}/${input.filename}`;
+  const fromPg = await readLegacyBinaryFromPostgres({
+    tenantId: input.tenantId,
+    legacyPath: pathname,
+  });
+  if (fromPg) return fromPg.buffer;
+
   try {
     const dir = path.join(
       getDataRoot(),
@@ -32,21 +39,6 @@ async function readAttachmentBuffer(input: {
       input.eventId
     );
     return await readFile(path.join(dir, input.filename));
-  } catch {
-    // fallback Blob
-  }
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
-    return null;
-  }
-
-  try {
-    const pathname = `lean-event/event-chat/${input.tenantId}/${input.eventId}/${input.filename}`;
-    const result = await get(pathname, { access: "private", useCache: false });
-    if (!result?.stream) {
-      return null;
-    }
-    return Buffer.from(await new Response(result.stream).arrayBuffer());
   } catch {
     return null;
   }
@@ -84,8 +76,9 @@ export async function GET(request: Request, context: RouteContext) {
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/octet-stream",
-        "Content-Disposition": `inline; filename="${name}"`,
+        "Content-Disposition": `inline; filename="${name.replace(/"/g, "")}"`,
         "Cache-Control": "private, max-age=3600",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {

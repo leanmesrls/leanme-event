@@ -25,7 +25,7 @@ export function leanEventLeonardoPath(tenantSlug: string): string {
 }
 
 export function leanEventLeonardoVerbaliPath(tenantSlug: string): string {
-  return `${leanEventLeonardoPath(tenantSlug)}/verbali`;
+  return `${leanEventLeonardoPath(tenantSlug)}/ai/verbali`;
 }
 
 export function leanEventLeonardoNewPath(tenantSlug: string): string {
@@ -158,6 +158,10 @@ export function leanEventLeonardoHelpCenterPath(tenantSlug: string): string {
 
 export function leanEventLeonardoFeedbackPath(tenantSlug: string): string {
   return `${leanEventLeonardoPath(tenantSlug)}/feedback`;
+}
+
+export function leanEventLeonardoInfoPath(tenantSlug: string): string {
+  return `${leanEventLeonardoPath(tenantSlug)}/info`;
 }
 
 export function leanEventLeonardoGovernmentPath(tenantSlug: string): string {

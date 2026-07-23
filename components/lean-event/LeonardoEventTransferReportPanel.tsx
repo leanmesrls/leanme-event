@@ -7,10 +7,10 @@ import {
   buildLogisticsTransferSuggestions,
   downloadTransferSuggestionsCsv,
 } from "@/lib/lean-event/event-logistics";
-import type { LeonardoEvent } from "@/types/lean-event";
+import type { TenantEvent } from "@/types/lean-event";
 
 interface LeonardoEventTransferReportPanelProps {
-  event: LeonardoEvent;
+  event: TenantEvent;
   assignments: EventAssignmentWithContact[];
 }
 

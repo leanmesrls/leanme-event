@@ -19,16 +19,16 @@ import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignme
 import { SPEAKER_SUB_ROLES } from "@/lib/lean-event/event-nav";
 import type {
   LeanEventContact,
-  LeonardoEvent,
-  LeonardoEventHotelBlock,
-  LeonardoEventRoleCategory,
+  TenantEvent,
+  TenantEventHotelBlock,
+  TenantEventRoleCategory,
   LeonardoVenue,
 } from "@/types/lean-event";
 
 type AssignmentRow = EventAssignmentWithContact;
 
 const roleCategories = eventsConfig.roleCategories as Array<{
-  id: LeonardoEventRoleCategory;
+  id: TenantEventRoleCategory;
   label: string;
 }>;
 
@@ -43,17 +43,17 @@ type GuestInsertMode = "single" | "bulk" | "file" | "paste";
 interface LeonardoEventGuestsPanelProps {
   tenantSlug: string;
   eventId: string;
-  hotelBlocks: LeonardoEventHotelBlock[];
+  hotelBlocks: TenantEventHotelBlock[];
   venues: LeonardoVenue[];
-  relatedEvents: LeonardoEvent["relatedEvents"];
+  relatedEvents: TenantEvent["relatedEvents"];
   initialAssignments: AssignmentRow[];
   contacts: LeanEventContact[];
-  otherEvents: LeonardoEvent[];
+  otherEvents: TenantEvent[];
   guestView?: GuestSection;
   initialGuestId?: string | null;
   /** Filtro ruolo bloccato dalla tab anagrafiche */
-  lockedRoleFilter?: LeonardoEventRoleCategory | LeonardoEventRoleCategory[] | "";
-  defaultRoleCategory?: LeonardoEventRoleCategory;
+  lockedRoleFilter?: TenantEventRoleCategory | TenantEventRoleCategory[] | "";
+  defaultRoleCategory?: TenantEventRoleCategory;
   panelTitle?: string;
   insertTabLabel?: string;
   listTabLabel?: string;
@@ -107,16 +107,16 @@ export function LeonardoEventGuestsPanel({
   }, [initialAssignments]);
   const [contactId, setContactId] = useState("");
   const [roleCategory, setRoleCategory] =
-    useState<LeonardoEventRoleCategory>(defaultRoleCategory);
+    useState<TenantEventRoleCategory>(defaultRoleCategory);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [query, setQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<LeonardoEventRoleCategory | "">(
+  const [roleFilter, setRoleFilter] = useState<TenantEventRoleCategory | "">(
     typeof lockedRoleFilter === "string" ? lockedRoleFilter : ""
   );
   const [speakerSubFilter, setSpeakerSubFilter] = useState<
-    LeonardoEventRoleCategory | ""
+    TenantEventRoleCategory | ""
   >("");
   const [contentFilter, setContentFilter] = useState<GuestContentFilter>("all");
   const [sortMode, setSortMode] = useState<Exclude<ListSortMode, "date_start">>(
@@ -441,7 +441,7 @@ export function LeonardoEventGuestsPanel({
             required
             value={roleCategory}
             onChange={(e) =>
-              setRoleCategory(e.target.value as LeonardoEventRoleCategory)
+              setRoleCategory(e.target.value as TenantEventRoleCategory)
             }
             disabled={Boolean(lockedSingleRole) && !speakerRoles}
             className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia disabled:opacity-70"
@@ -536,7 +536,7 @@ export function LeonardoEventGuestsPanel({
               value={speakerSubFilter}
               onChange={(e) =>
                 setSpeakerSubFilter(
-                  e.target.value as LeonardoEventRoleCategory | ""
+                  e.target.value as TenantEventRoleCategory | ""
                 )
               }
               className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
@@ -560,7 +560,7 @@ export function LeonardoEventGuestsPanel({
             <select
               value={roleFilter}
               onChange={(e) =>
-                setRoleFilter(e.target.value as LeonardoEventRoleCategory | "")
+                setRoleFilter(e.target.value as TenantEventRoleCategory | "")
               }
               className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
             >

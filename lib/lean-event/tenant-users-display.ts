@@ -1,6 +1,6 @@
 import type {
   LeanEventTenantUserPublic,
-  LeonardoEvent,
+  TenantEvent,
   LeonardoVenue,
 } from "@/types/lean-event";
 
@@ -34,7 +34,7 @@ export function sanitizeEventProjectTeam(
 }
 
 export function formatEventProjectRif(
-  event: Pick<LeonardoEvent, "projectLeaderUserId" | "projectManagerUserIds">,
+  event: Pick<TenantEvent, "projectLeaderUserId" | "projectManagerUserIds">,
   tenantUsers: LeanEventTenantUserPublic[]
 ): string {
   const byId = new Map(tenantUsers.map((user) => [user.id, user]));
@@ -60,7 +60,7 @@ export function formatEventProjectRif(
 }
 
 export function resolveEventVenueCity(
-  event: Pick<LeonardoEvent, "venueId" | "venue">,
+  event: Pick<TenantEvent, "venueId" | "venue">,
   venues: LeonardoVenue[]
 ): string {
   if (event.venueId) {

@@ -1,7 +1,7 @@
 import type {
   LeanEventContact,
   LeanEventSession,
-  LeonardoEventRoleCategory,
+  TenantEventRoleCategory,
 } from "@/types/lean-event";
 
 import { listContacts } from "./contacts";
@@ -24,7 +24,7 @@ export type BulkAssignmentSource =
   | {
       type: "past_event";
       sourceEventId: string;
-      sourceRoleCategory?: LeonardoEventRoleCategory;
+      sourceRoleCategory?: TenantEventRoleCategory;
     }
   | {
       type: "contact_ids";
@@ -122,7 +122,7 @@ export async function previewBulkEventAssignments(
   tenantId: string,
   eventId: string,
   source: BulkAssignmentSource,
-  roleCategory: LeonardoEventRoleCategory,
+  roleCategory: TenantEventRoleCategory,
   contactsById?: Map<string, LeanEventContact>
 ): Promise<BulkAssignmentPreview> {
   const contactIds = await resolveBulkAssignmentContactIds(tenantId, source);
@@ -160,7 +160,7 @@ export async function applyBulkEventAssignments(
   session: LeanEventSession,
   eventId: string,
   source: BulkAssignmentSource,
-  roleCategory: LeonardoEventRoleCategory,
+  roleCategory: TenantEventRoleCategory,
   notes?: string
 ): Promise<BulkAssignmentResult> {
   const contactIds = await resolveBulkAssignmentContactIds(

@@ -1,99 +1,63 @@
-import notificationsData from "@/data/lean-event/notifications.json";
+import { getControlPlaneSql } from "@/core/infrastructure/database/control-plane-client";
+import type { LeanEventNotification } from "@/lib/lean-event/notifications-client";
+import { listReleaseNotifications } from "@/lib/lean-event/releases";
 
-export interface LeanEventNotification {
-  id: string;
-  title: string;
-  summary: string;
-  body: string;
-  publishedAt: string;
-  priority?: "normal" | "high";
+export type { LeanEventNotification } from "@/lib/lean-event/notifications-client";
+
+function mapAnnouncement(row: Record<string, unknown>): LeanEventNotification {
+  const published =
+    row.published_at instanceof Date
+      ? row.published_at.toISOString()
+      : String(row.published_at ?? "");
+  const priority = row.priority === "high" ? "high" : "normal";
+
+  return {
+    id: String(row.id ?? ""),
+    title: String(row.title ?? ""),
+    summary: String(row.summary ?? ""),
+    body: String(row.body ?? ""),
+    publishedAt: published,
+    priority,
+  };
 }
 
-const READ_STORAGE_PREFIX = "lean-event.notifications.read:";
-
-function storageKey(tenantSlug: string, userEmail: string): string {
-  return `${READ_STORAGE_PREFIX}${tenantSlug}:${userEmail.toLowerCase()}`;
+async function listPlatformAnnouncements(): Promise<LeanEventNotification[]> {
+  const sql = getControlPlaneSql();
+  const rows = await sql`
+    SELECT id, published_at, title, summary, body, priority
+    FROM lean_event_platform_announcements
+    ORDER BY published_at DESC, id ASC
+  `;
+  return (rows as Record<string, unknown>[]).map(mapAnnouncement);
 }
 
-export function listProductNotifications(): LeanEventNotification[] {
-  const items = (notificationsData.notifications ??
-    []) as LeanEventNotification[];
-  return [...items].sort(
+function mergeNotifications(
+  announcementItems: LeanEventNotification[],
+  releaseItems: LeanEventNotification[]
+): LeanEventNotification[] {
+  const byId = new Map<string, LeanEventNotification>();
+
+  for (const item of announcementItems) {
+    byId.set(item.id, item);
+  }
+  // Rilasci hanno priorità se collidono con id announcement.
+  for (const item of releaseItems) {
+    byId.set(item.id, item);
+  }
+
+  return [...byId.values()].sort(
     (a, b) =>
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
 }
 
-export function readNotificationIds(
-  tenantSlug: string,
-  userEmail: string
-): Set<string> {
-  if (typeof window === "undefined") {
-    return new Set();
-  }
-  try {
-    const raw = localStorage.getItem(storageKey(tenantSlug, userEmail));
-    if (!raw) {
-      return new Set();
-    }
-    const parsed = JSON.parse(raw) as string[];
-    return new Set(Array.isArray(parsed) ? parsed : []);
-  } catch {
-    return new Set();
-  }
-}
-
-export function writeNotificationIds(
-  tenantSlug: string,
-  userEmail: string,
-  ids: Set<string>
-): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    localStorage.setItem(
-      storageKey(tenantSlug, userEmail),
-      JSON.stringify([...ids])
-    );
-  } catch {
-    /* ignore */
-  }
-}
-
-export function countUnreadNotifications(
-  tenantSlug: string,
-  userEmail: string
-): number {
-  const read = readNotificationIds(tenantSlug, userEmail);
-  return listProductNotifications().filter((item) => !read.has(item.id)).length;
-}
-
-export const NOTIFICATIONS_CHANGED_EVENT = "lean-event-notifications-changed";
-
-function emitNotificationsChanged(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT));
-}
-
-export function markNotificationRead(
-  tenantSlug: string,
-  userEmail: string,
-  notificationId: string
-): void {
-  const read = readNotificationIds(tenantSlug, userEmail);
-  read.add(notificationId);
-  writeNotificationIds(tenantSlug, userEmail, read);
-  emitNotificationsChanged();
-}
-
-export function markAllNotificationsRead(
-  tenantSlug: string,
-  userEmail: string
-): void {
-  const all = new Set(listProductNotifications().map((item) => item.id));
-  writeNotificationIds(tenantSlug, userEmail, all);
-  emitNotificationsChanged();
+/** Server-side: announcement + rilasci — SoT Control Plane Neon (non Blob, non JSON). */
+export async function listProductNotifications(): Promise<
+  LeanEventNotification[]
+> {
+  const [announcements, releaseItems] = await Promise.all([
+    listPlatformAnnouncements(),
+    listReleaseNotifications(),
+  ]);
+  return mergeNotifications(announcements, releaseItems);
 }

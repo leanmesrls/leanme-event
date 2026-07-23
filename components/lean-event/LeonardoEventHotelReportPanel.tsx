@@ -11,10 +11,10 @@ import {
 } from "@/lib/lean-event/allotment-report";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import { normalizeHotelBlocks } from "@/lib/lean-event/event-hotel";
-import type { LeonardoEvent, LeonardoVenue } from "@/types/lean-event";
+import type { TenantEvent, LeonardoVenue } from "@/types/lean-event";
 
 interface LeonardoEventHotelReportPanelProps {
-  event: LeonardoEvent;
+  event: TenantEvent;
   venues: LeonardoVenue[];
   assignments: EventAssignmentWithContact[];
 }

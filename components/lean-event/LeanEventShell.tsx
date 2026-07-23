@@ -24,6 +24,7 @@ import {
   leanEventLeonardoCestinoPath,
   leanEventLeonardoFeedbackPath,
   leanEventLeonardoHelpCenterPath,
+  leanEventLeonardoInfoPath,
   leanEventLeonardoPath,
   leanEventLeonardoProfiloPath,
   leanEventLoginPath,
@@ -142,8 +143,9 @@ function NavIcon({ icon }: { icon: NonNullable<LeanEventNavItem["icon"]> }) {
   const paths: Record<NonNullable<LeanEventNavItem["icon"]>, string> = {
     dashboard:
       "M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z",
+    /** Sparkle AI (sagoma), non stella preferiti. */
     leonardo:
-      "M12 3l2.2 6.8H21l-5.6 4.1 2.1 6.8L12 16.8 6.4 20.7l2.1-6.8L3 9.8h6.8L12 3Z",
+      "M12 3.2 13.4 9.1 19.5 10.5 13.4 11.9 12 17.8 10.6 11.9 4.5 10.5 10.6 9.1 12 3.2ZM18.2 15.2l.7 2.6 2.6.7-2.6.7-.7 2.6-.7-2.6-2.6-.7 2.6-.7.7-2.6Z",
     events:
       "M8 3v3H5a2 2 0 0 0-2 2v11h18V8a2 2 0 0 0-2-2h-3V3H8Zm2 2h4V6h-4V5ZM4 10h16v9H4v-9Z",
     contacts:
@@ -174,7 +176,13 @@ function NavIcon({ icon }: { icon: NonNullable<LeanEventNavItem["icon"]> }) {
   );
 }
 
-type FooterNavIcon = "trash" | "profile" | "account" | "help" | "feedback";
+type FooterNavIcon =
+  | "trash"
+  | "profile"
+  | "account"
+  | "help"
+  | "feedback"
+  | "info";
 
 function FooterNavIconGlyph({ icon }: { icon: FooterNavIcon }) {
   const paths: Record<FooterNavIcon, string> = {
@@ -187,6 +195,7 @@ function FooterNavIconGlyph({ icon }: { icon: FooterNavIcon }) {
     help: "M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm0 13.5A1.25 1.25 0 1 1 13.25 15.25 1.25 1.25 0 0 1 12 16.5Zm1.6-5.35-.55.35A1.7 1.7 0 0 0 12.3 13h-1.1v-.4a2.5 2.5 0 0 1 1.15-2.1l.75-.5a1.2 1.2 0 1 0-1.9-1 1 1 0 0 1-1.9-.4 3.2 3.2 0 1 1 4.4 2.95Z",
     feedback:
       "M12 3 14.1 8.2 19.8 9l-4.1 3.8 1.1 5.5L12 15.8 7.2 18.3l1.1-5.5L4.2 9l5.7-.8L12 3Z",
+    info: "M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm0 4.2a1.1 1.1 0 1 1-1.1 1.1A1.1 1.1 0 0 1 12 7.2Zm-1.25 3.3h2.5V18h-2.5Z",
   };
 
   return (
@@ -366,6 +375,13 @@ function UserAccountMenu({
             href={leanEventLeonardoFeedbackPath(tenantSlug)}
             label="Feedback"
             icon="feedback"
+            pathname={pathname}
+            onNavigate={handleNavigate}
+          />
+          <FooterNavLink
+            href={leanEventLeonardoInfoPath(tenantSlug)}
+            label="Info"
+            icon="info"
             pathname={pathname}
             onNavigate={handleNavigate}
           />

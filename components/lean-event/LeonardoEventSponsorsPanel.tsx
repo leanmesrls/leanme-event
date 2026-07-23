@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { LeonardoSubSectionNav } from "@/components/lean-event/LeonardoSubSectionNav";
 import { LEONARDO_CANVAS_SURFACE } from "@/components/lean-event/leonardo-ui";
-import type { LeonardoEventSponsorRecord } from "@/types/lean-event";
+import type { TenantEventSponsorRecord } from "@/types/lean-event";
 
 function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -13,7 +13,7 @@ function newId(): string {
   return `sp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function emptySponsor(): LeonardoEventSponsorRecord {
+function emptySponsor(): TenantEventSponsorRecord {
   return {
     id: newId(),
     contactId: null,
@@ -30,8 +30,8 @@ function emptySponsor(): LeonardoEventSponsorRecord {
 type SponsorView = "insert" | "list";
 
 interface LeonardoEventSponsorsPanelProps {
-  sponsors: LeonardoEventSponsorRecord[];
-  onChange: (sponsors: LeonardoEventSponsorRecord[]) => void;
+  sponsors: TenantEventSponsorRecord[];
+  onChange: (sponsors: TenantEventSponsorRecord[]) => void;
   onSave: () => void;
   saving: boolean;
   message: string | null;
@@ -46,8 +46,8 @@ function SponsorFields({
   onPatch,
   onRemove,
 }: {
-  sponsor: LeonardoEventSponsorRecord;
-  onPatch: (partial: Partial<LeonardoEventSponsorRecord>) => void;
+  sponsor: TenantEventSponsorRecord;
+  onPatch: (partial: Partial<TenantEventSponsorRecord>) => void;
   onRemove?: () => void;
 }) {
   return (
@@ -138,7 +138,7 @@ export function LeonardoEventSponsorsPanel({
   panelTitle = "Sponsors",
 }: LeonardoEventSponsorsPanelProps) {
   const [internalView, setInternalView] = useState<SponsorView>("list");
-  const [draft, setDraft] = useState<LeonardoEventSponsorRecord>(() =>
+  const [draft, setDraft] = useState<TenantEventSponsorRecord>(() =>
     emptySponsor()
   );
   const view = controlledView ?? internalView;

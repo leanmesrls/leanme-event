@@ -30,11 +30,11 @@ import {
 } from "@/lib/lean-event/paths";
 import type {
   LeanEventTenantUserPublic,
-  LeonardoEvent,
+  TenantEvent,
   LeonardoVenue,
 } from "@/types/lean-event";
 
-const statusLabels: Record<LeonardoEvent["status"], string> = {
+const statusLabels: Record<TenantEvent["status"], string> = {
   draft: "Bozza",
   active: "Attivo",
   completed: "Completato",
@@ -45,7 +45,7 @@ type EventSection = "list" | "import";
 
 interface LeonardoEventListProps {
   tenantSlug: string;
-  initialEvents: LeonardoEvent[];
+  initialEvents: TenantEvent[];
   venues: LeonardoVenue[];
   tenantUsers: LeanEventTenantUserPublic[];
 }
@@ -94,7 +94,7 @@ export function LeonardoEventList({
     const response = await fetch("/api/lean-event/events", {
       credentials: "same-origin",
     });
-    const payload = (await response.json()) as { events?: LeonardoEvent[] };
+    const payload = (await response.json()) as { events?: TenantEvent[] };
     if (payload.events) {
       setEvents(payload.events);
     }
@@ -110,7 +110,7 @@ export function LeonardoEventList({
     }
   }
 
-  async function toggleFavorite(event: LeonardoEvent) {
+  async function toggleFavorite(event: TenantEvent) {
     const previousFavorite = Boolean(event.isFavorite);
     const nextFavorite = !previousFavorite;
     setFavoriteBusyId(event.id);
@@ -132,7 +132,7 @@ export function LeonardoEventList({
         }),
       });
       const payload = (await response.json()) as {
-        event?: LeonardoEvent;
+        event?: TenantEvent;
         error?: string;
       };
       if (!response.ok || !payload.event) {

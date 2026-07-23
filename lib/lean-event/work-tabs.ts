@@ -79,6 +79,7 @@ const SECTION_LABELS: Record<string, string> = {
   account: "Account",
   "help-center": "Help Center",
   feedback: "Feedback",
+  info: "Info",
   notifiche: "Notifiche",
   cestino: "Cestino",
   profilo: "Profilo",

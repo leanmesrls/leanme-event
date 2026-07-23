@@ -5,7 +5,7 @@ import {
   listHospitalityNightStays,
   normalizeAssignmentHospitality,
 } from "@/lib/lean-event/hospitality";
-import type { LeonardoEventHotelBlock } from "@/types/lean-event";
+import type { TenantEventHotelBlock } from "@/types/lean-event";
 
 const EXPORT_HEADERS = [
   "Nome",
@@ -28,7 +28,7 @@ function escapeCsvCell(value: string): string {
 
 function assignmentToRow(
   assignment: EventAssignmentWithContact,
-  hotelBlocks: LeonardoEventHotelBlock[]
+  hotelBlocks: TenantEventHotelBlock[]
 ): string[] {
   const hospitality = normalizeAssignmentHospitality(assignment.hospitality);
   const incomplete = isHospitalitySheetIncomplete(
@@ -52,7 +52,7 @@ function assignmentToRow(
 
 export function buildGuestsCsv(
   assignments: EventAssignmentWithContact[],
-  hotelBlocks: LeonardoEventHotelBlock[]
+  hotelBlocks: TenantEventHotelBlock[]
 ): string {
   const lines = [
     EXPORT_HEADERS.join(";"),
@@ -67,7 +67,7 @@ export function buildGuestsCsv(
 
 export function downloadGuestsCsv(
   assignments: EventAssignmentWithContact[],
-  hotelBlocks: LeonardoEventHotelBlock[],
+  hotelBlocks: TenantEventHotelBlock[],
   filename = "leanyou-ospiti-evento.csv"
 ): void {
   const csv = buildGuestsCsv(assignments, hotelBlocks);

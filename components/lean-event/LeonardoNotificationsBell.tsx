@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
-  countUnreadNotifications,
+  countUnreadAmong,
   NOTIFICATIONS_CHANGED_EVENT,
-} from "@/lib/lean-event/notifications";
+  type LeanEventNotification,
+} from "@/lib/lean-event/notifications-client";
 import { leanEventLeonardoNotifichePath } from "@/lib/lean-event/paths";
 
 interface LeonardoNotificationsBellProps {
@@ -19,10 +20,38 @@ export function LeonardoNotificationsBell({
   userEmail,
 }: LeonardoNotificationsBellProps) {
   const [unread, setUnread] = useState(0);
+  const [notifications, setNotifications] = useState<LeanEventNotification[]>(
+    []
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch("/api/leanyou/product-notifications", {
+          credentials: "same-origin",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          notifications?: LeanEventNotification[];
+        };
+        if (cancelled) return;
+        setNotifications(data.notifications ?? []);
+      } catch {
+        /* ignore transient fetch errors for badge */
+      }
+    }
+
+    void loadNotifications();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     function refresh() {
-      setUnread(countUnreadNotifications(tenantSlug, userEmail));
+      setUnread(countUnreadAmong(notifications, tenantSlug, userEmail));
     }
     refresh();
 
@@ -40,7 +69,7 @@ export function LeonardoNotificationsBell({
       window.removeEventListener("storage", onStorage);
       window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refresh);
     };
-  }, [tenantSlug, userEmail]);
+  }, [notifications, tenantSlug, userEmail]);
 
   const href = leanEventLeonardoNotifichePath(tenantSlug);
   const label =

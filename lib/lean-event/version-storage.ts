@@ -1,14 +1,16 @@
+/**
+ * Entity version snapshots — Neon primary + local FS mirror.
+ * Blob dual-write removed (Neon-only runtime).
+ */
+
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-
-import { del, get, list, put } from "@vercel/blob";
 
 import type { LeanEventManagedEntityType } from "@/lib/lean-event/entity-lifecycle";
 import {
   LEAN_EVENT_VERSION_KEEP_DAYS,
   LEAN_EVENT_VERSION_KEEP_LAST,
 } from "@/lib/lean-event/entity-lifecycle";
-import { isEntityBlobStorageEnabled } from "@/lib/lean-event/entity-blob-storage";
 import {
   getManagedEntityVersionFromNeon,
   insertManagedEntityVersionToNeon,
@@ -21,24 +23,12 @@ import {
   writeJsonFile,
 } from "@/lib/lean-event/storage";
 
-const BLOB_ROOT = "lean-event/versions";
-const BLOB_ACCESS = "private" as const;
-
 export interface LeanEventEntityVersionMeta {
   revision: number;
   changedAt: string;
   changedBy: string;
   changeSummary?: string | null;
-  source: "neon" | "blob" | "fs";
-}
-
-function versionPathname(
-  tenantId: string,
-  entityType: LeanEventManagedEntityType,
-  entityId: string,
-  revision: number
-): string {
-  return `${BLOB_ROOT}/${tenantId}/${entityType}/${entityId}/r${revision}.json`;
+  source: "neon" | "fs";
 }
 
 function versionDir(
@@ -112,30 +102,6 @@ export function shouldPruneVersion(input: {
   return input.rankFromNewest > keepLast && input.changedAt < cutoff;
 }
 
-async function pruneVersionsFromBlob(
-  tenantId: string,
-  entityType: LeanEventManagedEntityType,
-  entityId: string
-): Promise<number> {
-  const metas = await listVersionsFromBlob(tenantId, entityType, entityId);
-  const doomed = metas.filter((meta, index) =>
-    shouldPruneVersion({
-      rankFromNewest: index + 1,
-      changedAt: meta.changedAt,
-    })
-  );
-  if (doomed.length === 0) {
-    return 0;
-  }
-
-  await Promise.all(
-    doomed.map((meta) =>
-      del(versionPathname(tenantId, entityType, entityId, meta.revision))
-    )
-  );
-  return doomed.length;
-}
-
 async function pruneVersionsFromFs(
   tenantId: string,
   entityType: LeanEventManagedEntityType,
@@ -162,34 +128,12 @@ async function pruneVersionsFromFs(
   return doomed.length;
 }
 
-/**
- * Prune Blob + FS con la stessa policy Neon (ultimi N OR ultimi D giorni).
- * Non solleva: errori loggati.
- */
 export async function pruneEntityVersionFiles(
   tenantId: string,
   entityType: LeanEventManagedEntityType,
   entityId: string
 ): Promise<{ blob: number; fs: number }> {
-  let blob = 0;
   let fs = 0;
-
-  if (isEntityBlobStorageEnabled()) {
-    try {
-      blob = await pruneVersionsFromBlob(tenantId, entityType, entityId);
-    } catch (error) {
-      console.error(
-        JSON.stringify({
-          lean_event_version_prune_blob_error: {
-            entityType,
-            entityId,
-            message: error instanceof Error ? error.message : String(error),
-          },
-        })
-      );
-    }
-  }
-
   try {
     fs = await pruneVersionsFromFs(tenantId, entityType, entityId);
   } catch (error) {
@@ -203,11 +147,10 @@ export async function pruneEntityVersionFiles(
       })
     );
   }
-
-  return { blob, fs };
+  return { blob: 0, fs };
 }
 
-/** Snapshot immutabile prima di ogni overwrite (Blob/FS + Neon). */
+/** Snapshot immutabile prima di ogni overwrite (FS + Neon). */
 export async function saveEntityVersionSnapshot(
   tenantId: string,
   entityType: LeanEventManagedEntityType,
@@ -215,48 +158,10 @@ export async function saveEntityVersionSnapshot(
   revision: number,
   snapshot: unknown
 ): Promise<void> {
-  const payload = JSON.stringify(snapshot, null, 2);
-  let blobOk = false;
-
-  if (isEntityBlobStorageEnabled()) {
-    try {
-      await put(
-        versionPathname(tenantId, entityType, entityId, revision),
-        payload,
-        {
-          access: BLOB_ACCESS,
-          contentType: "application/json",
-          addRandomSuffix: false,
-          allowOverwrite: false,
-        }
-      );
-      blobOk = true;
-    } catch (error) {
-      // Revisione già presente su Blob (allowOverwrite: false) = ok; altri errori → FS
-      const message = error instanceof Error ? error.message : String(error);
-      if (/already exists|overwrite/i.test(message)) {
-        blobOk = true;
-      } else {
-        console.error(
-          JSON.stringify({
-            lean_event_version_blob_fallback: {
-              entityType,
-              entityId,
-              revision,
-              message,
-            },
-          })
-        );
-      }
-    }
-  }
-
-  if (!blobOk) {
-    await writeJsonFile(
-      versionFilePath(tenantId, entityType, entityId, revision),
-      snapshot
-    );
-  }
+  await writeJsonFile(
+    versionFilePath(tenantId, entityType, entityId, revision),
+    snapshot
+  );
 
   await insertManagedEntityVersionToNeon(
     tenantId,
@@ -266,44 +171,7 @@ export async function saveEntityVersionSnapshot(
     snapshot
   );
 
-  // Prune file store (Neon prune avviene già in insertManagedEntityVersionToNeon)
   await pruneEntityVersionFiles(tenantId, entityType, entityId);
-}
-
-async function listVersionsFromBlob(
-  tenantId: string,
-  entityType: LeanEventManagedEntityType,
-  entityId: string
-): Promise<LeanEventEntityVersionMeta[]> {
-  const prefix = `${BLOB_ROOT}/${tenantId}/${entityType}/${entityId}/`;
-  const metas: LeanEventEntityVersionMeta[] = [];
-  let cursor: string | undefined;
-
-  do {
-    const page = await list({ prefix, cursor, limit: 1000 });
-    for (const blob of page.blobs) {
-      const revision = parseRevisionFromName(blob.pathname);
-      if (revision === null) {
-        continue;
-      }
-      const changedAt =
-        blob.uploadedAt instanceof Date
-          ? blob.uploadedAt.toISOString()
-          : typeof blob.uploadedAt === "string"
-            ? blob.uploadedAt
-            : new Date(0).toISOString();
-      metas.push({
-        revision,
-        changedAt,
-        changedBy: "system",
-        changeSummary: null,
-        source: "blob",
-      });
-    }
-    cursor = page.hasMore ? page.cursor : undefined;
-  } while (cursor);
-
-  return metas.sort((a, b) => b.revision - a.revision);
 }
 
 async function listVersionsFromFs(
@@ -351,7 +219,7 @@ function mergeVersionMetas(
   return [...byRevision.values()].sort((a, b) => b.revision - a.revision);
 }
 
-/** Elenco revisioni: Neon first, union con Blob/FS (Blob non deve far fallire l’API). */
+/** Elenco revisioni: Neon first, union con FS. */
 export async function listEntityVersionMetas(
   tenantId: string,
   entityType: LeanEventManagedEntityType,
@@ -372,32 +240,14 @@ export async function listEntityVersionMetas(
       }))
     : [];
 
-  let blobMetas: LeanEventEntityVersionMeta[] = [];
-  if (isEntityBlobStorageEnabled()) {
-    try {
-      blobMetas = await listVersionsFromBlob(tenantId, entityType, entityId);
-    } catch (error) {
-      console.error(
-        JSON.stringify({
-          lean_event_version_list_blob_error: {
-            entityType,
-            entityId,
-            message: error instanceof Error ? error.message : String(error),
-          },
-        })
-      );
-    }
-  }
-
   const fsMetas = await listVersionsFromFs(tenantId, entityType, entityId);
-
-  return mergeVersionMetas(
-    neonMetas,
-    mergeVersionMetas(blobMetas, fsMetas)
-  ).slice(0, LEAN_EVENT_VERSION_KEEP_LAST);
+  return mergeVersionMetas(neonMetas, fsMetas).slice(
+    0,
+    LEAN_EVENT_VERSION_KEEP_LAST
+  );
 }
 
-/** Snapshot di una revisione (Neon → Blob → FS). */
+/** Snapshot di una revisione (Neon → FS). */
 export async function getEntityVersionSnapshot<T = unknown>(
   tenantId: string,
   entityType: LeanEventManagedEntityType,
@@ -412,21 +262,6 @@ export async function getEntityVersionSnapshot<T = unknown>(
   );
   if (neon.ok && neon.data?.snapshot !== undefined) {
     return neon.data.snapshot as T;
-  }
-
-  if (isEntityBlobStorageEnabled()) {
-    try {
-      const result = await get(
-        versionPathname(tenantId, entityType, entityId, revision),
-        { access: BLOB_ACCESS, useCache: false }
-      );
-      if (result?.stream) {
-        const raw = await new Response(result.stream).text();
-        return JSON.parse(raw) as T;
-      }
-    } catch {
-      // fall through to FS
-    }
   }
 
   return readJsonFile<T>(

@@ -9,14 +9,14 @@ import {
 } from "@/lib/lean-event/event-taxonomy";
 import type {
   LeonardoEcmModality,
-  LeonardoEventCategoryId,
+  TenantEventCategoryId,
   LeonardoFormationEventTypeId,
 } from "@/types/lean-event";
 
 const taxonomyConfig = taxonomy as EventTaxonomyConfig;
 
 export interface EventTaxonomyFormState {
-  categoryId: LeonardoEventCategoryId;
+  categoryId: TenantEventCategoryId;
   healthAreaId: string | null;
   ecmEnabled: boolean | null;
   ecmModality: LeonardoEcmModality | null;
@@ -47,7 +47,7 @@ export function LeonardoEventTaxonomyFields({
     value.formationEventTypeId
   );
 
-  function updateCategory(categoryId: LeonardoEventCategoryId) {
+  function updateCategory(categoryId: TenantEventCategoryId) {
     if (isFormationCategory(categoryId)) {
       onChange({
         categoryId,
@@ -91,7 +91,7 @@ export function LeonardoEventTaxonomyFields({
             required
             value={value.categoryId}
             onChange={(event) =>
-              updateCategory(event.target.value as LeonardoEventCategoryId)
+              updateCategory(event.target.value as TenantEventCategoryId)
             }
             className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
           >

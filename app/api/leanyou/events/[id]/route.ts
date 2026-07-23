@@ -14,10 +14,10 @@ import { normalizeMeetingDateInput } from "@/lib/lean-event/dates";
 import {
   isFormationCategory,
   isHealthFormationCategory,
-  normalizeLeonardoEvent,
+  normalizeTenantEvent,
   validateEventTaxonomy,
 } from "@/lib/lean-event/event-taxonomy";
-import type { LeonardoEvent, LeonardoEventHotelBlock } from "@/types/lean-event";
+import type { TenantEvent, TenantEventHotelBlock } from "@/types/lean-event";
 import {
   deleteEvent,
   getEvent,
@@ -78,8 +78,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Evento non trovato." }, { status: 404 });
     }
 
-    const body = (await request.json()) as Partial<LeonardoEvent> & {
-      hotelBlocks?: LeonardoEventHotelBlock[];
+    const body = (await request.json()) as Partial<TenantEvent> & {
+      hotelBlocks?: TenantEventHotelBlock[];
       expectedRevision?: number;
     };
 
@@ -164,7 +164,7 @@ export async function PATCH(request: Request, context: RouteContext) {
             projectManagerUserIds: event.projectManagerUserIds ?? [],
           };
 
-    const next = normalizeLeonardoEvent({
+    const next = normalizeTenantEvent({
       ...event,
       cdc: body.cdc !== undefined ? body.cdc.trim() : event.cdc,
       title: body.title !== undefined ? body.title.trim() : event.title,

@@ -1,4 +1,4 @@
-import type { LeonardoEventVenueDetails, LeonardoVenue } from "@/types/lean-event";
+import type { TenantEventVenueDetails, LeonardoVenue } from "@/types/lean-event";
 
 import {
   buildVenueSnapshot,
@@ -15,12 +15,12 @@ export async function resolveEventVenueFields(
   input: {
     venueId?: string | null;
     venue?: string;
-    venueDetails?: Partial<LeonardoEventVenueDetails> | null;
+    venueDetails?: Partial<TenantEventVenueDetails> | null;
   }
 ): Promise<{
   venueId: string | null;
   venue: string;
-  venueDetails: LeonardoEventVenueDetails;
+  venueDetails: TenantEventVenueDetails;
 }> {
   const venueId = input.venueId?.trim() || null;
   const incomingDetails = input.venueDetails
@@ -88,9 +88,9 @@ export async function resolveEventVenueFields(
 }
 
 function mergeVenueDetailsPreferIncoming(
-  fromRubrica: LeonardoEventVenueDetails,
-  incoming: LeonardoEventVenueDetails
-): LeonardoEventVenueDetails {
+  fromRubrica: TenantEventVenueDetails,
+  incoming: TenantEventVenueDetails
+): TenantEventVenueDetails {
   const stringEmpty = (value: unknown) =>
     typeof value !== "string" || !value.trim();
   const incomingEmpty =
@@ -124,7 +124,7 @@ function mergeVenueDetailsPreferIncoming(
 export function eventVenueDisplayLabel(
   venueSnapshot: string,
   linkedVenue?: LeonardoVenue | null,
-  venueDetails?: LeonardoEventVenueDetails | null
+  venueDetails?: TenantEventVenueDetails | null
 ): string {
   if (venueDetails) {
     const normalized = normalizeVenueDetails(venueDetails);

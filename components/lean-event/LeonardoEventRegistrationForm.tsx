@@ -4,11 +4,11 @@ import {
   emptyRegistrationFee,
   normalizeEventRegistration,
 } from "@/lib/lean-event/event-registration";
-import type { LeonardoEventRegistration } from "@/types/lean-event";
+import type { TenantEventRegistration } from "@/types/lean-event";
 
 interface LeonardoEventRegistrationFormProps {
-  value: LeonardoEventRegistration | null | undefined;
-  onChange: (value: LeonardoEventRegistration) => void;
+  value: TenantEventRegistration | null | undefined;
+  onChange: (value: TenantEventRegistration) => void;
 }
 
 export function LeonardoEventRegistrationForm({
@@ -17,7 +17,7 @@ export function LeonardoEventRegistrationForm({
 }: LeonardoEventRegistrationFormProps) {
   const registration = normalizeEventRegistration(value);
 
-  function patch(partial: Partial<LeonardoEventRegistration>) {
+  function patch(partial: Partial<TenantEventRegistration>) {
     onChange(normalizeEventRegistration({ ...registration, ...partial }));
   }
 

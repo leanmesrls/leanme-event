@@ -6,7 +6,7 @@ import { LeonardoGuestHospitalityCard } from "@/components/lean-event/LeonardoGu
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type {
   LeonardoAssignmentHospitality,
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoRelatedEvent,
   LeonardoRelatedEventParticipation,
   LeonardoVenue,
@@ -17,7 +17,7 @@ interface LeonardoGuestSheetModalProps {
   eventId: string;
   assignment: EventAssignmentWithContact;
   allAssignments: EventAssignmentWithContact[];
-  hotelBlocks: LeonardoEventHotelBlock[];
+  hotelBlocks: TenantEventHotelBlock[];
   venues: LeonardoVenue[];
   relatedEvents: LeonardoRelatedEvent[];
   saving: boolean;

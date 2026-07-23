@@ -1,5 +1,5 @@
 import type {
-  LeonardoEventVenueDetails,
+  TenantEventVenueDetails,
   LeonardoVenue,
 } from "@/types/lean-event";
 
@@ -9,7 +9,7 @@ import {
   regionFromItalianProvince,
 } from "./geo-italy";
 
-export function emptyVenueDetails(): LeonardoEventVenueDetails {
+export function emptyVenueDetails(): TenantEventVenueDetails {
   return {
     name: "",
     address: "",
@@ -25,8 +25,8 @@ export function emptyVenueDetails(): LeonardoEventVenueDetails {
 }
 
 export function normalizeVenueDetails(
-  details?: Partial<LeonardoEventVenueDetails> | null
-): LeonardoEventVenueDetails {
+  details?: Partial<TenantEventVenueDetails> | null
+): TenantEventVenueDetails {
   const isOnline = Boolean(details?.isOnline);
   if (isOnline) {
     return {
@@ -62,7 +62,7 @@ export function normalizeVenueDetails(
 
 export function venueDetailsFromLeonardoVenue(
   venue: LeonardoVenue
-): LeonardoEventVenueDetails {
+): TenantEventVenueDetails {
   return normalizeVenueDetails({
     name: venue.name,
     address: venue.address,
@@ -76,7 +76,7 @@ export function venueDetailsFromLeonardoVenue(
 }
 
 export function buildVenueSnapshotFromDetails(
-  details: LeonardoEventVenueDetails
+  details: TenantEventVenueDetails
 ): string {
   const normalized = normalizeVenueDetails(details);
   if (normalized.isOnline) {
@@ -154,7 +154,7 @@ export function venueMatchesQuery(venue: LeonardoVenue, query: string): boolean 
 /** Prova a ricostruire i campi se esiste solo lo snapshot testuale legacy. */
 export function parseVenueSnapshotToDetails(
   snapshot: string
-): LeonardoEventVenueDetails {
+): TenantEventVenueDetails {
   const trimmed = snapshot.trim();
   if (!trimmed) {
     return emptyVenueDetails();

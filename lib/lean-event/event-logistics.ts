@@ -18,7 +18,7 @@ import {
 import { formatVenueLabel } from "@/lib/lean-event/venue-display";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type {
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoTravelDirection,
   LeonardoTravelMode,
   LeonardoTravelSegment,
@@ -119,7 +119,7 @@ function resolveOriginDestination(segment: LeonardoTravelSegment): {
 }
 
 function resolveRoomLabels(
-  hotelBlocks: LeonardoEventHotelBlock[],
+  hotelBlocks: TenantEventHotelBlock[],
   venues: LeonardoVenue[],
   assignment: EventAssignmentWithContact
 ): { hotelLabel: string; roomLabel: string } {
@@ -175,7 +175,7 @@ function primaryTravelMode(
 
 export function buildEventLogisticsManifest(
   assignments: EventAssignmentWithContact[],
-  hotelBlocks: LeonardoEventHotelBlock[],
+  hotelBlocks: TenantEventHotelBlock[],
   venues: LeonardoVenue[]
 ): EventLogisticsManifestRow[] {
   const rows: EventLogisticsManifestRow[] = [];

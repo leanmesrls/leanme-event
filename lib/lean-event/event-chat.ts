@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type {
   LeanEventSession,
-  LeonardoEventChatMessage,
+  TenantEventChatMessage,
   LeonardoEventChatThread,
 } from "@/types/lean-event";
 
@@ -61,7 +61,7 @@ async function persistThread(
 export async function listEventChatMessages(
   tenantId: string,
   eventId: string
-): Promise<LeonardoEventChatMessage[]> {
+): Promise<TenantEventChatMessage[]> {
   const thread = await getStoredEventChatThread(tenantId, eventId);
   if (!thread || !isEntityActive(normalizeThread(thread))) {
     return [];
@@ -76,11 +76,11 @@ export async function appendEventChatMessage(
   eventId: string,
   input: {
     body: string;
-    links?: LeonardoEventChatMessage["links"];
+    links?: TenantEventChatMessage["links"];
     mentions?: string[];
-    attachments?: LeonardoEventChatMessage["attachments"];
+    attachments?: TenantEventChatMessage["attachments"];
   }
-): Promise<LeonardoEventChatMessage> {
+): Promise<TenantEventChatMessage> {
   const event = await getEvent(session.tenantId, eventId);
   if (!event) {
     throw new Error("EVENT_NOT_FOUND");
@@ -91,7 +91,7 @@ export async function appendEventChatMessage(
     throw new Error("EMPTY_MESSAGE");
   }
 
-  const message: LeonardoEventChatMessage = {
+  const message: TenantEventChatMessage = {
     id: randomUUID(),
     eventId,
     tenantId: session.tenantId,

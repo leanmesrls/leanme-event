@@ -1,8 +1,8 @@
 import { validateEventTaxonomy } from "@/lib/lean-event/event-taxonomy";
-import type { LeonardoEvent } from "@/types/lean-event";
+import type { TenantEvent } from "@/types/lean-event";
 
 type EventRequiredPick = Pick<
-  LeonardoEvent,
+  TenantEvent,
   | "title"
   | "venue"
   | "venueDetails"
@@ -71,7 +71,7 @@ export function validateEventRequiredFields(
 /** Validazione campi obbligatori tab Formazione e ECM. */
 export function validateFormationEcmRequiredFields(
   event: Pick<
-    LeonardoEvent,
+    TenantEvent,
     | "categoryId"
     | "healthAreaId"
     | "ecmEnabled"

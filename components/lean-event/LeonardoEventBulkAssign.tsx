@@ -7,12 +7,12 @@ import { collectContactOrganizations, collectContactTags } from "@/lib/lean-even
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type {
   LeanEventContact,
-  LeonardoEvent,
-  LeonardoEventRoleCategory,
+  TenantEvent,
+  TenantEventRoleCategory,
 } from "@/types/lean-event";
 
 const roleCategories = eventsConfig.roleCategories as Array<{
-  id: LeonardoEventRoleCategory;
+  id: TenantEventRoleCategory;
   label: string;
 }>;
 
@@ -28,7 +28,7 @@ interface BulkPreview {
 interface LeonardoEventBulkAssignProps {
   eventId: string;
   contacts: LeanEventContact[];
-  otherEvents: LeonardoEvent[];
+  otherEvents: TenantEvent[];
   onAssigned: (assignments: EventAssignmentWithContact[]) => void;
   embedded?: boolean;
 }
@@ -43,7 +43,7 @@ export function LeonardoEventBulkAssign({
   const [open, setOpen] = useState(embedded);
   const [sourceType, setSourceType] = useState<SourceType>("tags");
   const [roleCategory, setRoleCategory] =
-    useState<LeonardoEventRoleCategory>("ospite");
+    useState<TenantEventRoleCategory>("ospite");
   const [tagMatch, setTagMatch] = useState<"any" | "all">("any");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [organization, setOrganization] = useState("");
@@ -78,7 +78,7 @@ export function LeonardoEventBulkAssign({
       type: "past_event" as const,
       sourceEventId,
       ...(sourceRoleCategory
-        ? { sourceRoleCategory: sourceRoleCategory as LeonardoEventRoleCategory }
+        ? { sourceRoleCategory: sourceRoleCategory as TenantEventRoleCategory }
         : {}),
     };
   }
@@ -349,7 +349,7 @@ export function LeonardoEventBulkAssign({
               <select
                 value={roleCategory}
                 onChange={(event) => {
-                  setRoleCategory(event.target.value as LeonardoEventRoleCategory);
+                  setRoleCategory(event.target.value as TenantEventRoleCategory);
                   setPreview(null);
                 }}
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"

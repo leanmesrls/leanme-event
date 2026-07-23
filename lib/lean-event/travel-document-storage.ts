@@ -1,11 +1,14 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { get, put } from "@vercel/blob";
-
+import {
+  isPostgresBinaryStoreEnabled,
+  readLegacyBinaryFromPostgres,
+  storeLegacyBinaryInPostgres,
+} from "@/lib/lean-event/legacy-binary-postgres";
 import { getDataRoot } from "./storage";
 
-const BLOB_ROOT = "lean-event/travel-docs";
+const LEGACY_PATH_ROOT = "lean-event/travel-docs";
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -36,10 +39,6 @@ function contentTypeForExt(ext: string): string {
   if (ext === "png") return "image/png";
   if (ext === "webp") return "image/webp";
   return "image/jpeg";
-}
-
-export function isTravelBlobStorageEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
 }
 
 export function validateTravelDocumentFile(file: File): string | null {
@@ -77,14 +76,18 @@ export async function saveTravelDocumentFile(input: {
   const buffer = Buffer.from(await input.file.arrayBuffer());
   const ext = extensionForMime(input.file.type);
   const filename = `${input.segmentId}-${input.side}.${ext}`;
+  const pathname = `${LEGACY_PATH_ROOT}/${input.tenantId}/${input.eventId}/${input.assignmentId}/${filename}`;
 
-  if (isTravelBlobStorageEnabled()) {
-    const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${input.assignmentId}/${filename}`;
-    await put(pathname, buffer, {
-      access: "private",
-      contentType: input.file.type,
-      addRandomSuffix: false,
-      allowOverwrite: true,
+  if (isPostgresBinaryStoreEnabled()) {
+    await storeLegacyBinaryInPostgres({
+      tenantId: input.tenantId,
+      kind: "travel_id",
+      filename,
+      mime: input.file.type || "application/octet-stream",
+      file: buffer,
+      legacyPath: pathname,
+      eventId: input.eventId,
+      assignmentId: input.assignmentId,
     });
     return apiUrl(input.eventId, input.assignmentId, input.segmentId, input.side);
   }
@@ -105,6 +108,16 @@ export async function readTravelDocumentFile(input: {
   const extensions = ["jpg", "jpeg", "png", "webp", "pdf"];
 
   for (const ext of extensions) {
+    const pathname = `${LEGACY_PATH_ROOT}/${input.tenantId}/${input.eventId}/${input.assignmentId}/${input.segmentId}-${input.side}.${ext}`;
+    const fromPg = await readLegacyBinaryFromPostgres({
+      tenantId: input.tenantId,
+      legacyPath: pathname,
+    });
+    if (fromPg) return fromPg;
+  }
+
+  // Local FS only (dev without DB) — no Blob
+  for (const ext of extensions) {
     try {
       const buffer = await readFile(
         path.join(
@@ -113,27 +126,6 @@ export async function readTravelDocumentFile(input: {
         )
       );
       return { buffer, contentType: contentTypeForExt(ext === "jpeg" ? "jpg" : ext) };
-    } catch {
-      // try next
-    }
-  }
-
-  if (!isTravelBlobStorageEnabled()) {
-    return null;
-  }
-
-  for (const ext of extensions) {
-    const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${input.assignmentId}/${input.segmentId}-${input.side}.${ext}`;
-    try {
-      const result = await get(pathname, { access: "private", useCache: false });
-      if (!result?.stream) {
-        continue;
-      }
-      const buffer = Buffer.from(await new Response(result.stream).arrayBuffer());
-      return {
-        buffer,
-        contentType: contentTypeForExt(ext === "jpeg" ? "jpg" : ext),
-      };
     } catch {
       // try next
     }

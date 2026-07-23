@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
-import type { LeonardoEvent, LeonardoMeetingType, LeonardoWorkspace } from "@/types/lean-event";
+import type { TenantEvent, LeonardoMeetingType, LeonardoWorkspace } from "@/types/lean-event";
 
 const meetingTypes: Array<{ value: LeonardoMeetingType; label: string }> = [
   { value: "client_meeting", label: "Riunione cliente" },
@@ -13,7 +13,7 @@ const meetingTypes: Array<{ value: LeonardoMeetingType; label: string }> = [
 
 interface LeonardoWorkspaceMetadataFormProps {
   workspace: LeonardoWorkspace;
-  events?: LeonardoEvent[];
+  events?: TenantEvent[];
   onUpdated: (workspace: LeonardoWorkspace) => void;
 }
 

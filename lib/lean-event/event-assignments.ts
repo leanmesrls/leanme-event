@@ -6,8 +6,8 @@ import type {
   LeanEventSession,
   LeonardoAssignmentHospitality,
   LeonardoEventContactAssignment,
-  LeonardoEventHotelBlock,
-  LeonardoEventRoleCategory,
+  TenantEventHotelBlock,
+  TenantEventRoleCategory,
   LeonardoRelatedEventParticipation,
 } from "@/types/lean-event";
 
@@ -45,7 +45,7 @@ import {
 } from "./audit-log";
 
 const roleCategories = eventsConfig.roleCategories as Array<{
-  id: LeonardoEventRoleCategory;
+  id: TenantEventRoleCategory;
   label: string;
 }>;
 
@@ -58,7 +58,7 @@ function normalizeAssignment(
 }
 
 export function getEventRoleCategoryLabel(
-  roleCategory: LeonardoEventRoleCategory
+  roleCategory: TenantEventRoleCategory
 ): string {
   if (roleCategory === "staff") {
     return "Staff interno";
@@ -86,7 +86,7 @@ async function findStoredAssignmentByIdentity(
   tenantId: string,
   eventId: string,
   contactId: string,
-  roleCategory: LeonardoEventRoleCategory
+  roleCategory: TenantEventRoleCategory
 ): Promise<LeonardoEventContactAssignment | null> {
   const assignments = await listStoredAssignments(tenantId);
   const match = assignments
@@ -150,7 +150,7 @@ export async function getAssignment(
 
 export function isValidRoleCategory(
   value: string
-): value is LeonardoEventRoleCategory {
+): value is TenantEventRoleCategory {
   if (value === "staff") {
     return true;
   }
@@ -186,7 +186,7 @@ export async function createEventContactAssignment(
   input: {
     eventId: string;
     contactId: string;
-    roleCategory: LeonardoEventRoleCategory;
+    roleCategory: TenantEventRoleCategory;
     notes?: string;
     hospitality?: LeonardoAssignmentHospitality;
   }
@@ -286,7 +286,7 @@ export async function deleteEventContactAssignment(
 export async function reconcileEventAssignmentsWithHotelBlocks(
   tenantId: string,
   eventId: string,
-  hotelBlocks: LeonardoEventHotelBlock[],
+  hotelBlocks: TenantEventHotelBlock[],
   userId: string
 ): Promise<number> {
   const assignments = await listAssignmentsForEvent(tenantId, eventId);

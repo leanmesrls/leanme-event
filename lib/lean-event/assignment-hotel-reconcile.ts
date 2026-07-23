@@ -4,13 +4,13 @@ import {
 } from "@/lib/lean-event/night-stays";
 import type {
   LeonardoAssignmentHospitality,
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoNightStay,
 } from "@/types/lean-event";
 
 function isStayRoomAllotmentValid(
   stay: LeonardoNightStay,
-  hotelBlocks: LeonardoEventHotelBlock[]
+  hotelBlocks: TenantEventHotelBlock[]
 ): boolean {
   if (!stay.roomAllotmentId.trim()) {
     return true;
@@ -29,7 +29,7 @@ function isStayRoomAllotmentValid(
 
 export function reconcileHospitalityWithHotelBlocks(
   hospitalityInput: LeonardoAssignmentHospitality | null | undefined,
-  hotelBlocks: LeonardoEventHotelBlock[]
+  hotelBlocks: TenantEventHotelBlock[]
 ): LeonardoAssignmentHospitality {
   const hospitality = normalizeAssignmentHospitality(hospitalityInput);
   const nightStays = hospitality.nightStays.map((stay) => {

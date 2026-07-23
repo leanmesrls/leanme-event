@@ -84,7 +84,7 @@ import type {
   LeanEventLeonardoCapabilities,
   LeanEventSupplier,
   LeanEventTenantUserPublic,
-  LeonardoEvent,
+  TenantEvent,
   LeonardoVenue,
   LeonardoWorkspace,
 } from "@/types/lean-event";
@@ -93,14 +93,14 @@ import { useEntityRevisionWatch } from "@/lib/lean-event/use-entity-revision-wat
 
 interface LeonardoEventDetailProps {
   tenantSlug: string;
-  initialEvent: LeonardoEvent;
+  initialEvent: TenantEvent;
   venues: LeonardoVenue[];
   linkedWorkspaces: LeonardoWorkspace[];
   initialAssignments: EventAssignmentWithContact[];
   contacts: LeanEventContact[];
   initialSupplierLinks: EventSupplierWithSupplier[];
   rubricaSuppliers: LeanEventSupplier[];
-  otherEvents: LeonardoEvent[];
+  otherEvents: TenantEvent[];
   tenantUsers: LeanEventTenantUserPublic[];
   ospitiEnabled: boolean;
   hotelEnabled: boolean;
@@ -182,7 +182,7 @@ export function LeonardoEventDetail({
     fetchUrl: `/api/lean-event/events/${event.id}`,
     localRevision: event.revision ?? 1,
     extract: (payload) => {
-      const next = (payload as { event?: LeonardoEvent }).event;
+      const next = (payload as { event?: TenantEvent }).event;
       if (!next) {
         return null;
       }
@@ -201,7 +201,7 @@ export function LeonardoEventDetail({
     const response = await fetch(`/api/lean-event/events/${event.id}`, {
       credentials: "same-origin",
     });
-    const payload = (await response.json()) as { event?: LeonardoEvent };
+    const payload = (await response.json()) as { event?: TenantEvent };
     if (payload.event) {
       setEvent(payload.event);
       setStale(null);
@@ -398,7 +398,7 @@ export function LeonardoEventDetail({
     });
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       updatedBy?: string;
       updatedAt?: string;
     };
@@ -432,7 +432,7 @@ export function LeonardoEventDetail({
     });
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       updatedBy?: string;
       updatedAt?: string;
     };
@@ -500,7 +500,7 @@ export function LeonardoEventDetail({
     });
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       updatedBy?: string;
       updatedAt?: string;
     };
@@ -534,7 +534,7 @@ export function LeonardoEventDetail({
     });
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       updatedBy?: string;
       updatedAt?: string;
     };
@@ -568,7 +568,7 @@ export function LeonardoEventDetail({
     });
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       updatedBy?: string;
       updatedAt?: string;
     };
@@ -838,7 +838,7 @@ export function LeonardoEventDetail({
                   onChange={(e) =>
                     setEvent({
                       ...event,
-                      status: e.target.value as LeonardoEvent["status"],
+                      status: e.target.value as TenantEvent["status"],
                     })
                   }
                   className="mt-2 w-full rounded-lg border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-leanme-fuchsia"
@@ -877,7 +877,7 @@ export function LeonardoEventDetail({
                 entityId={event.id}
                 currentRevision={event.revision}
                 onRestored={(entity) => {
-                  setEvent(entity as LeonardoEvent);
+                  setEvent(entity as TenantEvent);
                   router.refresh();
                 }}
               />

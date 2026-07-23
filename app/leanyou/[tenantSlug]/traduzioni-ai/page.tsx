@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
   return createPageMetadata({
     title: "Lean Event · Traduzioni AI",
-    description: "Traduzioni assistite — pack Intelligence.",
+    description: "Traduzioni assistite — pack Business.",
     path: `${leanEventLeonardoPath(tenantSlug)}/traduzioni-ai`,
     noIndex: true,
   });
@@ -25,6 +25,6 @@ export default async function TraduzioniAiModulePage({ params }: PageProps) {
     capability: "ai_translations",
     title: "Traduzioni AI",
     subtitle: "Traduzione e localizzazione contenuti assistite da AI.",
-    packHint: "Modulo Intelligence",
+    packHint: "Modulo Business",
   });
 }

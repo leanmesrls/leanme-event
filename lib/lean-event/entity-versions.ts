@@ -15,7 +15,7 @@ import type {
   LeanEventContact,
   LeanEventSession,
   LeanEventSupplier,
-  LeonardoEvent,
+  TenantEvent,
   LeonardoVenue,
   LeonardoWorkspace,
 } from "@/types/lean-event";
@@ -127,7 +127,7 @@ export async function restoreEntityVersion(
     if (!current) {
       throw new Error("ENTITY_NOT_FOUND");
     }
-    const snap = snapshot as LeonardoEvent;
+    const snap = snapshot as TenantEvent;
     assertSameIdentity(snap, current);
     const restored = await saveEvent(
       {

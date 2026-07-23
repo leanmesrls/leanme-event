@@ -22,14 +22,14 @@ import {
 } from "@/lib/lean-event/upload-payload";
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
 import { leanEventLeonardoVerbaliPath } from "@/lib/lean-event/paths";
-import type { LeanEventConfig, LeonardoEvent, LeonardoWorkspace } from "@/types/lean-event";
+import type { LeanEventConfig, TenantEvent, LeonardoWorkspace } from "@/types/lean-event";
 
 const config = configData as LeanEventConfig;
 
 interface LeonardoWorkspaceDetailProps {
   tenantSlug: string;
   initialWorkspace: LeonardoWorkspace;
-  events?: LeonardoEvent[];
+  events?: TenantEvent[];
 }
 
 export function LeonardoWorkspaceDetail({

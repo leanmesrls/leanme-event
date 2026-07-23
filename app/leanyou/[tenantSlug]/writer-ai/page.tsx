@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { tenantSlug } = await params;
   return createPageMetadata({
     title: "Lean Event · Writer AI",
-    description: "Scrittura assistita — pack Intelligence.",
+    description: "Scrittura assistita — pack Business.",
     path: `${leanEventLeonardoPath(tenantSlug)}/writer-ai`,
     noIndex: true,
   });
@@ -25,6 +25,6 @@ export default async function WriterAiModulePage({ params }: PageProps) {
     capability: "ai_writing",
     title: "Writer AI",
     subtitle: "Scrittura e contenuti assistiti da AI.",
-    packHint: "Modulo Intelligence",
+    packHint: "Modulo Business",
   });
 }

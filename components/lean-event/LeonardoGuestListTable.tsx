@@ -3,7 +3,7 @@
 import { LeonardoGuestListRow } from "@/components/lean-event/LeonardoGuestListRow";
 import { LeonardoVirtualList } from "@/components/lean-event/LeonardoVirtualList";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
-import type { LeonardoEventHotelBlock } from "@/types/lean-event";
+import type { TenantEventHotelBlock } from "@/types/lean-event";
 
 const VIRTUAL_ROW_HEIGHT = 64;
 const VIRTUAL_LIST_HEIGHT = 560;
@@ -11,7 +11,7 @@ const VIRTUAL_LIST_HEIGHT = 560;
 interface LeonardoGuestListTableProps {
   tenantSlug: string;
   assignments: EventAssignmentWithContact[];
-  hotelBlocks: LeonardoEventHotelBlock[];
+  hotelBlocks: TenantEventHotelBlock[];
   activeSheetId: string | null;
   onOpenContact?: (contactId: string, contactName: string) => void;
   onOpenSheet: (assignmentId: string) => void;

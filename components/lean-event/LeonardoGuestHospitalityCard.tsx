@@ -48,7 +48,7 @@ import { leanEventLeonardoContactPath } from "@/lib/lean-event/paths";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type {
   LeonardoAssignmentHospitality,
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoHospitalityStatus,
   LeonardoNightStay,
   LeonardoRelatedEvent,
@@ -70,7 +70,7 @@ interface LeonardoGuestHospitalityCardProps {
   eventId: string;
   assignment: EventAssignmentWithContact;
   allAssignments: EventAssignmentWithContact[];
-  hotelBlocks: LeonardoEventHotelBlock[];
+  hotelBlocks: TenantEventHotelBlock[];
   venues: LeonardoVenue[];
   relatedEvents: LeonardoRelatedEvent[];
   expanded?: boolean;
@@ -648,7 +648,7 @@ function HotelNightStaysEditor({
   open: boolean;
   onToggle: () => void;
   form: LeonardoAssignmentHospitality;
-  hotelBlocks: LeonardoEventHotelBlock[];
+  hotelBlocks: TenantEventHotelBlock[];
   venues: LeonardoVenue[];
   assignmentId: string;
   allAssignments: EventAssignmentWithContact[];

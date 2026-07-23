@@ -159,13 +159,12 @@ async function callTeresaModel(input: {
       content: message.content,
     }));
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getOpenAiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  const { getConfiguredAiGateway } = await import(
+    "@/modules/ai/gateway/get-configured-gateway"
+  );
+  const gateway = getConfiguredAiGateway("openai");
+  const content = (
+    await gateway.completeChat({
       model:
         process.env.OPENAI_TERESA_MODEL ??
         process.env.OPENAI_STRUCTURING_MODEL ??
@@ -179,18 +178,9 @@ async function callTeresaModel(input: {
         ...history,
         { role: "user", content: input.userMessage },
       ],
-    }),
-  });
+    })
+  ).trim();
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`TERESA_OPENAI_FAILED:${errorText.slice(0, 400)}`);
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const content = payload.choices?.[0]?.message?.content?.trim();
   if (!content) {
     throw new Error("TERESA_EMPTY_RESPONSE");
   }

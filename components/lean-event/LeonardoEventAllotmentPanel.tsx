@@ -32,8 +32,8 @@ import {
 } from "@/lib/lean-event/hospitality";
 import { leanEventLeonardoSediPath } from "@/lib/lean-event/paths";
 import type {
-  LeonardoEvent,
-  LeonardoEventHotelBlock,
+  TenantEvent,
+  TenantEventHotelBlock,
   LeonardoNightAllotment,
   LeonardoRoomAllotment,
   LeonardoVenue,
@@ -45,10 +45,10 @@ function uid(): string {
 
 interface LeonardoEventAllotmentPanelProps {
   tenantSlug: string;
-  event: LeonardoEvent;
+  event: TenantEvent;
   venues: LeonardoVenue[];
   assignments: EventAssignmentWithContact[];
-  onEventSaved: (event: LeonardoEvent) => void;
+  onEventSaved: (event: TenantEvent) => void;
   onAssignmentsRefresh?: () => void | Promise<void>;
 }
 
@@ -60,7 +60,7 @@ export function LeonardoEventAllotmentPanel({
   onEventSaved,
   onAssignmentsRefresh,
 }: LeonardoEventAllotmentPanelProps) {
-  const [hotelBlocks, setHotelBlocks] = useState<LeonardoEventHotelBlock[]>(() =>
+  const [hotelBlocks, setHotelBlocks] = useState<TenantEventHotelBlock[]>(() =>
     normalizeHotelBlocks(event)
   );
   const [savingHotel, setSavingHotel] = useState(false);
@@ -135,7 +135,7 @@ export function LeonardoEventAllotmentPanel({
 
     const payload = (await response.json()) as {
       error?: string;
-      event?: LeonardoEvent;
+      event?: TenantEvent;
       reconciledAssignments?: number;
     };
     setSavingHotel(false);
@@ -156,7 +156,7 @@ export function LeonardoEventAllotmentPanel({
     );
   }
 
-  function updateBlock(blockId: string, patch: Partial<LeonardoEventHotelBlock>) {
+  function updateBlock(blockId: string, patch: Partial<TenantEventHotelBlock>) {
     setHotelBlocks((current) =>
       current.map((block) =>
         block.id === blockId ? { ...block, ...patch } : block

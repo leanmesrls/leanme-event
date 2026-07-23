@@ -1,24 +1,15 @@
 import type { LeonardoWorkspace } from "@/types/lean-event";
 
+import { getConfiguredAiGateway } from "@/modules/ai/gateway/get-configured-gateway";
+
 import { normalizeAudioForOpenAI } from "./audio-upload";
 import { cleanFullTranscript } from "./transcription-cleanup";
 import { compactStructuredKeywords } from "./keyword-compaction";
 import { renderLeonardoDocuments } from "./document-renderer";
 import { getLeanEventPrompts } from "./storage";
-import { buildMultipartBody } from "./openai-multipart";
 
 const OPENAI_DIRECT_LIMIT = 24 * 1024 * 1024;
 const MIN_AUDIO_BYTES = 512;
-
-function getOpenAiKey(): string {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) {
-    throw new Error(
-      "OPENAI_API_KEY non configurata. Imposta la chiave in .env.local per elaborare verbali."
-    );
-  }
-  return key;
-}
 
 export async function transcribeAudioBuffer(
   buffer: Buffer,
@@ -38,37 +29,14 @@ export async function transcribeAudioBuffer(
   }
 
   const audio = normalizeAudioForOpenAI(buffer, filename, mimeType);
-  const model = process.env.OPENAI_TRANSCRIPTION_MODEL ?? "whisper-1";
-  const multipart = buildMultipartBody(
-    {
-      model,
-      language: "it",
-    },
-    {
-      fieldName: "file",
-      filename: audio.filename,
-      mimeType: audio.mimeType,
-      buffer: audio.buffer,
-    }
-  );
-
-  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getOpenAiKey()}`,
-      "Content-Type": multipart.contentType,
-      "Content-Length": String(multipart.body.byteLength),
-    },
-    body: new Uint8Array(multipart.body),
+  const gateway = getConfiguredAiGateway("openai");
+  const text = await gateway.transcribeAudio({
+    bytes: audio.buffer,
+    filename: audio.filename,
+    mimeType: audio.mimeType,
+    language: "it",
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Trascrizione OpenAI fallita: ${errorText}`);
-  }
-
-  const payload = (await response.json()) as { text?: string };
-  return payload.text?.trim() ?? "";
+  return text.trim();
 }
 
 function segmentContent(content: string, maxChars = 9000): string[] {
@@ -167,43 +135,21 @@ async function structureSegment(
   index: number,
   total: number
 ): Promise<Record<string, unknown>> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getOpenAiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_STRUCTURING_MODEL ?? "gpt-4.1-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `${systemPrompt}\n\n${schemaInstructions}`,
-        },
-        {
-          role: "user",
-          content: `Contesto workspace:\n${workspaceContext}\n\nAnalizza il segmento ${index}/${total} della riunione e restituisci JSON strutturato.\n\n${segment}`,
-        },
-      ],
-      temperature: 0.2,
-    }),
+  const gateway = getConfiguredAiGateway("openai");
+  return gateway.completeJson<Record<string, unknown>>({
+    model: process.env.OPENAI_STRUCTURING_MODEL ?? "gpt-4.1-mini",
+    temperature: 0.2,
+    messages: [
+      {
+        role: "system",
+        content: `${systemPrompt}\n\n${schemaInstructions}`,
+      },
+      {
+        role: "user",
+        content: `Contesto workspace:\n${workspaceContext}\n\nAnalizza il segmento ${index}/${total} della riunione e restituisci JSON strutturato.\n\n${segment}`,
+      },
+    ],
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Strutturazione OpenAI fallita: ${errorText}`);
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("OpenAI non ha restituito JSON strutturato.");
-  }
-
-  return JSON.parse(content) as Record<string, unknown>;
 }
 
 export async function processLeonardoWorkspace(input: {

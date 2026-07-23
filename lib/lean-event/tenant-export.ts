@@ -1,22 +1,16 @@
 /**
- * Export settimanale tenant (Fase C) — metadati Neon + inventario documenti.
- * Scritto su Blob: lean-event/exports/{tenantId}/{stamp}/tenant-export.json
+ * Export settimanale tenant — metadati Neon + inventario documenti.
+ * Scritto su filesystem locale (Neon-only runtime; no Blob).
  */
 
-import { put } from "@vercel/blob";
+import path from "node:path";
 
 import { writeLeanEventAuditEvent } from "@/lib/lean-event/audit-log";
 import {
   getLeanEventSql,
   isLeanEventDatabaseEnabled,
 } from "@/lib/lean-event/db";
-import { loadTenantsFile } from "@/lib/lean-event/storage";
-
-const EXPORT_ROOT = "lean-event/exports";
-
-function isBlobEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
-}
+import { getDataRoot, loadTenantsFile, writeJsonFile } from "@/lib/lean-event/storage";
 
 function stampNow(): string {
   return new Date().toISOString().replace(/[:.]/g, "-");
@@ -45,15 +39,6 @@ async function exportOneTenant(input: {
       ok: true,
       skipped: true,
       error: "Neon non configurato",
-    };
-  }
-  if (!isBlobEnabled()) {
-    return {
-      tenantId: input.tenantId,
-      tenantSlug: input.tenantSlug,
-      ok: true,
-      skipped: true,
-      error: "Blob non configurato",
     };
   }
 
@@ -122,13 +107,14 @@ async function exportOneTenant(input: {
       versionsIndex: versionsMeta,
     };
 
-    const exportPath = `${EXPORT_ROOT}/${input.tenantId}/${stampNow()}/tenant-export.json`;
-    await put(exportPath, JSON.stringify(payload), {
-      access: "private",
-      contentType: "application/json",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-    });
+    const exportPath = path.join(
+      getDataRoot(),
+      "exports",
+      input.tenantId,
+      stampNow(),
+      "tenant-export.json"
+    );
+    await writeJsonFile(exportPath, payload);
 
     await writeLeanEventAuditEvent({
       action: "tenant_export",

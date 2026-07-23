@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
-import type { LeonardoEventChatAttachment, LeonardoEventChatMessage } from "@/types/lean-event";
+import type { TenantEventChatAttachment, TenantEventChatMessage } from "@/types/lean-event";
 
 interface LeonardoEventChatPanelProps {
   eventId: string;
@@ -29,7 +29,7 @@ export function LeonardoEventChatPanel({
   currentUserName,
   currentUserEmail,
 }: LeonardoEventChatPanelProps) {
-  const [messages, setMessages] = useState<LeonardoEventChatMessage[]>([]);
+  const [messages, setMessages] = useState<TenantEventChatMessage[]>([]);
   const [body, setBody] = useState("");
   const [pending, setPending] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -47,7 +47,7 @@ export function LeonardoEventChatPanel({
         credentials: "same-origin",
       });
       const payload = (await response.json()) as {
-        messages?: LeonardoEventChatMessage[];
+        messages?: TenantEventChatMessage[];
       };
       if (!cancelled && response.ok && payload.messages) {
         setMessages(payload.messages);
@@ -77,7 +77,7 @@ export function LeonardoEventChatPanel({
     );
     const payload = (await response.json()) as {
       error?: string;
-      attachment?: LeonardoEventChatAttachment;
+      attachment?: TenantEventChatAttachment;
     };
     setUploading(false);
     if (!response.ok || !payload.attachment) {
@@ -111,7 +111,7 @@ export function LeonardoEventChatPanel({
 
     const payload = (await response.json()) as {
       error?: string;
-      message?: LeonardoEventChatMessage;
+      message?: TenantEventChatMessage;
     };
     setPending(false);
 
@@ -141,7 +141,7 @@ export function LeonardoEventChatPanel({
       }),
     });
     const payload = (await response.json()) as {
-      message?: LeonardoEventChatMessage;
+      message?: TenantEventChatMessage;
       error?: string;
     };
     setPending(false);

@@ -1,8 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { put } from "@vercel/blob";
-
+import {
+  isPostgresBinaryStoreEnabled,
+  readLegacyBinaryFromPostgres,
+  storeLegacyBinaryInPostgres,
+} from "@/lib/lean-event/legacy-binary-postgres";
 import { getDataRoot } from "./storage";
 
 const BLOB_ROOT = "lean-event/venue-covers";
@@ -29,10 +32,6 @@ function extensionForMime(mime: string): string {
   return "jpg";
 }
 
-export function isVenueBlobStorageEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
-}
-
 export function validateVenueCoverFile(file: File): string | null {
   if (!ALLOWED_TYPES.has(file.type)) {
     return "Formato non supportato. Usa JPG, PNG o WebP.";
@@ -55,16 +54,19 @@ export async function saveVenueCoverFile(
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const ext = extensionForMime(file.type);
+  const pathname = `${BLOB_ROOT}/${tenantId}/${venueId}.${ext}`;
 
-  if (isVenueBlobStorageEnabled()) {
-    const pathname = `${BLOB_ROOT}/${tenantId}/${venueId}.${ext}`;
-    const blob = await put(pathname, buffer, {
-      access: "public",
-      contentType: file.type,
-      addRandomSuffix: false,
-      allowOverwrite: true,
+  if (isPostgresBinaryStoreEnabled()) {
+    await storeLegacyBinaryInPostgres({
+      tenantId,
+      kind: "other",
+      filename: `${venueId}.${ext}`,
+      mime: file.type,
+      file: buffer,
+      legacyPath: pathname,
+      meta: { venueId, role: "venue_cover" },
     });
-    return blob.url;
+    return `/api/lean-event/venues/${venueId}/cover`;
   }
 
   const dir = coverDir(tenantId);
@@ -77,6 +79,15 @@ export async function readVenueCoverFile(
   tenantId: string,
   venueId: string
 ): Promise<{ buffer: Buffer; contentType: string } | null> {
+  for (const ext of ["jpg", "jpeg", "png", "webp", "gif"]) {
+    const pathname = `${BLOB_ROOT}/${tenantId}/${venueId}.${ext}`;
+    const fromPg = await readLegacyBinaryFromPostgres({
+      tenantId,
+      legacyPath: pathname,
+    });
+    if (fromPg) return fromPg;
+  }
+
   for (const ext of ["jpg", "jpeg", "png", "webp", "gif"]) {
     try {
       const buffer = await readFile(coverFilePath(tenantId, venueId, ext));

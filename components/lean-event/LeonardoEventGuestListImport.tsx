@@ -11,11 +11,11 @@ import {
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
 import type {
   LeanEventContact,
-  LeonardoEventRoleCategory,
+  TenantEventRoleCategory,
 } from "@/types/lean-event";
 
 const roleCategories = eventsConfig.roleCategories as Array<{
-  id: LeonardoEventRoleCategory;
+  id: TenantEventRoleCategory;
   label: string;
 }>;
 
@@ -33,7 +33,7 @@ export function LeonardoEventGuestListImport({
   onAssigned,
 }: LeonardoEventGuestListImportProps) {
   const [roleCategory, setRoleCategory] =
-    useState<LeonardoEventRoleCategory>("ospite");
+    useState<TenantEventRoleCategory>("ospite");
   const [pasteText, setPasteText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsedEmails, setParsedEmails] = useState<string[]>([]);
@@ -196,7 +196,7 @@ export function LeonardoEventGuestListImport({
         <select
           value={roleCategory}
           onChange={(event) =>
-            setRoleCategory(event.target.value as LeonardoEventRoleCategory)
+            setRoleCategory(event.target.value as TenantEventRoleCategory)
           }
           className="w-full rounded-lg border border-white/15 bg-black px-3 py-2.5 text-sm outline-none focus:border-leanme-fuchsia"
         >

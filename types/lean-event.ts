@@ -21,7 +21,7 @@ export interface LeanEventLeonardoCapabilities {
   lean_human: boolean;
   /** @deprecated Rimosso dal catalogo moduli — tenuto per compatibilità tenant */
   government: boolean;
-  /** Intelligence — Traduzioni AI */
+  /** Business — Traduzioni AI */
   ai_translations: boolean;
   /** Tab evento — hotel (allotment, camere) */
   hotel: boolean;
@@ -146,9 +146,9 @@ export interface LeonardoWorkspace {
   updatedAt: string;
 }
 
-export type LeonardoEventType = "base" | "ecm";
+export type TenantEventType = "base" | "ecm";
 
-export type LeonardoEventCategoryId =
+export type TenantEventCategoryId =
   | "formazione_sanitaria"
   | "formazione_non_sanitaria"
   | "artistico"
@@ -182,10 +182,10 @@ export type LeonardoFormationEventTypeId =
   | "corsi_percorsi_diagnostici_terapeutici"
   | "videoconferenza";
 
-export type LeonardoEventStatus = "draft" | "active" | "completed" | "archived";
+export type TenantEventStatus = "draft" | "active" | "completed" | "archived";
 
 /** Sede evento strutturata (rubrica o testo libero — stessi campi). */
-export interface LeonardoEventVenueDetails {
+export interface TenantEventVenueDetails {
   name: string;
   address: string;
   city: string;
@@ -234,7 +234,7 @@ export interface LeonardoEcmGridSponsor {
 
 /**
  * Griglia tecnica accreditamento ECM (modello MO7304 RES — base anche per altre modalità).
- * Campi tipologia evento / formazione restano su LeonardoEvent.
+ * Campi tipologia evento / formazione restano su TenantEvent.
  */
 export interface LeonardoEcmGrid {
   isCorporateTrainingProject: boolean | null;
@@ -286,7 +286,7 @@ export interface LeonardoEcmGrid {
 }
 
 /** Gestione sponsor evento (fase L1 Sponsor — contratti/accordi). */
-export interface LeonardoEventSponsorRecord {
+export interface TenantEventSponsorRecord {
   id: string;
   contactId?: string | null;
   companyName: string;
@@ -316,7 +316,7 @@ export interface LeonardoScientificProgram {
   sessions: LeonardoScientificProgramSession[];
 }
 
-export interface LeonardoEvent {
+export interface TenantEvent {
   id: string;
   tenantId: string;
   createdBy: string;
@@ -327,11 +327,11 @@ export interface LeonardoEvent {
   /** Rubrica sedi tenant — opzionale */
   venueId?: string | null;
   /** Campi sede strutturati (precompilati da rubrica o editabili a mano) */
-  venueDetails?: LeonardoEventVenueDetails;
+  venueDetails?: TenantEventVenueDetails;
   startDate: string;
   endDate: string;
   /** Tipologia evento (anagrafica) */
-  categoryId: LeonardoEventCategoryId;
+  categoryId: TenantEventCategoryId;
   /** Solo per formazione sanitaria */
   healthAreaId: string | null;
   /** Solo per formazione sanitaria — null finché non risposto */
@@ -346,16 +346,16 @@ export interface LeonardoEvent {
   /** Struttura assistenziale/formativa — se richiesto dalla tipologia */
   formationStructureName?: string | null;
   /** Registrazione e quote iscrizione */
-  registration?: LeonardoEventRegistration | null;
+  registration?: TenantEventRegistration | null;
   /** Griglia tecnica ECM (MO7304 e affini) */
   ecmGrid?: LeonardoEcmGrid | null;
   /** Programma scientifico (sessioni / pause) */
   scientificProgram?: LeonardoScientificProgram | null;
   /** Anagrafica commerciale sponsor dell'evento (fase Sponsor) */
-  eventSponsors?: LeonardoEventSponsorRecord[];
+  eventSponsors?: TenantEventSponsorRecord[];
   /** @deprecated Usare categoryId + campi ECM */
-  type?: LeonardoEventType;
-  status: LeonardoEventStatus;
+  type?: TenantEventType;
+  status: TenantEventStatus;
   notes: string;
   /** Preferito (stellina) — flag a livello evento/tenant */
   isFavorite?: boolean;
@@ -364,11 +364,11 @@ export interface LeonardoEvent {
   /** Project Manager — più utenze tenant */
   projectManagerUserIds?: string[];
   /** Blocchi hotel multipli con allotment per tipologia */
-  hotelBlocks?: LeonardoEventHotelBlock[];
+  hotelBlocks?: TenantEventHotelBlock[];
   /** Cene gala, attività satellite, ecc. */
   relatedEvents?: LeonardoRelatedEvent[];
   /** @deprecated Usare hotelBlocks */
-  hotel?: LeonardoEventHotelConfig;
+  hotel?: TenantEventHotelConfig;
   /** Incrementa ad ogni salvataggio — optimistic locking multi-utente */
   revision?: number;
   updatedBy?: string;
@@ -379,7 +379,7 @@ export interface LeonardoEvent {
   updatedAt: string;
 }
 
-export interface LeonardoEventChatAttachment {
+export interface TenantEventChatAttachment {
   id: string;
   name: string;
   url: string;
@@ -387,7 +387,7 @@ export interface LeonardoEventChatAttachment {
   sizeBytes: number;
 }
 
-export interface LeonardoEventChatMessage {
+export interface TenantEventChatMessage {
   id: string;
   eventId: string;
   tenantId: string;
@@ -399,7 +399,7 @@ export interface LeonardoEventChatMessage {
   links?: Array<{ label: string; href: string }>;
   /** Email o nomi citati con @ */
   mentions?: string[];
-  attachments?: LeonardoEventChatAttachment[];
+  attachments?: TenantEventChatAttachment[];
   createdAt: string;
 }
 
@@ -419,7 +419,7 @@ export interface LeonardoNightAllotment {
   roomAllotments: LeonardoRoomAllotment[];
 }
 
-export interface LeonardoEventHotelBlock {
+export interface TenantEventHotelBlock {
   id: string;
   venueId: string;
   /** Periodo convenzione hotel (opzionale, informativo) */
@@ -480,7 +480,7 @@ export interface LeonardoRelatedEventParticipation {
 }
 
 /** @deprecated Migrato in hotelBlocks */
-export interface LeonardoEventHotelConfig {
+export interface TenantEventHotelConfig {
   /** Hotel convenzionato — può coincidere con venueId evento */
   hotelVenueId?: string | null;
   checkInDate: string;
@@ -756,7 +756,7 @@ export interface LeonardoEventChatThread {
   id: string;
   tenantId: string;
   eventId: string;
-  messages: LeonardoEventChatMessage[];
+  messages: TenantEventChatMessage[];
   createdAt: string;
   updatedAt: string;
   revision?: number;
@@ -964,7 +964,7 @@ export interface ContactImportApplyPayload {
 }
 
 /** Ruolo di un contatto rubrica su un singolo evento (multi-ruolo / multi-evento). */
-export type LeonardoEventRoleCategory =
+export type TenantEventRoleCategory =
   | "partecipante"
   | "ospite"
   | "docente"
@@ -996,7 +996,7 @@ export interface LeonardoEventRegistrationFee {
 }
 
 /** Registrazione / quote iscrizione evento (scheda tecnica › Registrazione). */
-export interface LeonardoEventRegistration {
+export interface TenantEventRegistration {
   paid: boolean | null;
   fees: LeonardoEventRegistrationFee[];
   refundsEnabled: boolean | null;
@@ -1008,7 +1008,7 @@ export interface LeonardoEventContactAssignment {
   tenantId: string;
   eventId: string;
   contactId: string;
-  roleCategory: LeonardoEventRoleCategory;
+  roleCategory: TenantEventRoleCategory;
   notes: string;
   /** Preferenze hotel, transfer, allergie — per evento */
   hospitality?: LeonardoAssignmentHospitality;
@@ -1032,7 +1032,7 @@ export interface LeanEventNavItem {
   capability?: keyof LeanEventLeonardoCapabilities;
   /** Solo operatori piattaforma LeanMe (es. supervisione Teresa) */
   platformOperatorOnly?: boolean;
-  /** Intestazione di gruppo in sidebar (Starter / Pro / Intelligence) */
+  /** Intestazione di gruppo in sidebar (Starter / Pro / Business) */
   navGroup?: boolean;
   icon?:
     | "dashboard"

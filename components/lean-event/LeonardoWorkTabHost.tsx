@@ -20,7 +20,7 @@ import type {
   LeanEventSupplier,
   LeanEventTenantUserPublic,
   LeonardoAssignmentHospitality,
-  LeonardoEvent,
+  TenantEvent,
   LeonardoRelatedEventParticipation,
   LeonardoVenue,
   LeonardoWorkspace,
@@ -105,14 +105,14 @@ function EventTabPanel({
 }) {
   const { focusList, closeTab, renameTab } = useLeonardoWorkTabs();
   const [payload, setPayload] = useState<{
-    event: LeonardoEvent;
+    event: TenantEvent;
     venues: LeonardoVenue[];
     linkedWorkspaces: LeonardoWorkspace[];
     assignments: EventAssignmentWithContact[];
     contacts: LeanEventContact[];
     supplierLinks: EventSupplierWithSupplier[];
     rubricaSuppliers: LeanEventSupplier[];
-    otherEvents: LeonardoEvent[];
+    otherEvents: TenantEvent[];
     tenantUsers: LeanEventTenantUserPublic[];
     ospitiEnabled: boolean;
     hotelEnabled: boolean;
@@ -134,14 +134,14 @@ function EventTabPanel({
       );
       const data = (await response.json()) as {
         error?: string;
-        event?: LeonardoEvent;
+        event?: TenantEvent;
         venues?: LeonardoVenue[];
         linkedWorkspaces?: LeonardoWorkspace[];
         assignments?: EventAssignmentWithContact[];
         contacts?: LeanEventContact[];
         supplierLinks?: EventSupplierWithSupplier[];
         rubricaSuppliers?: LeanEventSupplier[];
-        otherEvents?: LeonardoEvent[];
+        otherEvents?: TenantEvent[];
         tenantUsers?: LeanEventTenantUserPublic[];
         ospitiEnabled?: boolean;
         hotelEnabled?: boolean;
@@ -422,7 +422,7 @@ function AssignmentTabPanel({
   title: string;
 }) {
   const { focusList, closeTab, renameTab } = useLeonardoWorkTabs();
-  const [event, setEvent] = useState<LeonardoEvent | null>(null);
+  const [event, setEvent] = useState<TenantEvent | null>(null);
   const [assignments, setAssignments] = useState<EventAssignmentWithContact[]>(
     []
   );
@@ -449,7 +449,7 @@ function AssignmentTabPanel({
       );
       const data = (await response.json()) as {
         error?: string;
-        event?: LeonardoEvent;
+        event?: TenantEvent;
         venues?: LeonardoVenue[];
         assignments?: EventAssignmentWithContact[];
       };

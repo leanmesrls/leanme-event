@@ -10,12 +10,12 @@ import {
   leanEventLeonardoSediPath,
   leanEventLeonardoVerbaliPath,
 } from "@/lib/lean-event/paths";
-import type { LeonardoEvent, LeonardoWorkspace } from "@/types/lean-event";
+import type { TenantEvent, LeonardoWorkspace } from "@/types/lean-event";
 
 interface LeonardoHubProps {
   tenantSlug: string;
   workspaces: LeonardoWorkspace[];
-  events: LeonardoEvent[];
+  events: TenantEvent[];
   contactCount: number;
   venueCount: number;
   supplierCount: number;

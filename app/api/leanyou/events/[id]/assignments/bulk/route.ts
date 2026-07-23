@@ -19,7 +19,7 @@ import {
   handleLeanEventRouteError,
   requireSession,
 } from "@/lib/lean-event/server-auth";
-import type { LeonardoEventRoleCategory } from "@/types/lean-event";
+import type { TenantEventRoleCategory } from "@/types/lean-event";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -120,7 +120,7 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    const roleCategory = body.roleCategory as LeonardoEventRoleCategory;
+    const roleCategory = body.roleCategory as TenantEventRoleCategory;
 
     if (source.type === "past_event" && source.sourceEventId === eventId) {
       return NextResponse.json(

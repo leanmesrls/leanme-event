@@ -15,12 +15,12 @@ import {
 } from "@/lib/lean-event/hospitality";
 import { leanEventLeonardoContactPath } from "@/lib/lean-event/paths";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
-import type { LeonardoEventHotelBlock } from "@/types/lean-event";
+import type { TenantEventHotelBlock } from "@/types/lean-event";
 
 interface LeonardoGuestListRowProps {
   tenantSlug: string;
   assignment: EventAssignmentWithContact;
-  hotelBlocks: LeonardoEventHotelBlock[];
+  hotelBlocks: TenantEventHotelBlock[];
   isActive: boolean;
   onOpenContact?: (contactId: string, contactName: string) => void;
   onOpenSheet: (assignmentId: string) => void;

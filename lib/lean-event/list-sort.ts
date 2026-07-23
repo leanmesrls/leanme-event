@@ -1,7 +1,7 @@
 import { parseAnyDateValue } from "@/lib/lean-event/dates";
 import { formatContactName } from "@/lib/lean-event/contact-display";
 import { formatVenueLabel } from "@/lib/lean-event/venue-display";
-import type { LeanEventContact, LeonardoEvent, LeonardoVenue, LeonardoWorkspace } from "@/types/lean-event";
+import type { LeanEventContact, TenantEvent, LeonardoVenue, LeonardoWorkspace } from "@/types/lean-event";
 
 export type ListSortMode = "alphabetical" | "date_start" | "created_at";
 
@@ -24,9 +24,9 @@ function compareIsoDesc(a: string, b: string): number {
 }
 
 export function sortEvents(
-  events: LeonardoEvent[],
+  events: TenantEvent[],
   mode: ListSortMode
-): LeonardoEvent[] {
+): TenantEvent[] {
   const rows = [...events];
   if (mode === "alphabetical") {
     return rows.sort((a, b) => a.title.localeCompare(b.title, "it"));

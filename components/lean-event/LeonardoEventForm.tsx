@@ -16,7 +16,7 @@ import { emptyVenueDetails } from "@/lib/lean-event/venue-display";
 import { leanEventLeonardoEventPath } from "@/lib/lean-event/paths";
 import type {
   LeanEventTenantUserPublic,
-  LeonardoEventVenueDetails,
+  TenantEventVenueDetails,
   LeonardoVenue,
 } from "@/types/lean-event";
 
@@ -40,7 +40,7 @@ export function LeonardoEventForm({
     title: "",
     venueId: null as string | null,
     venue: "",
-    venueDetails: emptyVenueDetails() as LeonardoEventVenueDetails,
+    venueDetails: emptyVenueDetails() as TenantEventVenueDetails,
     startDate: "",
     endDate: "",
     notes: "",

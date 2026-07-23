@@ -15,15 +15,15 @@ import {
 import type {
   LeanEventContact,
   LeonardoEcmGrid,
-  LeonardoEvent,
+  TenantEvent,
 } from "@/types/lean-event";
 
 interface LeonardoEventFormationEcmPanelProps {
-  event: LeonardoEvent;
+  event: TenantEvent;
   contacts: LeanEventContact[];
   section: FormationEcmSectionId;
   onSectionChange: (section: FormationEcmSectionId) => void;
-  onEventChange: (event: LeonardoEvent) => void;
+  onEventChange: (event: TenantEvent) => void;
   onSave: () => void;
   saving: boolean;
   message: string | null;

@@ -13,7 +13,7 @@ import type {
   LeonardoEcmGrid,
   LeonardoEcmGridSponsor,
   LeonardoEcmProfessionTarget,
-  LeonardoEventSponsorRecord,
+  TenantEventSponsorRecord,
 } from "@/types/lean-event";
 
 function YesNo({
@@ -68,7 +68,7 @@ function FundingRows({
   title: string;
   rows: LeonardoEcmGridSponsor[];
   onChange: (rows: LeonardoEcmGridSponsor[]) => void;
-  eventSponsors: LeonardoEventSponsorRecord[];
+  eventSponsors: TenantEventSponsorRecord[];
   allowPickFromRegistry?: boolean;
 }) {
   return (
@@ -182,7 +182,7 @@ function FundingRows({
 interface LeonardoEcmGridFormProps {
   value: LeonardoEcmGrid;
   onChange: (value: LeonardoEcmGrid) => void;
-  eventSponsors?: LeonardoEventSponsorRecord[];
+  eventSponsors?: TenantEventSponsorRecord[];
 }
 
 export function LeonardoEcmGridForm({

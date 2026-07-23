@@ -1,7 +1,7 @@
 import type { LeanAgentAiCapability } from "@/lib/lean-event/ai-agents";
 import type {
   LeanEventLeonardoCapabilities,
-  LeonardoEventRoleCategory,
+  TenantEventRoleCategory,
 } from "@/types/lean-event";
 
 export type EventPhaseId =
@@ -82,14 +82,14 @@ export interface EventNavTab {
   phase: EventPhaseId;
   implemented: boolean;
   capability?: "ospiti" | "hotel" | "logistica";
-  /** Capability abbonamento (Pro / Intelligence) — se off: tab cliccabile + upgrade */
+  /** Capability abbonamento (Pro / Business) — se off: tab cliccabile + upgrade */
   moduleCapability?: keyof LeanEventLeonardoCapabilities;
   aiCapability?: LeanAgentAiCapability;
   placeholderTitle?: string;
   placeholderDescription?: string;
   badgeKey?: keyof EventNavBadges;
   /** Filtro assegnazioni per tab anagrafiche */
-  roleFilter?: LeonardoEventRoleCategory | LeonardoEventRoleCategory[];
+  roleFilter?: TenantEventRoleCategory | TenantEventRoleCategory[];
 }
 
 export const EVENT_NAV_PHASES: EventNavPhase[] = [
@@ -448,7 +448,7 @@ export function isEventTabAccessible(
   if (tab.id === "report") {
     return capabilities.hotel || capabilities.logistica || true;
   }
-  // Tool Pro/Intelligence: sempre navigabili; il lock abbonamento è gestito a parte
+  // Tool Pro/Business: sempre navigabili; il lock abbonamento è gestito a parte
   if (tab.moduleCapability) {
     return true;
   }

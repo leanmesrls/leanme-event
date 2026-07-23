@@ -1,7 +1,7 @@
 import { generateNightDatesFromPeriod } from "@/lib/lean-event/allotment-report";
 import type {
   LeonardoAssignmentHospitality,
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoNightStay,
 } from "@/types/lean-event";
 
@@ -63,7 +63,7 @@ export function syncLegacyHospitalityFields(
 export function listGuestNightDates(
   checkIn: string,
   checkOut: string,
-  hotelBlocks: LeonardoEventHotelBlock[]
+  hotelBlocks: TenantEventHotelBlock[]
 ): string[] {
   const fromPeriod = generateNightDatesFromPeriod(checkIn, checkOut);
   if (fromPeriod.length > 0) {
@@ -88,7 +88,7 @@ export function prefillNightStaysFromFirst(
     LeonardoNightStay,
     "hotelBlockId" | "nightAllotmentId" | "roomAllotmentId" | "roomTypeCode"
   >,
-  hotelBlocks: LeonardoEventHotelBlock[] = []
+  hotelBlocks: TenantEventHotelBlock[] = []
 ): LeonardoNightStay[] {
   if (!template.hotelBlockId || !template.roomAllotmentId) {
     return currentStays;
@@ -126,7 +126,7 @@ export function prefillNightStaysFromFirst(
 export function buildNightStaysForGuestPeriod(
   checkIn: string,
   checkOut: string,
-  hotelBlocks: LeonardoEventHotelBlock[],
+  hotelBlocks: TenantEventHotelBlock[],
   currentStays: LeonardoNightStay[] = []
 ): LeonardoNightStay[] {
   const dates = listGuestNightDates(checkIn, checkOut, hotelBlocks);
@@ -157,7 +157,7 @@ export function buildNightStaysForGuestPeriod(
 }
 
 export function resolveNightAllotmentId(
-  block: LeonardoEventHotelBlock | undefined,
+  block: TenantEventHotelBlock | undefined,
   nightDate: string
 ): string {
   if (!block) {

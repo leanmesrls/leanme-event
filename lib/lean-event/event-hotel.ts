@@ -1,7 +1,7 @@
 import type {
-  LeonardoEvent,
-  LeonardoEventHotelBlock,
-  LeonardoEventHotelConfig,
+  TenantEvent,
+  TenantEventHotelBlock,
+  TenantEventHotelConfig,
   LeonardoNightAllotment,
   LeonardoRoomAllotment,
 } from "@/types/lean-event";
@@ -52,7 +52,7 @@ export function emptyNightAllotment(
 }
 
 function migrateBlockRoomAllotmentsToNights(
-  block: Partial<LeonardoEventHotelBlock>
+  block: Partial<TenantEventHotelBlock>
 ): LeonardoNightAllotment[] {
   if (block.nightAllotments?.length) {
     return block.nightAllotments.map((night) => emptyNightAllotment(night));
@@ -74,8 +74,8 @@ function migrateBlockRoomAllotmentsToNights(
 }
 
 export function emptyHotelBlock(
-  partial?: Partial<LeonardoEventHotelBlock>
-): LeonardoEventHotelBlock {
+  partial?: Partial<TenantEventHotelBlock>
+): TenantEventHotelBlock {
   return {
     id: newEntityId(partial?.id),
     venueId: partial?.venueId?.trim() ?? "",
@@ -87,8 +87,8 @@ export function emptyHotelBlock(
 }
 
 function migrateLegacyHotelConfig(
-  hotel?: LeonardoEventHotelConfig | null
-): LeonardoEventHotelBlock[] {
+  hotel?: TenantEventHotelConfig | null
+): TenantEventHotelBlock[] {
   if (!hotel?.hotelVenueId) {
     return [];
   }
@@ -123,8 +123,8 @@ function migrateLegacyHotelConfig(
 }
 
 export function normalizeHotelBlocks(
-  event: Pick<LeonardoEvent, "hotelBlocks" | "hotel">
-): LeonardoEventHotelBlock[] {
+  event: Pick<TenantEvent, "hotelBlocks" | "hotel">
+): TenantEventHotelBlock[] {
   if (event.hotelBlocks?.length) {
     return event.hotelBlocks.map((block) => emptyHotelBlock(block));
   }
@@ -132,14 +132,14 @@ export function normalizeHotelBlocks(
 }
 
 export function findHotelBlock(
-  blocks: LeonardoEventHotelBlock[],
+  blocks: TenantEventHotelBlock[],
   blockId: string
-): LeonardoEventHotelBlock | undefined {
+): TenantEventHotelBlock | undefined {
   return blocks.find((block) => block.id === blockId);
 }
 
 export function findNightAllotment(
-  block: LeonardoEventHotelBlock | undefined,
+  block: TenantEventHotelBlock | undefined,
   nightId: string
 ): LeonardoNightAllotment | undefined {
   return block?.nightAllotments.find((night) => night.id === nightId);

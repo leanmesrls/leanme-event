@@ -165,7 +165,10 @@ Tutto il dominio strutturato sta in **3 tabelle**:
 | `lean_event_entities` | Eventi, contatti, sedi, fornitori, assignment, workspace, **Teresa chat**, … |
 | `lean_event_entity_versions` | Snapshot revisioni |
 | `lean_event_entity_presence` | Presenza multi-utente (Fase D) |
-| `lean_event_documents` | Registry documenti binari (se applicato `002`) |
+| `lean_event_documents` | Registry metadati documenti (`002` + `008`) — **no BYTEA** |
+| `lean_event_document_versions` | Versioni immutabili file (`008`) — **no BYTEA** |
+| `lean_event_document_chunks` | Contenuto binario a chunk BYTEA (`008`) |
+| `lean_event_blob_migration_ledger` | Ledger migrazione Blob → Postgres (`008`) |
 | `lean_event_audit_events` | Audit strutturato (se applicato `002`) |
 
 **Legacy SoT (pre-cutover):** una riga in `lean_event_entities` con `entity_type` + `payload` JSONB.  
@@ -818,6 +821,108 @@ WHERE action = 'teresa_turn'
 ORDER BY ts DESC
 LIMIT 50;
 ```
+
+### 3.16a Platform releases — Control Plane (`lean_event_platform_releases`)
+
+SoT versioni prodotto (Info + campanella). DB: **`lean_event_control_plane`**.
+
+Apply / seed:
+
+```bash
+npm run lean-event:apply-control-plane
+npm run lean-event:seed-control-plane-releases
+```
+
+```sql
+-- Elenco rilasci (più recenti prima)
+SELECT version, published_at, title, architecture_version,
+       left(summary, 120) AS summary_preview,
+       left(changes_from_previous, 120) AS delta_preview
+FROM lean_event_platform_releases
+ORDER BY published_at DESC, version DESC;
+```
+
+```sql
+-- Dettaglio release
+SELECT *
+FROM lean_event_platform_releases
+WHERE version = '0.2.0';
+```
+
+```sql
+-- Conteggio
+SELECT COUNT(*)::int AS releases FROM lean_event_platform_releases;
+```
+
+UI: `/leanyou/{tenant}/info` · API: `GET /api/leanyou/product-notifications`  
+Per una nuova production release: upsert riga in questa tabella (script seed o SQL) + bump `package.json` / `LEAN_EVENT_PRODUCT_VERSION`.
+
+Annunci prodotto (non-release) → `lean_event_platform_announcements`:
+
+```bash
+npm run lean-event:seed-control-plane-announcements
+```
+
+```sql
+SELECT id, published_at, title, priority
+FROM lean_event_platform_announcements
+ORDER BY published_at DESC;
+```
+
+### 3.16b Document store Postgres (`008`) + cutover Blob
+
+Inventario (sola lettura Blob):
+
+```bash
+npm run lean-event:inventory-blob -- --out=tmp/blob-inventory.json
+```
+
+Migrazione binari classificati → chunks (non cancella Blob):
+
+```bash
+node --env-file=.env.local scripts/migrate-blob-inventory-to-postgres.mjs --inventory=tmp/blob-inventory.json --dry-run
+node --env-file=.env.local scripts/migrate-blob-inventory-to-postgres.mjs --inventory=tmp/blob-inventory.json --write
+```
+
+**Blocco noto:** senza `LEAN_EVENT_LEGACY_BLOB_TOKEN` dello store `leanme-event` (`store_FYsZWRl3jhb4pwv1`) l’inventario legacy resta incompleto. Gli store `lean-event-demo` / `lean-event-iec` risultano vuoti.
+
+Cleanup documenti creati dal test harness (solo `created_by='test'` su demo):
+
+```bash
+npm run lean-event:cleanup-doc-harness
+npm run lean-event:cleanup-doc-harness -- --write
+```
+
+Schema: `docs/sql/008_lean_event_documents_postgres_store.sql` · Apply: `npm run lean-event:apply-neon-008`  
+Binari solo in `lean_event_document_chunks.payload` (BYTEA). Soft delete non cancella chunks.
+
+```sql
+-- Conteggi documenti / versioni / chunk per tenant
+SELECT
+  (SELECT COUNT(*) FROM lean_event_documents WHERE tenant_id = 'demo' AND deleted_at IS NULL) AS docs_active,
+  (SELECT COUNT(*) FROM lean_event_document_versions WHERE tenant_id = 'demo') AS versions,
+  (SELECT COUNT(*) FROM lean_event_document_chunks WHERE tenant_id = 'demo') AS chunks;
+```
+
+```sql
+-- Ledger migrazione Blob → Postgres
+SELECT status, COUNT(*)::int AS n
+FROM lean_event_blob_migration_ledger
+WHERE tenant_id = 'demo'
+GROUP BY status
+ORDER BY status;
+```
+
+```sql
+-- Dettaglio documento + versione corrente (senza payload)
+SELECT d.id, d.kind, d.filename, d.mime, d.bytes, d.sha256, d.current_version, d.legal_hold, v.id AS version_id
+FROM lean_event_documents d
+JOIN lean_event_document_versions v
+  ON v.tenant_id = d.tenant_id AND v.document_id = d.id AND v.version = d.current_version
+WHERE d.tenant_id = 'demo' AND d.id = 'INCOLLA-DOC-ID';
+```
+
+UI/API: `GET/POST /api/leanyou/documents`, `GET /api/leanyou/documents/[id]/file?verify=1`, version upload multipart su `POST /api/leanyou/documents/[id]`.
 
 ### 3.17 Indirizzi / nazione (`country`, `region`)
 

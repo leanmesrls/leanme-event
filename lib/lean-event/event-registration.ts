@@ -1,5 +1,5 @@
 import type {
-  LeonardoEventRegistration,
+  TenantEventRegistration,
   LeonardoEventRegistrationFee,
 } from "@/types/lean-event";
 
@@ -21,7 +21,7 @@ export function emptyRegistrationFee(): LeonardoEventRegistrationFee {
   };
 }
 
-export function emptyEventRegistration(): LeonardoEventRegistration {
+export function emptyEventRegistration(): TenantEventRegistration {
   return {
     paid: null,
     fees: [],
@@ -31,8 +31,8 @@ export function emptyEventRegistration(): LeonardoEventRegistration {
 }
 
 export function normalizeEventRegistration(
-  value?: Partial<LeonardoEventRegistration> | null
-): LeonardoEventRegistration {
+  value?: Partial<TenantEventRegistration> | null
+): TenantEventRegistration {
   const base = emptyEventRegistration();
   if (!value) {
     return base;

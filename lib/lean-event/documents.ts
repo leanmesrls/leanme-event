@@ -1,26 +1,23 @@
 /**
- * Registry documenti Lean Event (metadati Neon + binario Blob).
- * Fonte: docs/lean-event-document-architecture.md
+ * Registry documenti Lean Event (metadati Neon + binario in chunks Postgres).
+ * Fonte: docs/design/lean-event-storage-architecture-correction-plan.md
+ * Runtime documentale: PostgreSQL only (no Blob).
  */
 
-import { randomUUID } from "node:crypto";
-import { createHash } from "node:crypto";
-
-import { del, put } from "@vercel/blob";
-
-import {
-  auditContextFromSession,
-  writeLeanEventAuditEvent,
-} from "@/lib/lean-event/audit-log";
 import {
   getLeanEventSql,
   isLeanEventDatabaseEnabled,
 } from "@/lib/lean-event/db";
 import {
-  computePurgeAfter,
-  LEONYOU_TRASH_RETENTION_DAYS,
-  sessionUserId,
-} from "@/lib/lean-event/entity-lifecycle";
+  appendDocumentVersion,
+  createDocumentWithBytes,
+  documentHasPostgresContent,
+  purgeDocumentPg,
+  readDocumentBytes,
+  restoreDocumentPg,
+  setDocumentLegalHold,
+  softDeleteDocumentPg,
+} from "@/lib/lean-event/document-postgres-store";
 import type { LeanEventDocumentKind } from "@/lib/lean-event/document-kinds";
 import type { LeanEventSession } from "@/types/lean-event";
 
@@ -42,7 +39,11 @@ export interface LeanEventDocument {
   mime: string;
   bytes: number;
   sha256?: string | null;
-  blobPath: string;
+  /** Legacy Blob path — nullable after 008; do not use for new writes. */
+  blobPath?: string | null;
+  currentVersion: number;
+  legalHold: boolean;
+  retentionClass: string;
   revision: number;
   personId?: string | null;
   eventId?: string | null;
@@ -57,12 +58,6 @@ export interface LeanEventDocument {
   deletedBy?: string | null;
   purgeAfter?: string | null;
   meta?: Record<string, unknown>;
-}
-
-const BLOB_ROOT = "lean-event/documents";
-
-function isBlobEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
 }
 
 function assertDb() {
@@ -87,7 +82,10 @@ function rowToDocument(row: Record<string, unknown>): LeanEventDocument {
     mime: String(row.mime),
     bytes: Number(row.bytes ?? 0),
     sha256: (row.sha256 as string | null) ?? null,
-    blobPath: String(row.blob_path),
+    blobPath: (row.blob_path as string | null) ?? null,
+    currentVersion: Number(row.current_version ?? 1),
+    legalHold: row.legal_hold === true,
+    retentionClass: String(row.retention_class ?? "standard"),
     revision: Number(row.revision ?? 1),
     personId: (row.person_id as string | null) ?? null,
     eventId: (row.event_id as string | null) ?? null,
@@ -122,10 +120,6 @@ function rowToDocument(row: Record<string, unknown>): LeanEventDocument {
         ? (row.meta as Record<string, unknown>)
         : {},
   };
-}
-
-function safeFilename(name: string): string {
-  return name.replace(/[^\w.\-()+ ]+/g, "_").slice(0, 180) || "file.bin";
 }
 
 export async function listDocuments(
@@ -238,107 +232,44 @@ export async function createDocumentFromUpload(
     meta?: Record<string, unknown>;
   }
 ): Promise<LeanEventDocument> {
-  if (!isBlobEnabled()) {
-    throw new Error("BLOB_REQUIRED");
-  }
-  const sql = assertDb();
-  const userId = sessionUserId(session);
-  const id = randomUUID();
-  const now = new Date().toISOString();
-  const filename = safeFilename(input.filename);
-  const sha256 = createHash("sha256").update(input.file).digest("hex");
-  const blobPath = `${BLOB_ROOT}/${session.tenantId}/${input.kind}/${id}/v1/${filename}`;
-
-  await put(blobPath, input.file, {
-    access: "private",
-    contentType: input.mime || "application/octet-stream",
-    addRandomSuffix: false,
-    allowOverwrite: false,
+  const { documentId } = await createDocumentWithBytes(session, {
+    ...input,
+    source: "upload",
   });
-
-  await sql`
-    INSERT INTO lean_event_documents (
-      id, tenant_id, kind, status, title, filename, mime, bytes, sha256,
-      blob_path, revision, person_id, event_id, assignment_id, supplier_id,
-      workspace_id, created_at, updated_at, created_by, updated_by, meta
-    ) VALUES (
-      ${id},
-      ${session.tenantId},
-      ${input.kind},
-      ${"ready"},
-      ${input.title?.trim() || filename},
-      ${filename},
-      ${input.mime || "application/octet-stream"},
-      ${input.file.byteLength},
-      ${sha256},
-      ${blobPath},
-      ${1},
-      ${input.personId ?? null},
-      ${input.eventId ?? null},
-      ${input.assignmentId ?? null},
-      ${input.supplierId ?? null},
-      ${input.workspaceId ?? null},
-      ${now}::timestamptz,
-      ${now}::timestamptz,
-      ${userId},
-      ${userId},
-      ${JSON.stringify(input.meta ?? {})}::jsonb
-    )
-  `;
-
-  await writeLeanEventAuditEvent({
-    ...auditContextFromSession(session),
-    action: "document_create",
-    resourceType: "document",
-    resourceId: id,
-    detail: input.kind,
-  });
-
-  const created = await getDocument(session.tenantId, id);
+  const created = await getDocument(session.tenantId, documentId);
   if (!created) {
     throw new Error("DOCUMENT_CREATE_FAILED");
   }
   return created;
 }
 
+export async function uploadDocumentVersion(
+  session: LeanEventSession,
+  documentId: string,
+  input: {
+    file: Buffer;
+    filename?: string;
+    mime?: string;
+    expectedRevision: number;
+  }
+): Promise<LeanEventDocument> {
+  await appendDocumentVersion(session, documentId, {
+    ...input,
+    source: "upload",
+  });
+  const doc = await getDocument(session.tenantId, documentId);
+  if (!doc) {
+    throw new Error("DOCUMENT_VERSION_FAILED");
+  }
+  return doc;
+}
+
 export async function softDeleteDocument(
   session: LeanEventSession,
   documentId: string
 ): Promise<LeanEventDocument | null> {
-  const sql = assertDb();
-  const current = await getDocument(session.tenantId, documentId, {
-    includeDeleted: true,
-  });
-  if (!current || current.deletedAt) {
-    return null;
-  }
-
-  const userId = sessionUserId(session);
-  const deletedAt = new Date().toISOString();
-  const purgeAfter = computePurgeAfter(deletedAt);
-  const revision = current.revision + 1;
-
-  await sql`
-    UPDATE lean_event_documents
-    SET
-      deleted_at = ${deletedAt}::timestamptz,
-      deleted_by = ${userId},
-      purge_after = ${purgeAfter}::timestamptz,
-      revision = ${revision},
-      updated_at = ${deletedAt}::timestamptz,
-      updated_by = ${userId}
-    WHERE tenant_id = ${session.tenantId}
-      AND id = ${documentId}
-  `;
-
-  await writeLeanEventAuditEvent({
-    ...auditContextFromSession(session),
-    action: "document_soft_delete",
-    resourceType: "document",
-    resourceId: documentId,
-    detail: `retention ${LEONYOU_TRASH_RETENTION_DAYS}d`,
-  });
-
+  const ok = await softDeleteDocumentPg(session, documentId);
+  if (!ok) return null;
   return getDocument(session.tenantId, documentId, { includeDeleted: true });
 }
 
@@ -346,73 +277,65 @@ export async function restoreDocument(
   session: LeanEventSession,
   documentId: string
 ): Promise<LeanEventDocument | null> {
-  const sql = assertDb();
-  const current = await getDocument(session.tenantId, documentId, {
-    includeDeleted: true,
-  });
-  if (!current?.deletedAt) {
-    return null;
-  }
-
-  const userId = sessionUserId(session);
-  const now = new Date().toISOString();
-  const revision = current.revision + 1;
-
-  await sql`
-    UPDATE lean_event_documents
-    SET
-      deleted_at = NULL,
-      deleted_by = NULL,
-      purge_after = NULL,
-      revision = ${revision},
-      updated_at = ${now}::timestamptz,
-      updated_by = ${userId}
-    WHERE tenant_id = ${session.tenantId}
-      AND id = ${documentId}
-  `;
-
-  await writeLeanEventAuditEvent({
-    ...auditContextFromSession(session),
-    action: "document_restore",
-    resourceType: "document",
-    resourceId: documentId,
-  });
-
+  const ok = await restoreDocumentPg(session, documentId);
+  if (!ok) return null;
   return getDocument(session.tenantId, documentId);
 }
 
-/** Hard delete Blob + riga (solo dopo purge retention o admin esplicito). */
+export async function setLegalHold(
+  session: LeanEventSession,
+  documentId: string,
+  legalHold: boolean
+): Promise<LeanEventDocument | null> {
+  const ok = await setDocumentLegalHold(session, documentId, legalHold);
+  if (!ok) return null;
+  return getDocument(session.tenantId, documentId, { includeDeleted: true });
+}
+
+/** Hard delete solo post soft-delete + retention + !legal_hold. Non tocca Blob legacy. */
 export async function purgeDocument(
   tenantId: string,
   documentId: string
 ): Promise<boolean> {
-  const sql = assertDb();
-  const doc = await getDocument(tenantId, documentId, { includeDeleted: true });
-  if (!doc) {
-    return false;
-  }
-  if (isBlobEnabled()) {
-    try {
-      await del(doc.blobPath);
-    } catch {
-      // continua: riga DB va comunque rimossa
-    }
-  }
-  await sql`
-    DELETE FROM lean_event_documents
-    WHERE tenant_id = ${tenantId}
-      AND id = ${documentId}
-  `;
-  await writeLeanEventAuditEvent({
-    action: "entity_purge",
-    tenantId,
-    resourceType: "document",
-    resourceId: documentId,
-  });
-  return true;
+  return purgeDocumentPg(tenantId, documentId);
 }
 
-/** Documenti soft-deleted con purge_after scaduto. */
+export async function loadDocumentFileBytes(
+  tenantId: string,
+  documentId: string,
+  options?: { version?: number; verify?: boolean; includeDeleted?: boolean }
+): Promise<{
+  bytes: Buffer;
+  mime: string;
+  filename: string;
+  sha256: string;
+  version: number;
+}> {
+  const doc = await getDocument(tenantId, documentId, {
+    includeDeleted: options?.includeDeleted,
+  });
+  if (!doc) {
+    throw new Error("DOCUMENT_NOT_FOUND");
+  }
+
+  if (!(await documentHasPostgresContent(tenantId, documentId))) {
+    throw new Error("DOCUMENT_CONTENT_UNAVAILABLE");
+  }
+
+  const { bytes, version } = await readDocumentBytes(tenantId, documentId, {
+    version: options?.version,
+    verify: options?.verify !== false,
+  });
+  return {
+    bytes,
+    mime: version.mime,
+    filename: version.filename,
+    sha256: version.sha256,
+    version: version.version,
+  };
+}
+
+/** Documenti soft-deleted con purge_after scaduto e senza legal hold. */
 export async function listDocumentsDueForPurge(
   tenantId: string
 ): Promise<LeanEventDocument[]> {
@@ -428,6 +351,7 @@ export async function listDocumentsDueForPurge(
     FROM lean_event_documents
     WHERE tenant_id = ${tenantId}
       AND deleted_at IS NOT NULL
+      AND legal_hold = FALSE
       AND purge_after IS NOT NULL
       AND purge_after <= now()
     ORDER BY purge_after ASC

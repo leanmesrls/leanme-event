@@ -1,16 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { put } from "@vercel/blob";
-
+import {
+  isPostgresBinaryStoreEnabled,
+  storeLegacyBinaryInPostgres,
+} from "@/lib/lean-event/legacy-binary-postgres";
 import { getDataRoot } from "./storage";
 
 const BLOB_ROOT = "lean-event/supplier-documents";
 const MAX_BYTES = 15 * 1024 * 1024;
-
-function isBlobEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
-}
 
 function sanitizeFileName(name: string): string {
   return name.replace(/[^\w.\-() ]+/g, "_").slice(0, 120);
@@ -60,13 +58,25 @@ export async function saveSupplierDocumentFile(input: {
           return `/api/lean-event/events/${eventId}/suppliers/${linkId}/documents/file?id=${input.documentId}&name=${encodeURIComponent(safeName)}`;
         })();
 
-  if (isBlobEnabled()) {
-    const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.scope}/${input.scopeId}/${filename}`;
-    await put(pathname, buffer, {
-      access: "private",
-      contentType: input.file.type || "application/octet-stream",
-      addRandomSuffix: false,
-      allowOverwrite: true,
+  const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.scope}/${input.scopeId}/${filename}`;
+  let eventId: string | null = null;
+  let supplierId: string | null = null;
+  if (input.scope === "rubrica") supplierId = input.scopeId;
+  if (input.scope === "event") {
+    eventId = input.scopeId.split("__")[0] || null;
+  }
+
+  if (isPostgresBinaryStoreEnabled()) {
+    await storeLegacyBinaryInPostgres({
+      tenantId: input.tenantId,
+      kind: "supplier_agreement",
+      filename,
+      mime: input.file.type || "application/octet-stream",
+      file: buffer,
+      legacyPath: pathname,
+      eventId,
+      supplierId,
+      meta: { scope: input.scope, scopeId: input.scopeId },
     });
     return apiUrl;
   }

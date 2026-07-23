@@ -8,7 +8,7 @@ import {
 } from "@/lib/lean-event/night-stays";
 import type {
   LeonardoAssignmentHospitality,
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoHospitalityStatus,
   LeonardoNightStay,
   LeonardoRoomAllotment,
@@ -354,7 +354,7 @@ export function countAllotmentAssignments(
 }
 
 export function summarizeHotelBlocks(
-  blocks: LeonardoEventHotelBlock[],
+  blocks: TenantEventHotelBlock[],
   assignments: Array<{ hospitality?: LeonardoAssignmentHospitality | null }>
 ): string {
   if (blocks.length === 0) {
@@ -386,7 +386,7 @@ export function summarizeHotelBlocks(
 
 export function hospitalityNeedsRoommate(
   hospitalityInput: LeonardoAssignmentHospitality,
-  hotelBlocks: LeonardoEventHotelBlock[]
+  hotelBlocks: TenantEventHotelBlock[]
 ): boolean {
   const hospitality = normalizeAssignmentHospitality(hospitalityInput);
   for (const stay of listHospitalityNightStays(hospitality)) {
@@ -406,7 +406,7 @@ export function hospitalityNeedsRoommate(
 
 export function isHospitalitySheetIncomplete(
   hospitalityInput?: LeonardoAssignmentHospitality | null,
-  hotelBlocks: LeonardoEventHotelBlock[] = []
+  hotelBlocks: TenantEventHotelBlock[] = []
 ): boolean {
   const hospitality = normalizeAssignmentHospitality(hospitalityInput);
   if (hospitality.status === "pending") {

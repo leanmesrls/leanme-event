@@ -13,10 +13,10 @@ import type {
   LeanEventContact,
   LeanEventSupplier,
   LeonardoAssignmentHospitality,
-  LeonardoEvent,
+  TenantEvent,
   LeonardoEventChatThread,
   LeonardoEventContactAssignment,
-  LeonardoEventHotelBlock,
+  TenantEventHotelBlock,
   LeonardoEventSupplierLink,
   LeonardoVenue,
   LeonardoWorkspace,
@@ -401,13 +401,13 @@ async function hydrateHotelBlocks(
   sql: Sql,
   tenantId: string,
   eventId: string
-): Promise<LeonardoEventHotelBlock[]> {
+): Promise<TenantEventHotelBlock[]> {
   const blocks = await sql`
     SELECT * FROM lean_event_event_hotel_blocks
     WHERE tenant_id = ${tenantId} AND event_id = ${eventId}
     ORDER BY sort_order
   `;
-  const result: LeonardoEventHotelBlock[] = [];
+  const result: TenantEventHotelBlock[] = [];
   for (const b of blocks) {
     const blockId = str(b.id);
     const nights = await sql`
@@ -451,7 +451,7 @@ async function listEvents(
   sql: Sql,
   tenantId: string,
   onlyId?: string
-): Promise<LeonardoEvent[]> {
+): Promise<TenantEvent[]> {
   const rows = onlyId
     ? await sql`
         SELECT * FROM lean_event_events
@@ -463,7 +463,7 @@ async function listEvents(
         ORDER BY updated_at DESC
       `;
 
-  const result: LeonardoEvent[] = [];
+  const result: TenantEvent[] = [];
   for (const r of rows) {
     const id = str(r.id);
     const pms = await sql`
@@ -495,7 +495,7 @@ async function listEvents(
     `;
     const hotelBlocks = await hydrateHotelBlocks(sql, tenantId, id);
 
-    let ecmGrid: LeonardoEvent["ecmGrid"] = null;
+    let ecmGrid: TenantEvent["ecmGrid"] = null;
     if (ecmRows[0]) {
       const g = ecmRows[0];
       const targets = await sql`
@@ -648,15 +648,15 @@ async function listEvents(
           : undefined,
       startDate: str(r.start_date),
       endDate: str(r.end_date),
-      categoryId: str(r.category_id) as LeonardoEvent["categoryId"],
+      categoryId: str(r.category_id) as TenantEvent["categoryId"],
       healthAreaId: r.health_area_id != null ? str(r.health_area_id) : null,
       ecmEnabled:
         r.ecm_enabled === null || r.ecm_enabled === undefined
           ? null
           : Boolean(r.ecm_enabled),
-      ecmModality: (r.ecm_modality as LeonardoEvent["ecmModality"]) ?? null,
+      ecmModality: (r.ecm_modality as TenantEvent["ecmModality"]) ?? null,
       formationEventTypeId:
-        (r.formation_event_type_id as LeonardoEvent["formationEventTypeId"]) ??
+        (r.formation_event_type_id as TenantEvent["formationEventTypeId"]) ??
         null,
       formationStructureName:
         r.formation_structure_name != null
@@ -709,8 +709,8 @@ async function listEvents(
         amount: s.amount != null ? str(s.amount) : undefined,
         notes: s.notes != null ? str(s.notes) : undefined,
       })),
-      type: (r.legacy_type as LeonardoEvent["type"]) ?? undefined,
-      status: str(r.status) as LeonardoEvent["status"],
+      type: (r.legacy_type as TenantEvent["type"]) ?? undefined,
+      status: str(r.status) as TenantEvent["status"],
       notes: str(r.notes),
       isFavorite: Boolean(r.is_favorite),
       projectLeaderUserId:
@@ -719,7 +719,7 @@ async function listEvents(
       hotelBlocks,
       relatedEvents: related.map((rel) => ({
         id: str(rel.id),
-        kind: str(rel.kind) as NonNullable<LeonardoEvent["relatedEvents"]>[number]["kind"],
+        kind: str(rel.kind) as NonNullable<TenantEvent["relatedEvents"]>[number]["kind"],
         title: str(rel.title),
         startsAt: str(rel.starts_at),
         endsAt: str(rel.ends_at),

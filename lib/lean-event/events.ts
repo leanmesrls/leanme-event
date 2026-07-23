@@ -2,11 +2,11 @@ import { randomUUID } from "node:crypto";
 
 import type {
   LeanEventSession,
-  LeonardoEvent,
-  LeonardoEventCategoryId,
+  TenantEvent,
+  TenantEventCategoryId,
   LeonardoEcmModality,
-  LeonardoEventStatus,
-  LeonardoEventType,
+  TenantEventStatus,
+  TenantEventType,
   LeonardoFormationEventTypeId,
 } from "@/types/lean-event";
 
@@ -24,7 +24,7 @@ import {
 import {
   isFormationCategory,
   isHealthFormationCategory,
-  normalizeLeonardoEvent,
+  normalizeTenantEvent,
   validateEventTaxonomy,
 } from "./event-taxonomy";
 import {
@@ -39,11 +39,11 @@ import {
   resolveEntityAuditAction,
 } from "./audit-log";
 
-function normalizeStoredEvent(event: LeonardoEvent): LeonardoEvent {
-  return normalizeLeonardoEvent(withLifecycleDefaults(event) as LeonardoEvent);
+function normalizeStoredEvent(event: TenantEvent): TenantEvent {
+  return normalizeTenantEvent(withLifecycleDefaults(event) as TenantEvent);
 }
 
-export async function listEvents(tenantId: string): Promise<LeonardoEvent[]> {
+export async function listEvents(tenantId: string): Promise<TenantEvent[]> {
   const events = await listStoredEvents(tenantId);
   return events
     .map((event) => normalizeStoredEvent(event))
@@ -55,7 +55,7 @@ export async function listEvents(tenantId: string): Promise<LeonardoEvent[]> {
 
 export async function listDeletedEvents(
   tenantId: string
-): Promise<LeonardoEvent[]> {
+): Promise<TenantEvent[]> {
   const events = await listStoredEvents(tenantId);
   return events
     .map((event) => normalizeStoredEvent(event))
@@ -67,7 +67,7 @@ export async function getEvent(
   tenantId: string,
   eventId: string,
   options?: { includeDeleted?: boolean }
-): Promise<LeonardoEvent | null> {
+): Promise<TenantEvent | null> {
   const event = await getStoredEvent(tenantId, eventId);
   if (!event) {
     return null;
@@ -80,8 +80,8 @@ export async function getEvent(
 }
 
 async function persistEvent(
-  event: LeonardoEvent,
-  previous: LeonardoEvent | null
+  event: TenantEvent,
+  previous: TenantEvent | null
 ): Promise<void> {
   if (previous) {
     await saveEntityVersionSnapshot(
@@ -104,13 +104,13 @@ async function persistEvent(
 }
 
 export async function saveEvent(
-  event: LeonardoEvent,
+  event: TenantEvent,
   options?: {
     expectedRevision?: number;
     userId?: string;
-    previous?: LeonardoEvent | null;
+    previous?: TenantEvent | null;
   }
-): Promise<LeonardoEvent> {
+): Promise<TenantEvent> {
   const normalized = normalizeStoredEvent(event);
   const previous =
     options?.previous ??
@@ -141,7 +141,7 @@ export async function setEventFavorite(
   eventId: string,
   isFavorite: boolean,
   options?: { expectedRevision?: number; userId?: string }
-): Promise<LeonardoEvent | null> {
+): Promise<TenantEvent | null> {
   const event = await getEvent(tenantId, eventId);
   if (!event) {
     return null;
@@ -173,7 +173,7 @@ export async function restoreEvent(
   tenantId: string,
   eventId: string,
   userId: string
-): Promise<LeonardoEvent | null> {
+): Promise<TenantEvent | null> {
   const event = await getEvent(tenantId, eventId, { includeDeleted: true });
   if (!event || isEntityActive(event)) {
     return null;
@@ -190,22 +190,22 @@ export function createEvent(
     title: string;
     venue: string;
     venueId?: string | null;
-    venueDetails?: LeonardoEvent["venueDetails"];
+    venueDetails?: TenantEvent["venueDetails"];
     startDate: string;
     endDate: string;
-    categoryId?: LeonardoEventCategoryId;
+    categoryId?: TenantEventCategoryId;
     healthAreaId?: string | null;
     ecmEnabled?: boolean | null;
     ecmModality?: LeonardoEcmModality | null;
     formationEventTypeId?: LeonardoFormationEventTypeId | null;
     formationStructureName?: string | null;
-    type?: LeonardoEventType;
-    status?: LeonardoEventStatus;
+    type?: TenantEventType;
+    status?: TenantEventStatus;
     notes?: string;
     projectLeaderUserId?: string | null;
     projectManagerUserIds?: string[];
   }
-): LeonardoEvent {
+): TenantEvent {
   const now = new Date().toISOString();
   const userId = sessionUserId(session);
   const startDate = normalizeMeetingDateInput(input.startDate);
@@ -232,7 +232,7 @@ export function createEvent(
     input.ecmEnabled ??
     (isHealthFormationCategory(categoryId) ? null : false);
 
-  const draft = normalizeLeonardoEvent({
+  const draft = normalizeTenantEvent({
     id: randomUUID(),
     tenantId: session.tenantId,
     createdBy: session.userId,
@@ -267,10 +267,10 @@ export function createEvent(
     updatedAt: now,
   });
 
-  return prepareEntityCreate(withLifecycleDefaults(draft) as LeonardoEvent, userId);
+  return prepareEntityCreate(withLifecycleDefaults(draft) as TenantEvent, userId);
 }
 
-export function getEventDashboardStats(events: LeonardoEvent[]) {
+export function getEventDashboardStats(events: TenantEvent[]) {
   return {
     total: events.length,
     active: events.filter((event) => event.status === "active").length,

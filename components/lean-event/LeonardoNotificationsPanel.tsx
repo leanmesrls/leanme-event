@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
-  listProductNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   readNotificationIds,
   type LeanEventNotification,
-} from "@/lib/lean-event/notifications";
+} from "@/lib/lean-event/notifications-client";
 import { formatEuropeanDate } from "@/lib/lean-event/dates";
 import { LEONARDO_CANVAS_SURFACE } from "@/components/lean-event/leonardo-ui";
 
@@ -21,11 +20,48 @@ export function LeonardoNotificationsPanel({
   tenantSlug,
   userEmail,
 }: LeonardoNotificationsPanelProps) {
-  const notifications = useMemo(() => listProductNotifications(), []);
-  const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
-  const [openId, setOpenId] = useState<string | null>(
-    notifications[0]?.id ?? null
+  const [notifications, setNotifications] = useState<LeanEventNotification[]>(
+    []
   );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/leanyou/product-notifications", {
+          credentials: "same-origin",
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = (await res.json()) as {
+          notifications?: LeanEventNotification[];
+        };
+        if (cancelled) return;
+        const items = data.notifications ?? [];
+        setNotifications(items);
+        setOpenId((current) => current ?? items[0]?.id ?? null);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Caricamento notifiche fallito"
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     setReadIds(readNotificationIds(tenantSlug, userEmail));
@@ -38,7 +74,7 @@ export function LeonardoNotificationsPanel({
   }
 
   function handleMarkAll() {
-    markAllNotificationsRead(tenantSlug, userEmail);
+    markAllNotificationsRead(tenantSlug, userEmail, notifications);
     setReadIds(readNotificationIds(tenantSlug, userEmail));
   }
 
@@ -51,19 +87,27 @@ export function LeonardoNotificationsPanel({
         <div>
           <h2 className="text-2xl font-bold text-leanme-fuchsia">Notifiche</h2>
           <p className="mt-1 text-sm text-white/55">
-            Aggiornamenti periodici LeanMe sul prodotto e sui moduli.
+            Aggiornamenti LeanMe sul prodotto e sui rilasci (fonte: Neon Control
+            Plane).
           </p>
         </div>
         <button
           type="button"
           onClick={handleMarkAll}
-          className="rounded-full border border-white/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 transition hover:border-white hover:text-white"
+          disabled={notifications.length === 0}
+          className="rounded-full border border-white/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 transition hover:border-white hover:text-white disabled:opacity-40"
         >
           Segna tutte come lette
         </button>
       </div>
 
-      {notifications.length === 0 ? (
+      {loading ? (
+        <p className="text-sm text-white/50">Caricamento notifiche…</p>
+      ) : error ? (
+        <p className="text-sm text-red-300/90">
+          Impossibile caricare le notifiche ({error}).
+        </p>
+      ) : notifications.length === 0 ? (
         <p className="text-sm text-white/50">Nessuna notifica al momento.</p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">

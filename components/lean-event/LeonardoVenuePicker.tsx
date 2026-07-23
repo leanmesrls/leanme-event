@@ -14,7 +14,7 @@ import {
 } from "@/lib/lean-event/venue-display";
 import { leanEventLeonardoSediPath } from "@/lib/lean-event/paths";
 import type {
-  LeonardoEventVenueDetails,
+  TenantEventVenueDetails,
   LeonardoVenue,
 } from "@/types/lean-event";
 
@@ -25,19 +25,19 @@ interface LeonardoVenuePickerProps {
   venues: LeonardoVenue[];
   venueId: string | null;
   venueText: string;
-  venueDetails?: LeonardoEventVenueDetails | null;
+  venueDetails?: TenantEventVenueDetails | null;
   nameRequired?: boolean;
   onChange: (value: {
     venueId: string | null;
     venue: string;
-    venueDetails: LeonardoEventVenueDetails;
+    venueDetails: TenantEventVenueDetails;
   }) => void;
 }
 
 function resolveInitialMode(
   venueId: string | null,
   venueText: string,
-  venueDetails?: LeonardoEventVenueDetails | null
+  venueDetails?: TenantEventVenueDetails | null
 ): VenuePickerMode {
   // Solo il flag esplicito: lo snapshot "ONLINE · …" non deve bloccare rubrica/libero.
   if (venueDetails?.isOnline === true) {
@@ -55,9 +55,9 @@ function resolveInitialMode(
 function resolveInitialDetails(
   venueId: string | null,
   venues: LeonardoVenue[],
-  venueDetails: LeonardoEventVenueDetails | null | undefined,
+  venueDetails: TenantEventVenueDetails | null | undefined,
   venueText: string
-): LeonardoEventVenueDetails {
+): TenantEventVenueDetails {
   if (venueDetails) {
     return normalizeVenueDetails(venueDetails);
   }
@@ -78,11 +78,11 @@ function PhysicalVenueFields({
   onChange,
   nameRequired = false,
 }: {
-  details: LeonardoEventVenueDetails;
-  onChange: (details: LeonardoEventVenueDetails) => void;
+  details: TenantEventVenueDetails;
+  onChange: (details: TenantEventVenueDetails) => void;
   nameRequired?: boolean;
 }) {
-  function patch(partial: Partial<LeonardoEventVenueDetails>) {
+  function patch(partial: Partial<TenantEventVenueDetails>) {
     onChange(
       normalizeVenueDetails({ ...details, ...partial, isOnline: false })
     );
@@ -142,13 +142,13 @@ export function LeonardoVenuePicker({
   const [mode, setMode] = useState<VenuePickerMode>(() =>
     resolveInitialMode(venueId, venueText, venueDetails)
   );
-  const [details, setDetails] = useState<LeonardoEventVenueDetails>(() =>
+  const [details, setDetails] = useState<TenantEventVenueDetails>(() =>
     resolveInitialDetails(venueId, venues, venueDetails, venueText)
   );
 
   function emit(
     nextId: string | null,
-    nextDetails: LeonardoEventVenueDetails,
+    nextDetails: TenantEventVenueDetails,
     nextMode: VenuePickerMode
   ) {
     const normalized = normalizeVenueDetails(nextDetails);

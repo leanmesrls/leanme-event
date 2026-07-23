@@ -24,15 +24,21 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Temporary cutover redirects — see docs/legacy/redirect-register.md
       {
         source: "/leanyou/:path*",
         destination: "/lean-event/:path*",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/api/leanyou/:path*",
-        destination: "/api/lean-event/:path*",
-        permanent: true,
+        destination: "/api/v1/lean-event/:path*",
+        permanent: false,
+      },
+      {
+        source: "/api/lean-event/:path*",
+        destination: "/api/v1/lean-event/:path*",
+        permanent: false,
       },
       {
         source: "/lean-event/login",
@@ -42,24 +48,37 @@ const nextConfig: NextConfig = {
       {
         source: "/lean-event/:tenant/leonardo",
         destination: "/lean-event/:tenant",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/lean-event/:tenant/leonardo/:path*",
         destination: "/lean-event/:tenant/:path*",
-        permanent: true,
+        permanent: false,
+      },
+      {
+        source: "/lean-event/:tenant/verbali",
+        destination: "/lean-event/:tenant/ai/verbali",
+        permanent: false,
+      },
+      {
+        source: "/lean-event/:tenant/verbali/:path*",
+        destination: "/lean-event/:tenant/ai/verbali/:path*",
+        permanent: false,
       },
     ];
   },
   async rewrites() {
     return [
+      // Temporary: UI still served from app/leanyou until physical move completes.
       {
         source: "/lean-event/:path*",
         destination: "/leanyou/:path*",
       },
+      // Temporary: non-v1 handlers until API tree cutover completes.
       {
-        source: "/api/lean-event/:path*",
+        source: "/api/v1/lean-event/:path*",
         destination: "/api/leanyou/:path*",
+        // Note: exact v1 routes that exist on disk (e.g. system/build-info) take precedence.
       },
     ];
   },

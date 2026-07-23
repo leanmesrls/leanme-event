@@ -17,7 +17,7 @@ import { listPublicTenantUsersByTenantId } from "@/lib/lean-event/tenant-users";
 import { sanitizeEventProjectTeam } from "@/lib/lean-event/tenant-users-display";
 import type {
   LeonardoEcmModality,
-  LeonardoEventCategoryId,
+  TenantEventCategoryId,
   LeonardoFormationEventTypeId,
 } from "@/types/lean-event";
 
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       } | null;
       startDate?: string;
       endDate?: string;
-      categoryId?: LeonardoEventCategoryId;
+      categoryId?: TenantEventCategoryId;
       healthAreaId?: string | null;
       ecmEnabled?: boolean | null;
       ecmModality?: LeonardoEcmModality | null;

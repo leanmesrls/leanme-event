@@ -14,8 +14,8 @@ import {
 import { formatVenueLabel } from "@/lib/lean-event/venue-display";
 import type {
   LeonardoAssignmentHospitality,
-  LeonardoEvent,
-  LeonardoEventHotelBlock,
+  TenantEvent,
+  TenantEventHotelBlock,
   LeonardoVenue,
 } from "@/types/lean-event";
 
@@ -62,9 +62,9 @@ export function generateNightDatesFromPeriod(
 }
 
 export function appendGeneratedNightsToBlock(
-  block: LeonardoEventHotelBlock,
+  block: TenantEventHotelBlock,
   dates: string[]
-): LeonardoEventHotelBlock {
+): TenantEventHotelBlock {
   const existingDates = new Set(
     block.nightAllotments.map((night) => night.nightDate.trim()).filter(Boolean)
   );
@@ -85,7 +85,7 @@ export function appendGeneratedNightsToBlock(
 }
 
 export function buildAllotmentReport(
-  event: Pick<LeonardoEvent, "hotelBlocks" | "hotel">,
+  event: Pick<TenantEvent, "hotelBlocks" | "hotel">,
   venues: LeonardoVenue[],
   assignments: EventAssignmentWithContact[]
 ): AllotmentReportRow[] {
@@ -151,7 +151,7 @@ export function buildAllotmentReport(
 }
 
 export function validateAllotmentAssignment(
-  event: Pick<LeonardoEvent, "hotelBlocks" | "hotel">,
+  event: Pick<TenantEvent, "hotelBlocks" | "hotel">,
   assignments: Array<{
     id: string;
     hospitality?: LeonardoAssignmentHospitality | null;

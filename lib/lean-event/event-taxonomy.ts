@@ -1,8 +1,8 @@
 import taxonomyData from "@/data/lean-event/event-taxonomy.json";
 import type {
   LeonardoEcmModality,
-  LeonardoEvent,
-  LeonardoEventCategoryId,
+  TenantEvent,
+  TenantEventCategoryId,
   LeonardoFormationEventTypeId,
 } from "@/types/lean-event";
 
@@ -21,14 +21,14 @@ export function getEventTaxonomy(): EventTaxonomyConfig {
 }
 
 export function isHealthFormationCategory(
-  categoryId: LeonardoEventCategoryId
+  categoryId: TenantEventCategoryId
 ): boolean {
   return categoryId === "formazione_sanitaria";
 }
 
 /** Formazione sanitaria o non sanitaria (gruppo FORMAZIONE). */
 export function isFormationCategory(
-  categoryId: LeonardoEventCategoryId
+  categoryId: TenantEventCategoryId
 ): boolean {
   return (
     categoryId === "formazione_sanitaria" ||
@@ -36,7 +36,7 @@ export function isFormationCategory(
   );
 }
 
-export function getCategoryLabel(categoryId: LeonardoEventCategoryId): string {
+export function getCategoryLabel(categoryId: TenantEventCategoryId): string {
   return (
     taxonomy.categories.find((category) => category.id === categoryId)?.label ??
     categoryId
@@ -87,7 +87,7 @@ export function formationEventTypeRequiresStructure(
   return Boolean(item && "requiresStructure" in item && item.requiresStructure);
 }
 
-export function normalizeLeonardoEvent(event: LeonardoEvent): LeonardoEvent {
+export function normalizeTenantEvent(event: TenantEvent): TenantEvent {
   const categoryId =
     event.categoryId ??
     (event.type === "ecm" ? "formazione_sanitaria" : "evento_aziendale");
@@ -156,7 +156,7 @@ export function normalizeLeonardoEvent(event: LeonardoEvent): LeonardoEvent {
 
 export function validateEventTaxonomy(
   input: {
-    categoryId: LeonardoEventCategoryId;
+    categoryId: TenantEventCategoryId;
     healthAreaId?: string | null;
     ecmEnabled?: boolean | null;
     ecmModality?: LeonardoEcmModality | null;
@@ -222,8 +222,8 @@ export function validateEventTaxonomy(
   return null;
 }
 
-export function formatEventTaxonomySummary(event: LeonardoEvent): string {
-  const normalized = normalizeLeonardoEvent(event);
+export function formatEventTaxonomySummary(event: TenantEvent): string {
+  const normalized = normalizeTenantEvent(event);
   const parts = [getCategoryLabel(normalized.categoryId)];
 
   if (isFormationCategory(normalized.categoryId)) {

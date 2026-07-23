@@ -1,7 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
-import { get } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 import {
@@ -9,48 +5,17 @@ import {
   tenantHasModule,
 } from "@/lib/lean-event/auth";
 import {
+  auditContextFromSession,
+  writeLeanEventAuditEvent,
+} from "@/lib/lean-event/audit-log";
+import { readLegacyBinaryFromPostgres } from "@/lib/lean-event/legacy-binary-postgres";
+import {
   forbiddenResponse,
   requireSession,
 } from "@/lib/lean-event/server-auth";
-import { getDataRoot } from "@/lib/lean-event/storage";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
-}
-
-async function readSupplierDocBuffer(input: {
-  tenantId: string;
-  scope: "rubrica" | "event";
-  scopeId: string;
-  filename: string;
-}): Promise<Buffer | null> {
-  try {
-    const dir = path.join(
-      getDataRoot(),
-      "supplier-documents",
-      input.tenantId,
-      input.scope,
-      input.scopeId
-    );
-    return await readFile(path.join(dir, input.filename));
-  } catch {
-    // Blob fallback
-  }
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
-    return null;
-  }
-
-  try {
-    const pathname = `lean-event/supplier-documents/${input.tenantId}/${input.scope}/${input.scopeId}/${input.filename}`;
-    const result = await get(pathname, { access: "private", useCache: false });
-    if (!result?.stream) {
-      return null;
-    }
-    return Buffer.from(await new Response(result.stream).arrayBuffer());
-  } catch {
-    return null;
-  }
 }
 
 export async function GET(request: Request, context: RouteContext) {
@@ -73,21 +38,34 @@ export async function GET(request: Request, context: RouteContext) {
     }
 
     const filename = `${documentId}-${name}`;
-    const buffer = await readSupplierDocBuffer({
+    const pathname = `lean-event/supplier-documents/${session.tenantId}/rubrica/${supplierId}/${filename}`;
+    const file = await readLegacyBinaryFromPostgres({
       tenantId: session.tenantId,
-      scope: "rubrica",
-      scopeId: supplierId,
-      filename,
+      legacyPath: pathname,
     });
-    if (!buffer) {
+    if (!file) {
       return NextResponse.json({ error: "Documento non trovato." }, { status: 404 });
     }
 
-    return new NextResponse(new Uint8Array(buffer), {
+    await writeLeanEventAuditEvent({
+      ...auditContextFromSession(session),
+      action: "document.download",
+      resourceType: "supplier_document",
+      resourceId: documentId,
+      payload: {
+        scope: "rubrica",
+        supplierId,
+        filename,
+        bytes: file.buffer.byteLength,
+      },
+    });
+
+    return new NextResponse(new Uint8Array(file.buffer), {
       headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": `inline; filename="${name}"`,
+        "Content-Type": file.contentType || "application/octet-stream",
+        "Content-Disposition": `inline; filename="${name.replace(/"/g, "")}"`,
         "Cache-Control": "private, max-age=3600",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {

@@ -1,8 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { put } from "@vercel/blob";
-
+import {
+  isPostgresBinaryStoreEnabled,
+  storeLegacyBinaryInPostgres,
+} from "@/lib/lean-event/legacy-binary-postgres";
 import { getDataRoot } from "./storage";
 
 const BLOB_ROOT = "lean-event/event-chat";
@@ -10,10 +12,6 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 function attachmentDir(tenantId: string, eventId: string): string {
   return path.join(getDataRoot(), "event-chat", tenantId, eventId);
-}
-
-function isBlobEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
 }
 
 export function validateChatAttachment(file: File): string | null {
@@ -46,14 +44,18 @@ export async function saveChatAttachmentFile(input: {
   const safeName = input.file.name.replace(/[^\w.\-() ]+/g, "_").slice(0, 80);
   const filename = `${input.attachmentId}-${safeName}`;
   const apiUrl = `/api/lean-event/events/${input.eventId}/chat/attachment?id=${input.attachmentId}&name=${encodeURIComponent(safeName)}`;
+  const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${filename}`;
 
-  if (isBlobEnabled()) {
-    const pathname = `${BLOB_ROOT}/${input.tenantId}/${input.eventId}/${filename}`;
-    await put(pathname, buffer, {
-      access: "private",
-      contentType: input.file.type || "application/octet-stream",
-      addRandomSuffix: false,
-      allowOverwrite: true,
+  if (isPostgresBinaryStoreEnabled()) {
+    await storeLegacyBinaryInPostgres({
+      tenantId: input.tenantId,
+      kind: "other",
+      filename,
+      mime: input.file.type || "application/octet-stream",
+      file: buffer,
+      legacyPath: pathname,
+      eventId: input.eventId,
+      meta: { attachmentId: input.attachmentId },
     });
     return apiUrl;
   }

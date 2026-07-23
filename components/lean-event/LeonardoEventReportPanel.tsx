@@ -8,13 +8,13 @@ import { LeonardoEventPlaceholderPanel } from "@/components/lean-event/LeonardoE
 import { LeonardoEventTransferReportPanel } from "@/components/lean-event/LeonardoEventTransferReportPanel";
 import { LeonardoSubSectionNav } from "@/components/lean-event/LeonardoSubSectionNav";
 import type { EventAssignmentWithContact } from "@/lib/lean-event/event-assignments";
-import type { LeonardoEvent, LeonardoVenue } from "@/types/lean-event";
+import type { TenantEvent, LeonardoVenue } from "@/types/lean-event";
 
 export type EventReportSubTab = "viaggi" | "transfer" | "hotel" | "partecipanti";
 
 interface LeonardoEventReportPanelProps {
   tenantSlug: string;
-  event: LeonardoEvent;
+  event: TenantEvent;
   venues: LeonardoVenue[];
   assignments: EventAssignmentWithContact[];
   hotelEnabled: boolean;
