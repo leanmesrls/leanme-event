@@ -28,8 +28,13 @@ export const leanEventJobRunner = inngest.createFunction(
     triggers: { event: "lean-event/job.*" },
   },
   async ({ event, step }) => {
-    const jobId = String(event.data.jobId ?? "");
-    const type = String(event.name.replace("lean-event/job.", ""));
+    const data =
+      event.data && typeof event.data === "object"
+        ? (event.data as Record<string, unknown>)
+        : {};
+    const jobId = String(data.jobId ?? "");
+    const eventName = typeof event.name === "string" ? event.name : "";
+    const type = eventName.replace("lean-event/job.", "");
 
     await step.run("mark-running", async () => {
       await markJob(jobId, "running", 1);
