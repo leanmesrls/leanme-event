@@ -128,7 +128,10 @@ export default async function LeonardoInfoPage({ params }: PageProps) {
         </h2>
         {releases.length === 0 ? (
           <p className="rounded-xl border border-white/10 bg-[#111111] px-5 py-6 text-sm text-white/50">
-            Nessun aggiornamento pubblicato ancora.
+            Nessun aggiornamento pubblicato ancora
+            {!build.services.controlPlaneConfigured
+              ? " (Control Plane non configurato su questo ambiente)."
+              : "."}
           </p>
         ) : (
           <ul className="space-y-3">

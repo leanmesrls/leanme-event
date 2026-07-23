@@ -22,13 +22,21 @@ function mapAnnouncement(row: Record<string, unknown>): LeanEventNotification {
 }
 
 async function listPlatformAnnouncements(): Promise<LeanEventNotification[]> {
-  const sql = getControlPlaneSql();
-  const rows = await sql`
-    SELECT id, published_at, title, summary, body, priority
-    FROM lean_event_platform_announcements
-    ORDER BY published_at DESC, id ASC
-  `;
-  return (rows as Record<string, unknown>[]).map(mapAnnouncement);
+  try {
+    const sql = getControlPlaneSql();
+    const rows = await sql`
+      SELECT id, published_at, title, summary, body, priority
+      FROM lean_event_platform_announcements
+      ORDER BY published_at DESC, id ASC
+    `;
+    return (rows as Record<string, unknown>[]).map(mapAnnouncement);
+  } catch (error) {
+    console.error(
+      "[lean-event/notifications] Control Plane announcements unread:",
+      error instanceof Error ? error.message : error
+    );
+    return [];
+  }
 }
 
 function mergeNotifications(

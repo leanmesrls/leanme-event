@@ -49,21 +49,29 @@ function mapRow(row: Record<string, unknown>): LeanEventRelease {
 
 /** Elenco rilasci prodotto (SoT: Control Plane Neon). */
 export async function listProductReleases(): Promise<LeanEventRelease[]> {
-  const sql = getControlPlaneSql();
-  const rows = await sql`
-    SELECT
-      version,
-      published_at,
-      title,
-      summary,
-      highlights,
-      technical_refs,
-      changes_from_previous,
-      architecture_version
-    FROM lean_event_platform_releases
-    ORDER BY published_at DESC, version DESC
-  `;
-  return (rows as Record<string, unknown>[]).map(mapRow);
+  try {
+    const sql = getControlPlaneSql();
+    const rows = await sql`
+      SELECT
+        version,
+        published_at,
+        title,
+        summary,
+        highlights,
+        technical_refs,
+        changes_from_previous,
+        architecture_version
+      FROM lean_event_platform_releases
+      ORDER BY published_at DESC, version DESC
+    `;
+    return (rows as Record<string, unknown>[]).map(mapRow);
+  } catch (error) {
+    console.error(
+      "[lean-event/releases] Control Plane unread:",
+      error instanceof Error ? error.message : error
+    );
+    return [];
+  }
 }
 
 export async function getLatestProductRelease(): Promise<LeanEventRelease | null> {
